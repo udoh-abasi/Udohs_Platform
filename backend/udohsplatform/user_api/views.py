@@ -14,23 +14,42 @@ from rest_framework import permissions, status
 import requests
 from urllib.parse import urlencode, unquote
 import os
+from .permissions import UserAlreadyExistPermission
+from django.apps import apps
 
 
 User = get_user_model()
 
 
 class UserRegister(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (
+        UserAlreadyExistPermission,
+        permissions.AllowAny,
+    )
 
     def post(self, request):
-        print(request.data)
         clean_data = custom_validation(request.data)
+
+        EmailVerification = apps.get_model("EmailVerification", "EmailVerification")
+
+        if not (
+            EmailVerification.objects.filter(
+                email=clean_data.get("email"), is_email_verified=True
+            ).exists()
+        ):
+            return Response(
+                {"message": "You need to verify your email"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = UserRegisterSerializer(data=clean_data)
 
         if serializer.is_valid(raise_exception=True):
             user = serializer.create(clean_data)
             if user:
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    serializer.data["email"], status=status.HTTP_201_CREATED
+                )
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -56,11 +75,19 @@ class UserLogin(APIView):
         except:
             pass
 
-        serializer = UserLoginSerializer(data=data)
-        if serializer.is_valid(raise_exception=True):
-            user = serializer.check_user(data)
-            login(request, user)
-            return Response(serializer.data["email"], status=status.HTTP_200_OK)
+        try:
+            serializer = UserLoginSerializer(data=data)
+            if serializer.is_valid(raise_exception=True):
+                user = serializer.check_user(data)
+                login(request, user)
+                return Response(serializer.data["email"], status=status.HTTP_200_OK)
+        except:
+            return Response(
+                {
+                    "message": "Something went wrong",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                }
+            )
 
 
 class UserLogout(APIView):
