@@ -156,16 +156,14 @@ class GetGoogleUserData(APIView):
                 if email:
                     try:
                         user = User.objects.get(email=email, auth_provider="google")
-                        print("Passed")
+
                         user = authenticate(
                             username=email,
                             password=os.environ.get("GOOGLE_USER_PASSWORD"),
                         )
-                        print("User after authenticate is", user)
                         login(request, user)
-                        print("Got here after login")
+
                         user = User.objects.get(email=email)
-                        print("User is", user)
                         serializer = UserSerializer(user)
                         return Response(serializer.data, status=status.HTTP_200_OK)
                     except:
@@ -189,13 +187,15 @@ class GetGoogleUserData(APIView):
                     new_user.last_name = last_name
                     new_user.save()
 
-                    serializer = UserSerializer(new_user)
-
-                    print("The serializer data is", serializer.data)
-
-                    return Response(
-                        {"user": serializer.data}, status=status.HTTP_200_OK
+                    user = authenticate(
+                        username=email,
+                        password=os.environ.get("GOOGLE_USER_PASSWORD"),
                     )
+                    login(request, user)
+
+                    serializer = UserSerializer(new_user)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+
             except Exception as e:
                 print(e)
 

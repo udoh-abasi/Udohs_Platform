@@ -3,19 +3,16 @@ from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError
 
 
-import os
-from rest_framework.exceptions import AuthenticationFailed
-
-UserModel = get_user_model()
+User = get_user_model()
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserModel
+        model = User
         fields = "__all__"
 
     def create(self, clean_data):
-        user_obj = UserModel.objects.create_user(
+        user_obj = User.objects.create_user(
             email=clean_data["email"], password=clean_data["password"]
         )
 
@@ -39,7 +36,7 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserModel
+        model = User
         fields = ("email",)
 
 
