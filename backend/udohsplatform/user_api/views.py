@@ -11,8 +11,6 @@ from .serializers import (
 from .validation import custom_validation, validate_email, validate_password
 from rest_framework import permissions, status
 
-from rest_framework.generics import GenericAPIView
-
 import requests
 from urllib.parse import urlencode, unquote
 import os
@@ -104,23 +102,23 @@ class SendLinkTo(APIView):
 
 
 class GetGoogleUserData(APIView):
+    # If this is NOT added , only authenticated users will be allowed to access this view
     permission_classes = (permissions.AllowAny,)
+
+    # Tells Django we are using sessionID and NOT JWT
     authentication_classes = (SessionAuthentication,)
 
     def get(self, request):
+        # Get the 'code' from the URL. The 'code' is sent as 'http://127.0.0.1:8000/api/getgoogledata?code=4%2Fsh3cndc'
         google_code = request.GET.get("code")
-        print(google_code)
 
-        # Replace with the authorization code obtained from the callback
         if google_code:
             authorization_code = unquote(google_code)
-
-            print(authorization_code)
 
             client_id = os.environ.get("GOOGLE_CLIENT_ID")
             client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
 
-            token_url = "https://oauth2.googleapis.com/token"
+            token_url = "https://oauth2.googleapis.com/token"  # URL for google API, used to get access_token
             token_data = {
                 "code": authorization_code,
                 "client_id": client_id,
@@ -130,16 +128,18 @@ class GetGoogleUserData(APIView):
             }
 
             response = requests.post(token_url, data=token_data)
+
+            # Now, we get the data returned by google API. It will either be the JSON containing the access_token or error message
             token_data = response.json()
 
-            print("Token data", token_data)
-
             try:
+                # This will raise an error if no token was sent. So, we use a try-except block
                 access_token = token_data["access_token"]
                 # refresh_token = token_data.get("refresh_token")
 
                 headers = {"Authorization": f"Bearer {access_token}"}
 
+                # Send another request to Google's People API to get the user's data, if the token is valid
                 response = requests.get(
                     "https://people.googleapis.com/v1/people/me?personFields=emailAddresses,names",
                     headers=headers,
@@ -149,12 +149,10 @@ class GetGoogleUserData(APIView):
                 email = profile_data.get("emailAddresses", [{}])[0].get("value", None)
                 first_name = profile_data.get("names", [{}])[0].get("givenName", None)
                 last_name = profile_data.get("names", [{}])[0].get("familyName", None)
-                print("Profile Field is", profile_data)
-
-                print("User's Email:", email)
 
                 if email:
                     try:
+                        # First, we check if the user had sign in with google before, then we log them in
                         user = User.objects.get(email=email, auth_provider="google")
 
                         user = authenticate(
@@ -168,14 +166,18 @@ class GetGoogleUserData(APIView):
                         return Response(serializer.data, status=status.HTTP_200_OK)
                     except:
                         try:
+                            # Then we check if the user had already signed up (using username and password). If not, we will get an Integrity Constraint error
                             User.objects.get(email=email)
                             return Response(
-                                {"User already authenticated, Please log in."},
+                                {
+                                    "message": "User already authenticated, Please log in."
+                                },
                                 status=status.HTTP_403_FORBIDDEN,
                             )
                         except:
                             pass
 
+                # If everything went well, and we got to this level, that means the user does NOT exits in our database, so we create an account for them
                 if email and first_name and last_name:
                     new_user = User.objects.create_user(
                         email, password=os.environ.get("GOOGLE_USER_PASSWORD")
@@ -187,6 +189,7 @@ class GetGoogleUserData(APIView):
                     new_user.last_name = last_name
                     new_user.save()
 
+                    # After signing up the user, we log in the user at once and return their email
                     user = authenticate(
                         username=email,
                         password=os.environ.get("GOOGLE_USER_PASSWORD"),

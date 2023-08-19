@@ -16,6 +16,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             email=clean_data["email"], password=clean_data["password"]
         )
 
+        user_obj.is_email_verified = True
         user_obj.save()
         return user_obj
 
