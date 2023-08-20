@@ -14,18 +14,3 @@ class UserAlreadyExistPermission(BasePermission):
         if User.objects.filter(email=request.data.get("email")).exists():
             return False
         return True
-
-
-# class UserExistInDatabasePermission(BasePermission):
-#     """This permission checks if the user already has an account in our database. If they do, then they are given the permission to change their password. It is used to prevent non-registered users from accessing the forgot password view"""
-
-
-#     def has_permission(self, request, view):
-#         print(request.data.get("email"))
-#         # print("Email is", email)
-#         if User.objects.filter(
-#             email=request.data.get("email"), auth_provider="AppUser"
-#         ).exists():
-#             return True
-
-#         return False

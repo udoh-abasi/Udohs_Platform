@@ -35,7 +35,15 @@ class UserRegister(APIView):
     )
 
     def post(self, request):
-        clean_data = custom_validation(request.data)
+        try:
+            clean_data = custom_validation(request.data)
+        except:
+            return Response(
+                {
+                    "message": "Email already exist or password does not meet requirement"
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         EmailVerification = apps.get_model("EmailVerification", "EmailVerification")
 
