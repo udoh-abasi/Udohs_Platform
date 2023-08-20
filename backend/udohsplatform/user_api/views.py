@@ -2,13 +2,19 @@ from django.contrib.auth import login, logout, get_user_model, authenticate
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
 from .serializers import (
     UserSerializer,
     UserLoginSerializer,
     UserRegisterSerializer,
     SendLink,
 )
-from .validation import custom_validation, validate_email, validate_password
+from .validation import (
+    custom_validation,
+    validate_email,
+    validate_password,
+    validate_password_before_signup,
+)
 from rest_framework import permissions, status
 
 import requests
@@ -16,6 +22,7 @@ from urllib.parse import urlencode, unquote
 import os
 from .permissions import UserAlreadyExistPermission
 from django.apps import apps
+from django.core.exceptions import ValidationError
 
 
 User = get_user_model()
@@ -32,11 +39,11 @@ class UserRegister(APIView):
 
         EmailVerification = apps.get_model("EmailVerification", "EmailVerification")
 
-        if not (
-            EmailVerification.objects.filter(
+        try:
+            email_verification_obj = EmailVerification.objects.get(
                 email=clean_data.get("email"), is_email_verified=True
-            ).exists()
-        ):
+            )
+        except:
             return Response(
                 {"message": "You need to verify your email"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -47,6 +54,7 @@ class UserRegister(APIView):
         if serializer.is_valid(raise_exception=True):
             user = serializer.create(clean_data)
             if user:
+                email_verification_obj.delete()
                 return Response(
                     serializer.data["email"], status=status.HTTP_201_CREATED
                 )
@@ -81,12 +89,20 @@ class UserLogin(APIView):
                 user = serializer.check_user(data)
                 login(request, user)
                 return Response(serializer.data["email"], status=status.HTTP_200_OK)
+        except ValidationError:
+            return Response(
+                {
+                    "message": "User not found",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         except:
             return Response(
                 {
                     "message": "Something went wrong",
-                    "status": status.HTTP_400_BAD_REQUEST,
-                }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
 
@@ -230,3 +246,46 @@ class GetGoogleUserData(APIView):
                 print(e)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ForgotPasswordView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def put(self, request, email):
+        ForgotPasswordVerificationModel = apps.get_model(
+            "forgotPasswordEmailVerification", "PasswordEmailVerification"
+        )
+
+        try:
+            forgot_Password_Verified_Obj = ForgotPasswordVerificationModel.objects.get(
+                email=email, is_email_verified=True
+            )
+        except:
+            return Response(
+                {"message": "Please verify your email if you already have an account"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            password = validate_password_before_signup(request.data.get("password"))
+            if not password:
+                return Response(
+                    {
+                        "message": f"{request.data.get('password')} does not meet password requirements"
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            user = User.objects.get(email=email, auth_provider="AppUser")
+            user.set_password(request.data.get("password"))
+            user.save()
+
+            forgot_Password_Verified_Obj.delete()
+            return Response()
+        except:
+            return Response(
+                {
+                    "message": "User not found. It's possible you signed in with google. Please continue your sign in with google or create an account"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
