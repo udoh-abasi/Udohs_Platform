@@ -1,5 +1,10 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import HomePage from "./Page_Components/HomePage";
+
 import { useState } from "react";
 import axios from "axios";
+import Header from "./Page_Components/Header";
+import Footer from "./Page_Components/Footer";
 
 axios.defaults.xsrfCookieName = "csrftoken"; // NOTE: So, here we want to make sure that all our axios requests will be sent out with this csrftoken in the head
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -36,12 +41,22 @@ const SubmitRegistration = (e) => {
     });
 };
 
+const run = false;
+if (run) {
+  SubmitRegistration();
+}
+
 function App() {
   return (
-    <>
-      <div>Udoh platform</div>
-      <a href="">Login in with google</a>
-    </>
+    <BrowserRouter>
+      <Header />
+
+      <Routes>
+        <Route path="/" Component={HomePage} />
+      </Routes>
+
+      <Footer />
+    </BrowserRouter>
   );
 }
 
