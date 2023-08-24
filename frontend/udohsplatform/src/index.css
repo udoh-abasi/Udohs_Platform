@@ -16,7 +16,10 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+}
 
+body {
+  max-width: 1800px !important;
 }
 
 #logo {
@@ -39,4 +42,43 @@
 /*Stop the body from scrolling when the menu is open, on smaller screens*/
 body.menuOpen {
   overflow: hidden;
+}
+
+
+/* clears the ‘X’ from Internet Explorer */
+input[type=search]::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+input[type=search]::-ms-reveal {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* clears the ‘X’ from Chrome */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  display: none;
+}
+
+input[type=search] {
+  outline: 0;
+  padding: 7px;
+}
+
+/* This ensures that the text is a maximum of two lines and then three dots is added at the end of the line if it exceeds two lines*/
+#two-line-ellipsis {
+  display: -webkit-box;
+
+  /* Limit the text to 2 lines */
+  -webkit-line-clamp: 2;
+
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
