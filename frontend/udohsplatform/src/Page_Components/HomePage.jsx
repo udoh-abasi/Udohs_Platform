@@ -43,6 +43,7 @@ const HomePage = () => {
 
           <p>
             <Link
+              id="start_reading"
               href="#_"
               className="relative inline-flex items-center justify-center py-3 pl-4 pr-12 overflow-hidden font-semibold text-black transition-all duration-150 ease-in-out rounded-2xl hover:pl-10 hover:pr-6 bg-gray-50 group w-full mb-4 min-[420px]:mb-8"
             >
