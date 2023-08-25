@@ -28,7 +28,7 @@ const HomePage = () => {
             </p>
           </article>
 
-          <article className="mb-4 font-bold min-[375px]:mb-[40px] min-[420px]:mb-[60px] drop-shadow-[2px_2px_#000] text-white min-[600px]:text-black min-[600px]:drop-shadow-[2px_2px_#fff]">
+          <article className="font-bold mb-[40px] max-[374px]:mt-8 min-[420px]:mb-[60px] drop-shadow-[2px_2px_#000] text-white min-[600px]:text-black min-[600px]:drop-shadow-[2px_2px_#fff]">
             <p className="text-3xl min-[800px]:text-5xl mb-2">
               <strong>Are you a great mind?</strong>
             </p>
@@ -309,15 +309,15 @@ const HomePage = () => {
       </section>
 
       <div className="flex justify-center">
-        <section className="p-4 flex-[0_1_600px]">
+        <section className="p-4 flex-[0_1_600px] my-10">
           <Link
             href="#_"
-            className="relative inline-flex items-center justify-center py-3 pl-4 pr-12 overflow-hidden font-semibold text-black transition-all duration-150 ease-in-out rounded-2xl hover:pl-10 hover:pr-6 bg-[#a9bdbf] dark:bg-gray-50 group w-full "
+            className="relative inline-flex items-center justify-center py-3 pl-4 pr-12 overflow-hidden text-white dark:text-black transition-all duration-150 ease-in-out rounded-2xl hover:pl-10 hover:pr-6 bg-[#af4261] dark:bg-[#70dbb8] font-bold group w-full "
           >
             <span className="absolute bottom-0 left-0 w-full h-1 transition-all duration-150 ease-in-out bg-black group-hover:h-full"></span>
             <span className="absolute right-0 pr-4 duration-200 ease-out group-hover:translate-x-12">
               <svg
-                className="w-5 h-5 text-black"
+                className="w-5 h-5 text-white dark:text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
