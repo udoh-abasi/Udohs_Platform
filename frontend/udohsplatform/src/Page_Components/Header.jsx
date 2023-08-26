@@ -12,7 +12,7 @@ import { useMatchMedia } from "../customHooks/useMatchMedia";
 import HeaderForBigScreen from "./HeaderForBigScreen";
 
 const Header = () => {
-  const [user, setUser] = useState(false);
+  const [user, setUser] = useState(true);
   setUser;
 
   const togglePageScrolling = () => {

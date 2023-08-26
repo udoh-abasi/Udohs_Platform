@@ -71,7 +71,7 @@ const HeaderForBigScreen = ({ user }) => {
             <li>
               <Link
                 to="/"
-                className="flex relative transition-all duration-500 after:duration-500 hover:text-[#f2fde1] after:transition-all after:bg-[#af4261] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+                className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
               >
                 Our story
               </Link>
@@ -79,7 +79,7 @@ const HeaderForBigScreen = ({ user }) => {
             <li>
               <Link
                 to="/"
-                className="flex relative transition-all duration-500 after:duration-500 hover:text-[#f2fde1] after:transition-all after:bg-[#af4261] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+                className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
               >
                 Membership
               </Link>
@@ -87,7 +87,7 @@ const HeaderForBigScreen = ({ user }) => {
             <li>
               <Link
                 to="/"
-                className="flex relative transition-all duration-500 after:duration-500 hover:text-[#f2fde1] after:transition-all after:bg-[#af4261] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+                className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
               >
                 Write
               </Link>
@@ -98,7 +98,7 @@ const HeaderForBigScreen = ({ user }) => {
                 <li>
                   <Link
                     to="/"
-                    className="flex relative transition-all duration-500 after:duration-500 hover:text-[#f2fde1] after:transition-all after:bg-[#af4261] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+                    className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
                   >
                     Sign in
                   </Link>
@@ -106,7 +106,7 @@ const HeaderForBigScreen = ({ user }) => {
                 <li>
                   <Link
                     to="/"
-                    className="flex relative transition-all duration-500 after:duration-500 hover:text-[#f2fde1] after:transition-all after:bg-[#af4261] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+                    className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
                   >
                     Get started
                   </Link>
@@ -118,7 +118,7 @@ const HeaderForBigScreen = ({ user }) => {
               <li>
                 <Link
                   to="/"
-                  className="flex relative transition-all duration-500 after:duration-500 hover:text-[#f2fde1] after:transition-all after:bg-[#af4261] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+                  className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
                 >
                   Sign out
                 </Link>
