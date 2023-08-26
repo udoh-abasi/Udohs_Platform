@@ -1,4 +1,6 @@
 /* eslint-disable react/prop-types */
+import { useState } from "react";
+import { AiOutlineClose } from "react-icons/ai";
 import { BiSearchAlt } from "react-icons/bi";
 import { Link } from "react-router-dom";
 
@@ -9,16 +11,21 @@ const HeaderForBigScreen = ({ user }) => {
     searchInputField.focus();
   };
 
+  // This checks when the search form has focus, so that the 'search' button will change to an 'X' (close) button
+  const [formHasFocus, setFormHasFocus] = useState(false);
+
   return (
     <nav>
-      <div className="flex items-center justify-between dark:bg-[#242424] bg-white p-4 fixed w-full z-10">
-        <Link
-          to="/"
-          className="font-bold tracking-[-0.12em] text-2xl min-[900px]:text-3xl"
-          id="logo"
-        >
-          udohsplatform
-        </Link>
+      <ul className="flex items-center justify-between dark:bg-[#242424] bg-white p-4 fixed w-full z-10">
+        <li>
+          <Link
+            to="/"
+            className="font-bold tracking-[-0.12em] text-2xl min-[900px]:text-3xl"
+            id="logo"
+          >
+            udohsplatform
+          </Link>
+        </li>
 
         <a
           href="#start_reading"
@@ -27,47 +34,62 @@ const HeaderForBigScreen = ({ user }) => {
           Skip Navigation
         </a>
 
-        <div>
-          <ul className="flex items-center gap-4 text-[#af4261] dark:text-[#a1d06d] text-lg font-bold min-[900px]:text-xl">
-            <li>
-              <div className="group">
+        <li className="group text-[#af4261] dark:text-[#a1d06d]">
+          {!formHasFocus && (
+            <button
+              type="button"
+              aria-label="search"
+              title="Search"
+              className="text-3xl cursor-pointer flex min-[900px]:text-4xl peer"
+              onFocus={() => giveSearchFieldFocus()}
+            >
+              <BiSearchAlt />
+            </button>
+          )}
+
+          {formHasFocus && (
+            <button
+              type="button"
+              aria-label="search"
+              title="Search"
+              className="text-3xl cursor-pointer flex min-[900px]:text-4xl"
+              onClick={() => {
+                document.activeElement.blur();
+              }}
+            >
+              <AiOutlineClose />
+            </button>
+          )}
+
+          <div className="absolute -left-[1800px] top-16 w-full focus-within:left-0 peer-focus:left-0 transition-all duration-500">
+            <form
+              className="w-full flex justify-center"
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <div className="relative w-full max-w-[450px] text-black dark:text-white">
+                <input
+                  id="search-input-field"
+                  type="search"
+                  placeholder="search..."
+                  className="w-full block border-black dark:border-white border-2 rounded-3xl h-10"
+                  onFocus={() => setFormHasFocus(true)}
+                  onBlur={() => setFormHasFocus(false)}
+                />
                 <button
-                  type="button"
-                  aria-label="search"
+                  type="submit"
+                  aria-label="Submit"
                   title="Search"
-                  className="text-3xl cursor-pointer flex min-[900px]:text-4xl"
-                  onFocus={giveSearchFieldFocus}
-                  onMouseEnter={giveSearchFieldFocus}
+                  className="text-2xl absolute right-1 top-2"
                 >
                   <BiSearchAlt />
                 </button>
-
-                <div className="absolute -left-[1800px] top-16 w-full group-hover:left-0 group-focus-within:left-0 transition-all duration-500">
-                  <form
-                    className="w-full flex justify-center"
-                    onSubmit={(e) => e.preventDefault()}
-                  >
-                    <div className="relative w-full max-w-[450px]">
-                      <input
-                        id="search-input-field"
-                        type="search"
-                        placeholder="search..."
-                        className="w-full block border-black dark:border-white border-2 rounded-3xl h-10 text-black"
-                      />
-                      <button
-                        type="submit"
-                        aria-label="Submit"
-                        title="Search"
-                        className="text-2xl absolute right-1 top-2 text-black"
-                      >
-                        <BiSearchAlt />
-                      </button>
-                    </div>
-                  </form>
-                </div>
               </div>
-            </li>
+            </form>
+          </div>
+        </li>
 
+        <div>
+          <div className="flex items-center gap-4 text-[#af4261] dark:text-[#a1d06d] text-lg font-bold min-[900px]:text-xl">
             <li>
               <Link
                 to="/"
@@ -124,9 +146,9 @@ const HeaderForBigScreen = ({ user }) => {
                 </Link>
               </li>
             )}
-          </ul>
+          </div>
         </div>
-      </div>
+      </ul>
     </nav>
   );
 };

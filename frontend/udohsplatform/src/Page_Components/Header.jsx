@@ -12,7 +12,7 @@ import { useMatchMedia } from "../customHooks/useMatchMedia";
 import HeaderForBigScreen from "./HeaderForBigScreen";
 
 const Header = () => {
-  const [user, setUser] = useState(true);
+  const [user, setUser] = useState(false);
   setUser;
 
   const togglePageScrolling = () => {
@@ -53,6 +53,9 @@ const Header = () => {
     document.querySelector("body").classList.remove("menuOpen");
   }, [smallScreenNav]);
 
+  // This checks when the search form has focus, so that the 'search' button will change to an 'X' (close) button
+  const [formHasFocus, setFormHasFocus] = useState(false);
+
   return (
     <header>
       {smallScreenNav ? (
@@ -66,19 +69,34 @@ const Header = () => {
               udohsplatform
             </Link>
 
-            <div className="group">
-              <button
-                type="button"
-                aria-label="search"
-                title="Search"
-                className="text-3xl text-[#af4261] dark:text-[#a1d06d] cursor-pointer"
-                onFocus={giveSearchFieldFocus}
-                onMouseEnter={giveSearchFieldFocus}
-              >
-                <BiSearchAlt />
-              </button>
+            <div className="">
+              {!formHasFocus && (
+                <button
+                  type="button"
+                  aria-label="search"
+                  title="Search"
+                  className="text-3xl text-[#af4261] dark:text-[#a1d06d] cursor-pointer peer"
+                  onFocus={() => giveSearchFieldFocus()}
+                >
+                  <BiSearchAlt />
+                </button>
+              )}
 
-              <div className="absolute -left-[1800px] top-16 w-full group-hover:left-0 group-focus-within:left-0 transition-all duration-500">
+              {formHasFocus && (
+                <button
+                  type="button"
+                  aria-label="search"
+                  title="Search"
+                  className="text-3xl text-[#af4261] dark:text-[#a1d06d] cursor-pointer "
+                  onClick={() => {
+                    document.activeElement.blur();
+                  }}
+                >
+                  <AiOutlineClose />
+                </button>
+              )}
+
+              <div className="absolute -left-[1800px] top-16 w-full focus-within:left-0 peer-focus:left-0 transition-all duration-500">
                 <form
                   className="w-full flex justify-center"
                   onSubmit={(e) => e.preventDefault()}
@@ -89,6 +107,8 @@ const Header = () => {
                       type="search"
                       placeholder="search..."
                       className="w-full block border-black dark:border-white border-2 rounded-3xl h-10"
+                      onFocus={() => setFormHasFocus(true)}
+                      onBlur={() => setFormHasFocus(false)}
                     />
                     <button
                       type="submit"
