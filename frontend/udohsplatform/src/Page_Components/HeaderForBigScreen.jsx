@@ -4,7 +4,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import { BiSearchAlt } from "react-icons/bi";
 import { Link } from "react-router-dom";
 
-const HeaderForBigScreen = ({ user }) => {
+const HeaderForBigScreen = ({ user, showSignInForm }) => {
   // This function gives the Search Input field a focus
   const giveSearchFieldFocus = () => {
     const searchInputField = document.querySelector("#search-input-field");
@@ -120,6 +120,7 @@ const HeaderForBigScreen = ({ user }) => {
                 <li>
                   <Link
                     to="/"
+                    onClick={showSignInForm}
                     className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
                   >
                     Sign in

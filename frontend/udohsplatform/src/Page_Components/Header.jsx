@@ -32,15 +32,6 @@ const Header = () => {
     togglePageScrolling();
   };
 
-  // This was added so that on bigger screens, if the search bar has focus, when the escape key is pressed, it will lose focus so that the search field will disappear
-  useEffect(() => {
-    document.addEventListener("keydown", (e) => {
-      if (e.key == "Escape") {
-        document.activeElement.blur();
-      }
-    });
-  }, []);
-
   // This function gives the Search Input field a focus
   const giveSearchFieldFocus = () => {
     const searchInputField = document.querySelector("#search-input-field");
@@ -51,11 +42,68 @@ const Header = () => {
 
   // Listen to when a new <nav> is returned, then remove 'menuOpen' from <body> element. This is fix incase the nav was open on mobile before resizing screen to desktop
   useEffect(() => {
-    document.querySelector("body").classList.remove("menuOpen");
+    // First, we check if the sign in form is open. This will prevent adding scroll bar when the sign up form is still open
+
+    if (document.querySelector("#sign_in").classList.contains("hidden")) {
+      document.querySelector("body").classList.remove("menuOpen");
+    }
   }, [smallScreenNav]);
 
   // This checks when the search form has focus, so that the 'search' button will change to an 'X' (close) button
   const [formHasFocus, setFormHasFocus] = useState(false);
+
+  // These functions pops up the sign in form, when the 'Sign in' button is clicked
+  const showSignInForm = () => {
+    const sign_in_div = document.querySelector("#sign_in");
+    sign_in_div.classList.remove("hidden");
+    document.querySelector("body").classList.add("menuOpen");
+
+    setTimeout(() => {
+      sign_in_div.classList.remove("scale-[0]");
+      sign_in_div.classList.remove("rounded-full");
+
+      sign_in_div.classList.add("scale-[1]");
+      sign_in_div.classList.add("rounded-none");
+    }, 0.05);
+  };
+
+  const hideSignInForm = () => {
+    const sign_in_div = document.querySelector("#sign_in");
+    sign_in_div.classList.remove("scale-[1]");
+    sign_in_div.classList.remove("rounded-none");
+
+    sign_in_div.classList.add("scale-[0]");
+    sign_in_div.classList.add("rounded-full");
+
+    document.querySelector("body").classList.remove("menuOpen");
+
+    setTimeout(() => {
+      sign_in_div.classList.add("hidden");
+    }, 500);
+  };
+
+  // This was added so that on bigger screens, if the search bar has focus, when the escape key is pressed, it will lose focus so that the search field will disappear
+  useEffect(() => {
+    document.addEventListener("keydown", (e) => {
+      if (e.key == "Escape") {
+        // When the escape key is pressed, first hide the search field if it's open
+        document.activeElement.blur();
+
+        // Then hide the form if it's open
+        hideSignInForm();
+
+        // Then hide the menu bar (for small screens) if it's open
+        const theCart = document.querySelector("#menu-small-screen");
+        if (theCart) {
+          theCart.classList.add("translate-y-[-700px]");
+          theCart.classList.remove("translate-y-[20px]");
+          setTimeout(() => {
+            theCart.classList.add("hidden");
+          }, 500);
+        }
+      }
+    });
+  }, []);
 
   return (
     <>
@@ -181,9 +229,16 @@ const Header = () => {
 
                 {!user && (
                   <>
-                    <li className="w-full" onClick={toggleOffMenu}>
+                    <li
+                      className="w-full"
+                      onClick={() => {
+                        toggleOffMenu();
+                        togglePageScrolling();
+                      }}
+                    >
                       <Link
                         to="/"
+                        onClick={showSignInForm}
                         className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                       >
                         Sign in <HiOutlineLogin className="ml-2" />
@@ -223,15 +278,18 @@ const Header = () => {
             </div>
           </nav>
         ) : (
-          <HeaderForBigScreen user={user} />
+          <HeaderForBigScreen user={user} showSignInForm={showSignInForm} />
         )}
       </header>
 
       <section
         id="sign_in"
-        className="fixed overflow-auto w-full h-full z-10 bg-[rgb(255,255,255,.95)] dark:bg-[rgb(0,0,0,.95)] hidden"
+        className="fixed overflow-auto w-full h-full z-10 bg-[rgb(255,255,255,.95)] dark:bg-[rgb(0,0,0,.95)] hidden scale-[0] rounded-full transition-all duration-500 ease-linear"
+        onClick={() => {
+          hideSignInForm();
+        }}
       >
-        <Sign_In />
+        <Sign_In hideSignInForm={hideSignInForm} />
       </section>
     </>
   );

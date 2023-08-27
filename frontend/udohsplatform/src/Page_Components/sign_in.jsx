@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { FaRegWindowClose } from "react-icons/fa";
@@ -5,10 +6,16 @@ import { Link } from "react-router-dom";
 import SignUpWithGoogle from "./signupWithGoogle";
 import { HiOutlineLogin } from "react-icons/hi";
 
-const Sign_In = () => {
+const Sign_In = ({ hideSignInForm }) => {
   const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <div className="flex justify-center">
+    <div
+      className="flex justify-center"
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
       <div className="bg-white dark:bg-[#242424] h-full fixed w-full overflow-auto max-w-[700px] min-[600px]:p-6 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
         <section className="p-4">
           <h2 className="text-center text-3xl text-[#81ba40] dark:text-[#70dbb8] font-bold">
@@ -84,7 +91,11 @@ const Sign_In = () => {
 
           <SignUpWithGoogle />
 
-          <button type="button" className="text-4xl absolute top-2 right-3">
+          <button
+            type="button"
+            className="text-4xl absolute top-2 right-3"
+            onClick={hideSignInForm}
+          >
             <FaRegWindowClose />
           </button>
         </section>
