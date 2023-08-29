@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useMatchMedia } from "../customHooks/useMatchMedia";
 import HeaderForBigScreen from "./HeaderForBigScreen";
 import Sign_In from "./sign_in";
+import Register from "./register";
 
 const Header = () => {
   const [user, setUser] = useState(false);
@@ -28,7 +29,7 @@ const Header = () => {
 
     setTimeout(() => {
       theCart.classList.toggle("hidden");
-    }, 1000);
+    }, 500);
     togglePageScrolling();
   };
 
@@ -53,34 +54,83 @@ const Header = () => {
   const [formHasFocus, setFormHasFocus] = useState(false);
 
   // These functions pops up the sign in form, when the 'Sign in' button is clicked
-  const showSignInForm = () => {
-    const sign_in_div = document.querySelector("#sign_in");
-    sign_in_div.classList.remove("hidden");
-    document.querySelector("body").classList.add("menuOpen");
+  const showForm = (form) => {
+    if (form) {
+      const form_div = document.querySelector(form);
+      form_div.classList.remove("hidden");
+      document.querySelector("body").classList.add("menuOpen");
 
-    setTimeout(() => {
-      sign_in_div.classList.remove("scale-[0]");
-      sign_in_div.classList.remove("rounded-full");
+      setTimeout(() => {
+        form_div.classList.remove("scale-[0]");
+        form_div.classList.remove("rounded-full");
 
-      sign_in_div.classList.add("scale-[1]");
-      sign_in_div.classList.add("rounded-none");
-    }, 0.05);
+        form_div.classList.add("scale-[1]");
+        form_div.classList.add("rounded-none");
+      }, 0.05);
+    }
   };
 
-  const hideSignInForm = () => {
-    const sign_in_div = document.querySelector("#sign_in");
-    sign_in_div.classList.remove("scale-[1]");
-    sign_in_div.classList.remove("rounded-none");
+  const hideForm = (form) => {
+    if (form) {
+      const form_div = document.querySelector(form);
+      form_div.classList.remove("scale-[1]");
+      form_div.classList.remove("rounded-none");
 
-    sign_in_div.classList.add("scale-[0]");
-    sign_in_div.classList.add("rounded-full");
+      form_div.classList.add("scale-[0]");
+      form_div.classList.add("rounded-full");
 
-    document.querySelector("body").classList.remove("menuOpen");
+      document.querySelector("body").classList.remove("menuOpen");
 
-    setTimeout(() => {
-      sign_in_div.classList.add("hidden");
-    }, 500);
+      setTimeout(() => {
+        form_div.classList.add("hidden");
+      }, 500);
+    }
   };
+
+  // These functions pops up the sign in form, when the 'Sign in' button is clicked
+  // const showSignInForm = () => {
+  //   const sign_in_div = document.querySelector("#sign_in");
+  //   sign_in_div.classList.remove("hidden");
+  //   document.querySelector("body").classList.add("menuOpen");
+
+  //   setTimeout(() => {
+  //     sign_in_div.classList.remove("scale-[0]");
+  //     sign_in_div.classList.remove("rounded-full");
+
+  //     sign_in_div.classList.add("scale-[1]");
+  //     sign_in_div.classList.add("rounded-none");
+  //   }, 0.05);
+  // };
+
+  // const hideSignInForm = () => {
+  //   const sign_in_div = document.querySelector("#sign_in");
+  //   sign_in_div.classList.remove("scale-[1]");
+  //   sign_in_div.classList.remove("rounded-none");
+
+  //   sign_in_div.classList.add("scale-[0]");
+  //   sign_in_div.classList.add("rounded-full");
+
+  //   document.querySelector("body").classList.remove("menuOpen");
+
+  //   setTimeout(() => {
+  //     sign_in_div.classList.add("hidden");
+  //   }, 500);
+  // };
+
+  // const hideRegisterForm = () => {
+  //   const register_div = document.querySelector("#register_user");
+  //   register_div.classList.remove("scale-[1]");
+  //   register_div.classList.remove("rounded-none");
+
+  //   register_div.classList.add("scale-[0]");
+  //   register_div.classList.add("rounded-full");
+
+  //   document.querySelector("body").classList.remove("menuOpen");
+
+  //   setTimeout(() => {
+  //     register_div.classList.add("hidden");
+  //   }, 500);
+  // };
 
   // This was added so that on bigger screens, if the search bar has focus, when the escape key is pressed, it will lose focus so that the search field will disappear
   useEffect(() => {
@@ -90,7 +140,8 @@ const Header = () => {
         document.activeElement.blur();
 
         // Then hide the form if it's open
-        hideSignInForm();
+        hideForm("#sign_in");
+        hideForm("#register_user");
 
         // Then hide the menu bar (for small screens) if it's open
         const theCart = document.querySelector("#menu-small-screen");
@@ -238,7 +289,9 @@ const Header = () => {
                     >
                       <Link
                         to="/"
-                        onClick={showSignInForm}
+                        onClick={() => {
+                          showForm("#sign_in");
+                        }}
                         className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                       >
                         Sign in <HiOutlineLogin className="ml-2" />
@@ -247,6 +300,9 @@ const Header = () => {
                     <li className="w-full" onClick={toggleOffMenu}>
                       <Link
                         to="/"
+                        onClick={() => {
+                          showForm("#register_user");
+                        }}
                         className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                       >
                         Get started <AiOutlineLogin className="ml-2" />
@@ -278,7 +334,11 @@ const Header = () => {
             </div>
           </nav>
         ) : (
-          <HeaderForBigScreen user={user} showSignInForm={showSignInForm} />
+          <HeaderForBigScreen
+            user={user}
+            showSignInForm={() => showForm("#sign_in")}
+            showRegisterForm={() => showForm("#register_user")}
+          />
         )}
       </header>
 
@@ -286,10 +346,26 @@ const Header = () => {
         id="sign_in"
         className="fixed overflow-auto w-full h-full z-10 bg-[rgb(255,255,255,.95)] dark:bg-[rgb(0,0,0,.95)] hidden scale-[0] rounded-full transition-all duration-500 ease-linear"
         onClick={() => {
-          hideSignInForm();
+          hideForm("#sign_in");
         }}
       >
-        <Sign_In hideSignInForm={hideSignInForm} />
+        <Sign_In
+          hideSignInForm={() => hideForm("#sign_in")}
+          showRegisterForm={() => showForm("#register_user")}
+        />
+      </section>
+
+      <section
+        id="register_user"
+        className="fixed hidden overflow-auto w-full h-full z-10 bg-[rgb(255,255,255,.95)] dark:bg-[rgb(0,0,0,.95)] scale-[0 rounded-ful transition-all duration-500 ease-linear"
+        onClick={() => {
+          hideForm("#register_user");
+        }}
+      >
+        <Register
+          hideRegisterForm={() => hideForm("#register_user")}
+          showSignInForm={() => showForm("#sign_in")}
+        />
       </section>
     </>
   );

@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import SignUpWithGoogle from "./signupWithGoogle";
 import { HiOutlineLogin } from "react-icons/hi";
 
-const Sign_In = ({ hideSignInForm }) => {
+const Sign_In = ({ hideSignInForm, showRegisterForm }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -86,10 +86,17 @@ const Sign_In = ({ hideSignInForm }) => {
           </form>
 
           <div className="mt-6 text-center text-[#81ba40] dark:text-[#70dbb8] underline text-lg">
-            <Link>Don&apos;t have an account&#x3f; Register</Link>
+            <Link
+              onClick={() => {
+                hideSignInForm();
+                showRegisterForm();
+              }}
+            >
+              Don&apos;t have an account&#x3f; Register
+            </Link>
           </div>
 
-          <SignUpWithGoogle />
+          <SignUpWithGoogle text={"Sign in with Google"} />
 
           <button
             type="button"

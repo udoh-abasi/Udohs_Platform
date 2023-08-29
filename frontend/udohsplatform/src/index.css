@@ -71,6 +71,17 @@ input[type=search] {
   padding: 7px;
 }
 
+/*Clears the arrow from a 'number' input type*/
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
 /* This ensures that the text is a maximum of two lines and then three dots is added at the end of the line if it exceeds two lines*/
 #two-line-ellipsis {
   display: -webkit-box;

@@ -1,6 +1,7 @@
+/* eslint-disable react/prop-types */
 // URL to documentation - https://docs.amplify.aws/lib/auth/social/q/platform/js/
 
-const SignUpWithGoogle = () => {
+const SignUpWithGoogle = ({ text }) => {
   return (
     <div className="flex flex-col items-center overflow-hidden">
       <p className="flex justify-center items-center uppercase font-bold my-6 before:mr-2 before:h-[1px] before:w-[800px] before:bg-gray-400 after:h-[1px] after:w-[800px]  after:bg-gray-400 after:ml-2">
@@ -37,7 +38,7 @@ const SignUpWithGoogle = () => {
             <path fill="none" d="M0 0h48v48H0z"></path>
           </g>
         </svg>
-        <span> Sign in with Google</span>
+        <span>{text}</span>
       </button>
     </div>
   );
