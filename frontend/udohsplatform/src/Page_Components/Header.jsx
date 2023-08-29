@@ -53,7 +53,7 @@ const Header = () => {
   // This checks when the search form has focus, so that the 'search' button will change to an 'X' (close) button
   const [formHasFocus, setFormHasFocus] = useState(false);
 
-  // These functions pops up the sign in form, when the 'Sign in' button is clicked
+  // These functions pops up the sign_in and register form, when the 'Sign in' or 'Get Started' button is clicked respectively
   const showForm = (form) => {
     if (form) {
       const form_div = document.querySelector(form);
@@ -86,51 +86,6 @@ const Header = () => {
       }, 500);
     }
   };
-
-  // These functions pops up the sign in form, when the 'Sign in' button is clicked
-  // const showSignInForm = () => {
-  //   const sign_in_div = document.querySelector("#sign_in");
-  //   sign_in_div.classList.remove("hidden");
-  //   document.querySelector("body").classList.add("menuOpen");
-
-  //   setTimeout(() => {
-  //     sign_in_div.classList.remove("scale-[0]");
-  //     sign_in_div.classList.remove("rounded-full");
-
-  //     sign_in_div.classList.add("scale-[1]");
-  //     sign_in_div.classList.add("rounded-none");
-  //   }, 0.05);
-  // };
-
-  // const hideSignInForm = () => {
-  //   const sign_in_div = document.querySelector("#sign_in");
-  //   sign_in_div.classList.remove("scale-[1]");
-  //   sign_in_div.classList.remove("rounded-none");
-
-  //   sign_in_div.classList.add("scale-[0]");
-  //   sign_in_div.classList.add("rounded-full");
-
-  //   document.querySelector("body").classList.remove("menuOpen");
-
-  //   setTimeout(() => {
-  //     sign_in_div.classList.add("hidden");
-  //   }, 500);
-  // };
-
-  // const hideRegisterForm = () => {
-  //   const register_div = document.querySelector("#register_user");
-  //   register_div.classList.remove("scale-[1]");
-  //   register_div.classList.remove("rounded-none");
-
-  //   register_div.classList.add("scale-[0]");
-  //   register_div.classList.add("rounded-full");
-
-  //   document.querySelector("body").classList.remove("menuOpen");
-
-  //   setTimeout(() => {
-  //     register_div.classList.add("hidden");
-  //   }, 500);
-  // };
 
   // This was added so that on bigger screens, if the search bar has focus, when the escape key is pressed, it will lose focus so that the search field will disappear
   useEffect(() => {
