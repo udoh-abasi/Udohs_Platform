@@ -3,7 +3,7 @@ import { FaCheck } from "react-icons/fa";
 import { BsCreditCard2Back, BsCreditCard2FrontFill } from "react-icons/bs";
 import { AiFillWarning } from "react-icons/ai";
 import { Link } from "react-router-dom";
-import { hideForm, showForm } from "../utils/showOrHideSignUpAndRegisterForms";
+import { showForm } from "../utils/showOrHideSignUpAndRegisterForms";
 
 const Membership = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -67,7 +67,7 @@ const Membership = () => {
   }
 
   return (
-    <main className="min-h-screen p-4 ">
+    <main className="min-h-screen p-4">
       <h1 className="pt-[90px] text-[9vw] font-bold text-center text-[#81ba40] dark:text-[#70dbb8] min-[870px]:text-[75px]">
         Inspire great minds.
       </h1>

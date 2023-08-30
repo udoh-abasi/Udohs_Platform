@@ -96,6 +96,17 @@ input[type=number] {
   text-overflow: ellipsis;
 }
 
+#one-line-ellipsis {
+  display: -webkit-box;
+
+  /* Limit the text to 1 lines */
+  -webkit-line-clamp: 1;
+
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 footer {
   background: url(/wave3.svg) no-repeat;

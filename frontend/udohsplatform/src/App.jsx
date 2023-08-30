@@ -6,6 +6,7 @@ import axios from "axios";
 import Header from "./Page_Components/Header";
 import Footer from "./Page_Components/Footer";
 import Membership from "./Page_Components/Membership";
+import AllArticles from "./Page_Components/AllArticles";
 
 axios.defaults.xsrfCookieName = "csrftoken"; // NOTE: So, here we want to make sure that all our axios requests will be sent out with this csrftoken in the head
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -55,6 +56,7 @@ function App() {
       <Routes>
         <Route path="/" Component={HomePage} />
         <Route path="/membership" Component={Membership} />
+        <Route path="/allArticles" Component={AllArticles} />
       </Routes>
 
       <Footer />
