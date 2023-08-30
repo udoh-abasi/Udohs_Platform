@@ -16,10 +16,12 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  scroll-behavior: smooth !important;
 }
 
 body {
-  max-width: 1800px !important;
+  max-width: 1600px !important;
 }
 
 #logo {

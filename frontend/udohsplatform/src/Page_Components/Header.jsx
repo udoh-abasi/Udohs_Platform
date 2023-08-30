@@ -209,7 +209,7 @@ const Header = () => {
               <ul className="flex flex-col items-center justify-around h-full text-xl">
                 <li className="w-full" onClick={toggleOffMenu}>
                   <Link
-                    to="/"
+                    to=""
                     className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Our story <RiChatHistoryLine className="ml-2" />
@@ -217,7 +217,7 @@ const Header = () => {
                 </li>
                 <li className="w-full" onClick={toggleOffMenu}>
                   <Link
-                    to="/"
+                    to="/membership"
                     className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Membership <MdOutlineVerifiedUser className="ml-2" />
@@ -225,7 +225,7 @@ const Header = () => {
                 </li>
                 <li className="w-full" onClick={toggleOffMenu}>
                   <Link
-                    to="/"
+                    to=""
                     className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Write
@@ -243,7 +243,7 @@ const Header = () => {
                       }}
                     >
                       <Link
-                        to="/"
+                        to="#"
                         onClick={() => {
                           showForm("#sign_in");
                         }}
@@ -254,7 +254,7 @@ const Header = () => {
                     </li>
                     <li className="w-full" onClick={toggleOffMenu}>
                       <Link
-                        to="/"
+                        to="#"
                         onClick={() => {
                           showForm("#register_user");
                         }}
@@ -269,7 +269,7 @@ const Header = () => {
                 {user && (
                   <li className="w-full" onClick={toggleOffMenu}>
                     <Link
-                      to="/"
+                      to="#"
                       className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                     >
                       Sign out <HiOutlineLogout className="ml-2" />
@@ -312,7 +312,7 @@ const Header = () => {
 
       <section
         id="register_user"
-        className="fixed hidden overflow-auto w-full h-full z-10 bg-[rgb(255,255,255,.95)] dark:bg-[rgb(0,0,0,.95)] scale-[0 rounded-ful transition-all duration-500 ease-linear"
+        className="fixed hidden overflow-auto w-full h-full z-10 bg-[rgb(255,255,255,.95)] dark:bg-[rgb(0,0,0,.95)] scale-[0] rounded-full transition-all duration-500 ease-linear"
         onClick={() => {
           hideForm("#register_user");
         }}
