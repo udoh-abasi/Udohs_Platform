@@ -6,7 +6,11 @@ import { Link } from "react-router-dom";
 import SignUpWithGoogle from "./signupWithGoogle";
 import { HiOutlineLogin } from "react-icons/hi";
 
-const Sign_In = ({ hideSignInForm, showRegisterForm }) => {
+const Sign_In = ({
+  hideSignInForm,
+  showRegisterForm,
+  showForgotPasswordForm,
+}) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -66,7 +70,14 @@ const Sign_In = ({ hideSignInForm, showRegisterForm }) => {
             </div>
 
             <div className="mb-12 text-right mt-3 text-lg text-[#81ba40] dark:text-[#70dbb8] font-bold">
-              <button type="button" className="underline">
+              <button
+                type="button"
+                className="underline"
+                onClick={() => {
+                  hideSignInForm();
+                  showForgotPasswordForm();
+                }}
+              >
                 Forgot your password&#x3f;
               </button>
             </div>

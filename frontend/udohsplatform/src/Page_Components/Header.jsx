@@ -12,6 +12,7 @@ import { useMatchMedia } from "../customHooks/useMatchMedia";
 import HeaderForBigScreen from "./HeaderForBigScreen";
 import Sign_In from "./sign_in";
 import Register from "./register";
+import ForgotPassword from "./forgotPassword";
 
 const Header = () => {
   const [user, setUser] = useState(false);
@@ -307,6 +308,7 @@ const Header = () => {
         <Sign_In
           hideSignInForm={() => hideForm("#sign_in")}
           showRegisterForm={() => showForm("#register_user")}
+          showForgotPasswordForm={() => showForm("#forgot_password")}
         />
       </section>
 
@@ -320,6 +322,21 @@ const Header = () => {
         <Register
           hideRegisterForm={() => hideForm("#register_user")}
           showSignInForm={() => showForm("#sign_in")}
+        />
+      </section>
+
+      <section
+        id="forgot_password"
+        className="fixed hidden overflow-auto w-full h-full z-10 bg-[rgb(255,255,255,.95)] dark:bg-[rgb(0,0,0,.95)] scale-[0] rounded-full transition-all duration-500 ease-linear"
+        onClick={() => {
+          hideForm("#forgot_password");
+        }}
+      >
+        <ForgotPassword
+          hideRegisterForm={() => hideForm("#register_user")}
+          showRegisterForm={() => showForm("#register_user")}
+          showSignInForm={() => showForm("#sign_in")}
+          hideForgotPasswordForm={() => hideForm("#forgot_password")}
         />
       </section>
     </>
