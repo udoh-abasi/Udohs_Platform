@@ -1,7 +1,9 @@
 import { MdOutlineDeleteForever, MdWorkspacePremium } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { AiOutlineClose } from "react-icons/ai";
+import { BiSave } from "react-icons/bi";
 import { useEffect, useState } from "react";
+import { hideForm, showForm } from "../utils/showOrHideSignUpAndRegisterForms";
 
 const ProfilePage = () => {
   const about = "q";
@@ -88,9 +90,119 @@ const ProfilePage = () => {
         <button
           type="button"
           className="px-4 font-bold rounded-br-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+          onClick={() => {
+            showForm("#editProfile");
+          }}
         >
           Edit profile
         </button>
+
+        <div
+          id="editProfile"
+          className="flex justify-center fixed top-0 left-0 w-full h-full z-10 hidden scale-[0] rounded-full transition-all duration-500 ease-linear"
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+            className="fixed overflow-auto w-full pb-16 pt-6 bg-slate-200 dark:bg-black h-full top-0 z-30 p-4 max-w-[700px]"
+          >
+            <div className="flex justify-center">
+              <div className="w-[150px] h-[150px] rounded-full overflow-hidden">
+                <img alt="" src="Profile_Image_Placeholder-small.jpg" />
+              </div>
+            </div>
+
+            <div>
+              <input
+                type="file"
+                id="changeProfilePicture"
+                accept="image/*"
+                className="max-w-full hidden"
+                onChange={(e) => {
+                  console.log(e.target.files[0].name);
+                  console.log(e.target.files[0].type);
+                }}
+              />
+              <label
+                htmlFor="changeProfilePicture"
+                className="block mt-3 underline text-blue-500 cursor-pointer"
+              >
+                Change picture
+              </label>
+            </div>
+
+            <div className="flex flex-col-reverse mb-8 relative mt-16">
+              <input
+                type="text"
+                placeholder=" "
+                id="firstName"
+                className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
+              />
+
+              <label
+                htmlFor="firstName"
+                className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+              >
+                First Name
+              </label>
+            </div>
+
+            <div className="flex flex-col-reverse mb-8 relative mt-16">
+              <input
+                type="text"
+                placeholder=" "
+                id="lastName"
+                className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
+              />
+
+              <label
+                htmlFor="lastName"
+                className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+              >
+                Last Name
+              </label>
+            </div>
+
+            <div className="flex flex-col-reverse mb-8 relative mt-16">
+              <textarea
+                placeholder=" "
+                id="about"
+                className="h-[250px] resize-none rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
+              ></textarea>
+
+              <label
+                htmlFor="about"
+                className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[10%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-15%] peer-focus:translate-y-[0] top-[-15%] transition-all duration-500 ease-linear"
+              >
+                About
+              </label>
+            </div>
+
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                className="px-4 flex justify-center items-center w-[200px] uppercase font-bold rounded-br-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                onClick={() => {
+                  hideForm("#editProfile");
+                }}
+              >
+                Save <BiSave className="text-xl ml-2" />
+              </button>
+            </div>
+
+            <button
+              aria-label="close"
+              type="button"
+              className="text-4xl absolute top-3 right-3 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
+              onClick={() => {
+                hideForm("#editProfile");
+              }}
+            >
+              <AiOutlineClose />
+            </button>
+          </form>
+        </div>
       </div>
 
       <section className="p-4">
