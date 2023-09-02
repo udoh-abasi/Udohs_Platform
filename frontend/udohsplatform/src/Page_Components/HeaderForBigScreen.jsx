@@ -139,14 +139,25 @@ const HeaderForBigScreen = ({ user, showSignInForm, showRegisterForm }) => {
             )}
 
             {user && (
-              <li>
-                <Link
-                  to="#"
-                  className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
-                >
-                  Sign out
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link
+                    to="/userProfile"
+                    className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+                  >
+                    Profile
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    to="#"
+                    className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+                  >
+                    Sign out
+                  </Link>
+                </li>
+              </>
             )}
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { GiHamburgerMenu } from "react-icons/gi";
+import { CgProfile } from "react-icons/cg";
 import { BiSearchAlt } from "react-icons/bi";
 import { AiOutlineClose } from "react-icons/ai";
 import { BsPencilSquare } from "react-icons/bs";
@@ -15,7 +16,7 @@ import Register from "./register";
 import ForgotPassword from "./forgotPassword";
 
 const Header = () => {
-  const [user, setUser] = useState(false);
+  const [user, setUser] = useState(true);
   setUser;
 
   const togglePageScrolling = () => {
@@ -268,14 +269,25 @@ const Header = () => {
                 )}
 
                 {user && (
-                  <li className="w-full" onClick={toggleOffMenu}>
-                    <Link
-                      to="#"
-                      className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
-                    >
-                      Sign out <HiOutlineLogout className="ml-2" />
-                    </Link>
-                  </li>
+                  <>
+                    <li className="w-full" onClick={toggleOffMenu}>
+                      <Link
+                        to="/userProfile"
+                        className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                      >
+                        Profile <CgProfile className="ml-2" />
+                      </Link>
+                    </li>
+
+                    <li className="w-full" onClick={toggleOffMenu}>
+                      <Link
+                        to="#"
+                        className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                      >
+                        Sign out <HiOutlineLogout className="ml-2" />
+                      </Link>
+                    </li>
+                  </>
                 )}
 
                 <button

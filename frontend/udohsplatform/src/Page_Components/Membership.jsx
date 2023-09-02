@@ -92,7 +92,7 @@ const Membership = () => {
             <img
               src="secured-by-paystack.webp"
               alt="Secured by paystack"
-              className="mt-4 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+              className="mt-4 rounded-xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
             />
           </picture>
           <p className="text-xl text-justify mt-4">
@@ -111,7 +111,7 @@ const Membership = () => {
       <section className="flex flex-col items-center mt-8 mb-16 min-[800px]:flex-row min-[800px]:justify-center min-[800px]:gap-4">
         <button
           onClick={() => setPaymentMethod("naira")}
-          className={`flex flex-col items-center gap-4 text-xl  ring-[#81ba40] dark:ring-[#70dbb8] text-center w-full max-w-[300px] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black p-4 group transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] ${
+          className={`rounded-bl-3xl rounded-tr-3xl flex flex-col items-center gap-4 text-xl  ring-[#81ba40] dark:ring-[#70dbb8] text-center w-full max-w-[300px] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black p-4 group transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] ${
             paymentMethod === "naira" ? "ring-4" : "ring-1"
           }`}
         >
@@ -133,7 +133,7 @@ const Membership = () => {
 
         <button
           onClick={() => setPaymentMethod("dollar")}
-          className={`flex flex-col items-center gap-4 text-xl  ring-[#81ba40] dark:ring-[#70dbb8] text-center w-full max-w-[300px] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black p-4 group transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] ${
+          className={`rounded-bl-3xl rounded-tr-3xl flex flex-col items-center gap-4 text-xl  ring-[#81ba40] dark:ring-[#70dbb8] text-center w-full max-w-[300px] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black p-4 group transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] ${
             paymentMethod === "dollar" ? "ring-4" : "ring-1"
           }`}
         >

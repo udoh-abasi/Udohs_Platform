@@ -34,16 +34,20 @@ class AppUserManager(BaseUserManager):
 
 class AppUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=50, unique=True)
-    is_staff = models.BooleanField(default=False)
-    is_email_verified = models.BooleanField(default=False)
-    auth_provider = models.CharField(max_length=20, default="AppUser")
+    is_staff = models.BooleanField(default=False, editable=False)
+    is_email_verified = models.BooleanField(default=False, editable=False)
+    auth_provider = models.CharField(max_length=20, default="AppUser", editable=False)
     first_name = models.CharField(max_length=50, null=True, blank=True)
     last_name = models.CharField(max_length=50, null=True, blank=True)
-    date_joined = models.DateField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    date_joined = models.DateField(auto_now_add=True, editable=False)
+    date_updated = models.DateTimeField(auto_now=True, editable=False)
 
     USERNAME_FIELD = "email"
     objects = AppUserManager()
+
+    bio = models.TextField()
+    premium_member = models.BooleanField(default=False, editable=False)
+    # profile_pic = models.ImageField(upload_to="" blank=False, default="")
 
 
 """ 
