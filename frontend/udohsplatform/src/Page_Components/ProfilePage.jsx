@@ -4,6 +4,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import { BiSave } from "react-icons/bi";
 import { useEffect, useState } from "react";
 import { hideForm, showForm } from "../utils/showOrHideSignUpAndRegisterForms";
+import ImageCropper from "./imageCropper";
 
 const ProfilePage = () => {
   const about = "q";
@@ -12,11 +13,15 @@ const ProfilePage = () => {
 
   const id = "id";
 
+  const [showImageCropperInterface, setShowImageCropperInterface] =
+    useState(false);
+  const [imageToCrop, setImageToCrop] = useState("");
+  const [imageOnInput, setImageOnInput] = useState("");
+
+  const [croppedImage, setCroppedImage] = useState("");
+
   // This tracks when the 'undo' button is clicked, to undo a delete of an article
   const [articleDeleteUndone, setArticleDeleteUndone] = useState(false);
-
-  // This checks if the undo delete has popped up or not, so that we can use a useEffect to hide it after 5 seconds
-  // const [undoDeletePopUp, setUndoDeletePopUp] = useState(false);
 
   // When the delete button on an article is clicked, these functions run to hide or show the the confirmation buttons
   const hideDeleteConfirmation = (id) => {
@@ -97,6 +102,7 @@ const ProfilePage = () => {
           Edit profile
         </button>
 
+        {/* NOTE: WHEN THE 'Edit profile' BUTTON IS CLICKED, THE <div> THAT WRAPS THE <form> THAT WILL POP UP, STARTS HERE */}
         <div
           id="editProfile"
           className="flex justify-center fixed top-0 left-0 w-full h-full z-10 hidden scale-[0] rounded-full transition-all duration-500 ease-linear"
@@ -109,7 +115,14 @@ const ProfilePage = () => {
           >
             <div className="flex justify-center">
               <div className="w-[150px] h-[150px] rounded-full overflow-hidden">
-                <img alt="" src="Profile_Image_Placeholder-small.jpg" />
+                <img
+                  alt=""
+                  src={
+                    croppedImage
+                      ? croppedImage
+                      : "Profile_Image_Placeholder-small.jpg"
+                  }
+                />
               </div>
             </div>
 
@@ -119,9 +132,19 @@ const ProfilePage = () => {
                 id="changeProfilePicture"
                 accept="image/*"
                 className="max-w-full hidden"
+                multiple={false}
+                value={imageOnInput}
                 onChange={(e) => {
-                  console.log(e.target.files[0].name);
-                  console.log(e.target.files[0].type);
+                  // Check if a file was provided, then check if the file is an image file
+                  if (
+                    e.target.files.length &&
+                    e.target.files[0].type.startsWith("image/")
+                  ) {
+                    setImageToCrop(e.target.files[0]);
+                    setShowImageCropperInterface(true);
+                  } else {
+                    console.log("Invalid file provided");
+                  }
                 }}
               />
               <label
@@ -131,6 +154,25 @@ const ProfilePage = () => {
                 Change picture
               </label>
             </div>
+
+            {showImageCropperInterface && (
+              <ImageCropper
+                // Send the image that we want to crop
+                imageToCrop={imageToCrop}
+                // Hide this 'ImageCropper' interface
+                setShowImageCropperInterface={() => {
+                  setShowImageCropperInterface(false);
+                }}
+                // Clear the <input type="file" /> field
+                setImageOnInput={() => {
+                  setImageOnInput("");
+                }}
+                // Get the cropped image
+                setCroppedImageOnParent={(image) => {
+                  setCroppedImage(image);
+                }}
+              />
+            )}
 
             <div className="flex flex-col-reverse mb-8 relative mt-16">
               <input
@@ -239,7 +281,7 @@ const ProfilePage = () => {
                       <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
                         <img
                           alt="Udoh Abasi"
-                          src="Profile_Image_Placeholder-small.jpg"
+                          src={"Profile_Image_Placeholder-small.jpg"}
                         />
                       </div>
 
