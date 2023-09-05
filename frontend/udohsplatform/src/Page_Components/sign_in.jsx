@@ -1,10 +1,14 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
-import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { AiFillEye, AiFillEyeInvisible, AiFillWarning } from "react-icons/ai";
 import { FaRegWindowClose } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import SignUpWithGoogle from "./signupWithGoogle";
 import { HiOutlineLogin } from "react-icons/hi";
+import axiosClient from "../utils/axiosSetup";
+import { useDispatch } from "react-redux";
+import { userAction } from "../reduxFiles/actions";
+import Loader from "./loader";
 
 const Sign_In = ({
   hideSignInForm,
@@ -12,6 +16,59 @@ const Sign_In = ({
   showForgotPasswordForm,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [signInPassword, setSignInPassword] = useState("");
+  const [signInEmail, setSignInEmail] = useState("");
+
+  const [signInError, setSignInError] = useState("");
+
+  const [signInLoading, setSignInLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  // const user = useSelector(userSelector);
+
+  const signIn = async () => {
+    try {
+      setSignInLoading(true);
+      const response = await axiosClient.post("/api/login", {
+        email: signInEmail,
+        password: signInPassword,
+      });
+
+      if (response.status === 200) {
+        const data = response.data;
+        dispatch(userAction(data));
+
+        hideSignInForm();
+        setSignInEmail("");
+        setSignInPassword("");
+      } else {
+        throw new Error("Something went wrong");
+      }
+      setSignInLoading(false);
+    } catch (e) {
+      setSignInLoading(false);
+      switch (e.request.status) {
+        case 401: {
+          setSignInError(
+            "You signed up with google. Please click on 'Sign in with google' below, to continue"
+          );
+          return;
+        }
+
+        case 404: {
+          setSignInError("User not found. Email or password is incorrect");
+          return;
+        }
+
+        default: {
+          setSignInError(
+            "Something went wrong with your sign in. Please try again"
+          );
+          return;
+        }
+      }
+    }
+  };
 
   return (
     <div
@@ -26,13 +83,22 @@ const Sign_In = ({
             Welcome back.
           </h2>
 
-          <form onSubmit={(e) => e.preventDefault()} className="mt-8">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSignInError("");
+              signIn();
+            }}
+            className="mt-8"
+          >
             <div className="flex flex-col-reverse mb-8 relative mt-16">
               <input
                 type="email"
                 required
                 placeholder=" "
                 id="email"
+                value={signInEmail}
+                onChange={(e) => setSignInEmail(e.target.value)}
                 className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
               />
 
@@ -50,6 +116,8 @@ const Sign_In = ({
                 type={showPassword ? "text" : "password"}
                 required
                 placeholder=" "
+                value={signInPassword}
+                onChange={(e) => setSignInPassword(e.target.value)}
                 className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
               />
 
@@ -84,16 +152,29 @@ const Sign_In = ({
 
             <button
               type="submit"
-              disabled={false}
-              className="w-full font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
+              disabled={signInLoading}
+              className="w-full font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
             >
               <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
               <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
               <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
               <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                Sign in <HiOutlineLogin className="ml-2" />
+                {signInLoading ? (
+                  <Loader />
+                ) : (
+                  <>
+                    Sign in <HiOutlineLogin className="ml-2" />
+                  </>
+                )}
               </span>
             </button>
+
+            {signInError && (
+              <p className="text-red-500 text-sm text-center mt-4">
+                <AiFillWarning className="inline text-lg mr-1" />
+                {signInError}
+              </p>
+            )}
           </form>
 
           <div className="mt-6 text-center text-[#81ba40] dark:text-[#70dbb8] underline text-lg">

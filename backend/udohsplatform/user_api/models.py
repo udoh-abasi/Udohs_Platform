@@ -45,7 +45,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     objects = AppUserManager()
 
-    bio = models.TextField()
+    bio = models.TextField(null=True, blank=True)
     premium_member = models.BooleanField(default=False, editable=False)
     # profile_pic = models.ImageField(upload_to="" blank=False, default="")
 

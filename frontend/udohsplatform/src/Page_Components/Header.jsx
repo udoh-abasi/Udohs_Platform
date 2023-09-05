@@ -14,10 +14,42 @@ import HeaderForBigScreen from "./HeaderForBigScreen";
 import Sign_In from "./sign_in";
 import Register from "./register";
 import ForgotPassword from "./forgotPassword";
+import axiosClient from "../utils/axiosSetup";
+import { useDispatch, useSelector } from "react-redux";
+import { userAction } from "../reduxFiles/actions";
+import { userSelector } from "../reduxFiles/selectors";
 
 const Header = () => {
-  const [user, setUser] = useState(true);
-  setUser;
+  const user = useSelector(userSelector);
+
+  const dispatch = useDispatch();
+
+  // Send a request to get the user on page load
+  useEffect(() => {
+    const getLoggedInUser = async () => {
+      try {
+        const response = await axiosClient.get("/api/user");
+        if (response.status === 200) {
+          dispatch(userAction(response.data));
+        }
+      } catch (e) {
+        /* User's sessionid was not available in cookie, so do nothing. */
+      }
+    };
+
+    getLoggedInUser();
+  }, [dispatch]);
+
+  const signOut = async () => {
+    try {
+      const response = await axiosClient.post("/api/logout");
+      if (response.status == 200) {
+        dispatch(userAction(""));
+      }
+    } catch {
+      /*The user wasn't logged in, so do nothing*/
+    }
+  };
 
   const togglePageScrolling = () => {
     document.querySelector("body").classList.toggle("menuOpen");
@@ -283,6 +315,9 @@ const Header = () => {
                       <Link
                         to="#"
                         className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                        onClick={() => {
+                          signOut();
+                        }}
                       >
                         Sign out <HiOutlineLogout className="ml-2" />
                       </Link>
@@ -306,6 +341,7 @@ const Header = () => {
             user={user}
             showSignInForm={() => showForm("#sign_in")}
             showRegisterForm={() => showForm("#register_user")}
+            signOut={signOut}
           />
         )}
       </header>

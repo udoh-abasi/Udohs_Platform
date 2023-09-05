@@ -75,17 +75,25 @@ class UserLogin(APIView):
 
     def post(self, request):
         data = request.data
-        print(data)
-        assert validate_email(data)
-        assert validate_password(data)
+
+        try:
+            assert validate_email(data)
+            assert validate_password(data)
+        except:
+            return Response(
+                {
+                    "message": "Invalid email or password",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             user = User.objects.get(email=data["email"], auth_provider="google")
             return Response(
                 {
-                    "response": "You signed up with google, please click 'Sign in to google' to continue",
+                    "message": "You signed up with google, please click 'Sign in to google' to continue",
                 },
-                status=status.HTTP_403_FORBIDDEN,
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         except:
@@ -102,7 +110,7 @@ class UserLogin(APIView):
                 {
                     "message": "User not found",
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         except:
@@ -126,7 +134,7 @@ class UserView(APIView):
 
     def get(self, request):
         serializer = UserSerializer(request.user)
-        return Response({"user": serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.data["email"], status=status.HTTP_200_OK)
 
 
 class SendLinkTo(APIView):

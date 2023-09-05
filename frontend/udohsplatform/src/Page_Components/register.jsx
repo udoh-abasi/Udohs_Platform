@@ -13,6 +13,10 @@ import SignUpWithGoogle from "./signupWithGoogle";
 import { HiOutlineLogin } from "react-icons/hi";
 import { BsArrowRight } from "react-icons/bs";
 import { IoIosCheckmark, IoIosCheckmarkCircle } from "react-icons/io";
+import axiosClient from "../utils/axiosSetup";
+import Loader from "./loader";
+import { useDispatch } from "react-redux";
+import { userAction } from "../reduxFiles/actions";
 
 const Register = ({ hideRegisterForm, showSignInForm }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +25,10 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
   const [signUpEmail, setSignUpEmail] = useState("");
 
   const [showEmailField, setShowEmailField] = useState(true);
+  const [emailSendingError, setEmailSendingError] = useState("");
+
+  const [requestIsLoading, setRequestIsLoading] = useState(false);
+
   const [emailVerified, setEmailVerified] = useState(false);
 
   const [invalidEmail, setInvalidEmail] = useState(false);
@@ -36,6 +44,8 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
   // Show message that password must match
   const [passwordMatch, setPasswordMatch] = useState(true);
 
+  const dispatch = useDispatch();
+
   // Show the <ul> that tell the user what to be in the password field
   const [showPasswordHelper, setShowPasswordHelper] = useState(false);
 
@@ -47,6 +57,9 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // If there was an error when the signUp button was clicked, the message will be set here
+  const [signUpError, setSignUpError] = useState("");
 
   // This function manages the regular expression, and show what the user has ticked and what they have not
   const passwordRegularExpressionCheck = (e) => {
@@ -93,6 +106,115 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
     }
   }, [confirmPassword, password]);
 
+  // This sends an email code to verify the user's email before sign up. Returns a 403 error if the email already exists
+  const sendEmail = async (emailAddress) => {
+    try {
+      setRequestIsLoading(true);
+      setEmailSendingError("");
+
+      const response = await axiosClient.post("/api/sendemailcode", {
+        email: emailAddress,
+      });
+
+      if (response.status === 200) {
+        setShowEmailField(false);
+      }
+      setRequestIsLoading(false);
+    } catch (e) {
+      setRequestIsLoading(false);
+      switch (e.request.status) {
+        case 403: {
+          setEmailSendingError(
+            "User already exists. Sign in or choose another email"
+          );
+          return;
+        }
+        default: {
+          setEmailSendingError("Something went wrong. Please try again later");
+          return;
+        }
+      }
+    }
+  };
+
+  const confirmEmailCode = async (code) => {
+    setRequestIsLoading(true);
+
+    try {
+      const response = await axiosClient.post("api/confirmemail", {
+        email: signUpEmail,
+        code: code,
+      });
+      if (response.status === 200) {
+        setEmailVerified(true);
+      }
+      setRequestIsLoading(false);
+    } catch {
+      setIncorrectCode(true);
+      setRequestIsLoading(false);
+    }
+  };
+
+  const registerUser = async (email, password) => {
+    if (
+      passwordHasCharacter &&
+      passwordHasUppercase &&
+      passwordHasLowercase &&
+      passwordHasNumber &&
+      passwordIsEightDigit &&
+      passwordMatch &&
+      signUpEmail
+    ) {
+      setRequestIsLoading(true);
+      setSignUpError("");
+
+      try {
+        const response = await axiosClient.post("/api/register", {
+          email,
+          password,
+        });
+
+        if (response.status === 201) {
+          const response = await axiosClient.post("/api/login", {
+            email,
+            password,
+          });
+
+          if (response.status === 200) {
+            const data = response.data;
+            dispatch(userAction(data));
+
+            // Then reset everything back to default
+            setSignUpEmail("");
+            setPassword("");
+            setConfirmPassword("");
+            setEmailConfirmationCode("");
+            setSignUpError("");
+
+            setEmailVerified(false);
+            setShowEmailField(true);
+
+            setPasswordHasCharacter(false);
+            setPasswordHasLowercase(false);
+            setPasswordHasNumber(false);
+            setPasswordHasUppercase(false);
+            setPasswordIsEightDigit(false);
+
+            setRequestIsLoading(false);
+            hideRegisterForm();
+          } else {
+            throw new Error("Something went wrong");
+          }
+        } else {
+          throw new Error("Something went wrong");
+        }
+      } catch (e) {
+        setRequestIsLoading(false);
+        setSignUpError("Something went wrong with your registration.");
+      }
+    }
+  };
+
   return (
     <div
       className="flex justify-center"
@@ -119,6 +241,7 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
                   onChange={(e) => {
                     setSignUpEmail(e.target.value);
                     setInvalidEmail(false);
+                    setEmailSendingError("");
                   }}
                   className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer disabled:cursor-not-allowed disabled:bg-gray-600 disabled:ring-gray-600 disabled:text-gray-400"
                 />
@@ -139,33 +262,50 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
               </p>
             )}
 
+            {emailSendingError && (
+              <p className="flex items-center text-sm text-red-500 mb-4 mt-[-12px]">
+                <AiFillWarning className="text-2xl" />
+                {emailSendingError}
+              </p>
+            )}
+
             {!emailVerified && showEmailField ? (
               <button
                 type="submit"
-                disabled={false}
+                disabled={requestIsLoading}
                 onClick={() => {
                   if (isEmailValid(signUpEmail)) {
-                    setShowEmailField(false);
+                    sendEmail(signUpEmail);
                   } else {
                     setInvalidEmail(true);
                   }
                 }}
-                className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
+                className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
               >
                 <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
                 <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
                 <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
                 <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                  Continue <BsArrowRight className="ml-2" />
+                  {requestIsLoading ? (
+                    <Loader />
+                  ) : (
+                    <>
+                      Continue <BsArrowRight className="ml-2" />
+                    </>
+                  )}
                 </span>
               </button>
             ) : (
               !emailVerified && (
                 <>
                   <button
-                    type="submit"
+                    type="button"
                     disabled={false}
-                    onClick={() => setShowEmailField(true)}
+                    onClick={() => {
+                      setShowEmailField(true);
+                      setEmailConfirmationCode("");
+                      setIncorrectCode(false);
+                    }}
                     className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
                   >
                     <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
@@ -220,21 +360,28 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
 
                   <button
                     type="submit"
-                    disabled={false}
+                    disabled={requestIsLoading}
                     onClick={() => {
+                      setIncorrectCode(false);
                       if (emailConfirmationCode.length === 6) {
-                        setEmailVerified(true);
+                        confirmEmailCode(emailConfirmationCode);
                       } else {
                         setIncorrectCode(true);
                       }
                     }}
-                    className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
+                    className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
                   >
                     <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
                     <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
                     <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
                     <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                      Confirm Code <BsArrowRight className="ml-2" />
+                      {requestIsLoading ? (
+                        <Loader />
+                      ) : (
+                        <>
+                          Confirm Code <BsArrowRight className="ml-2" />
+                        </>
+                      )}
                     </span>
                   </button>
                 </>
@@ -410,25 +557,36 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
                   </p>
                 )}
 
+                {signUpError && (
+                  <p className="flex items-center text-sm text-red-500 mb-4 mt-[-12px]">
+                    <AiFillWarning className="text-2xl" />
+                    {signUpError}
+                  </p>
+                )}
+
                 <button
                   type="submit"
-                  disabled={false}
+                  disabled={requestIsLoading}
                   onClick={() => {
-                    if (password !== confirmPassword) {
+                    if (password && password === confirmPassword) {
+                      registerUser(signUpEmail, password);
+                    } else if (password && password !== confirmPassword) {
                       setPasswordMatch(false);
-                    } else {
-                      console.log("Password okay");
-                      console.log(signUpEmail);
-                      console.log(password);
                     }
                   }}
-                  className="w-full font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
+                  className="w-full font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
                 >
                   <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
                   <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
                   <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
                   <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                    Sign up <HiOutlineLogin className="ml-2" />
+                    {requestIsLoading ? (
+                      <Loader />
+                    ) : (
+                      <>
+                        Sign up <HiOutlineLogin className="ml-2" />
+                      </>
+                    )}
                   </span>
                 </button>
               </>
