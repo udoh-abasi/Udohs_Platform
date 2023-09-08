@@ -298,23 +298,44 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
             ) : (
               !emailVerified && (
                 <>
-                  <button
-                    type="button"
-                    disabled={false}
-                    onClick={() => {
-                      setShowEmailField(true);
-                      setEmailConfirmationCode("");
-                      setIncorrectCode(false);
-                    }}
-                    className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
-                  >
-                    <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
-                    <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
-                    <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
-                    <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                      Change Email
-                    </span>
-                  </button>
+                  <div className="flex flex-col gap-8 min-[500px]:flex-row">
+                    <button
+                      type="button"
+                      disabled={false}
+                      onClick={() => {
+                        setShowEmailField(true);
+                        setEmailConfirmationCode("");
+                        setIncorrectCode(false);
+                      }}
+                      className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
+                    >
+                      <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
+                      <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
+                      <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
+                      <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
+                        Change Email
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={false}
+                      onClick={() => {
+                        sendEmail(signUpEmail);
+                        setShowEmailField(true);
+                        setEmailConfirmationCode("");
+                        setIncorrectCode(false);
+                      }}
+                      className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
+                    >
+                      <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
+                      <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
+                      <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
+                      <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
+                        Resend Code
+                      </span>
+                    </button>
+                  </div>
 
                   <p className="mt-6 text-green-600 dark:text-green-300 flex flex-col items-center">
                     <TbMessage2Down className="text-3xl" />{" "}

@@ -44,6 +44,9 @@ const Sign_In = ({
       } else {
         throw new Error("Something went wrong");
       }
+
+      setSignInEmail("");
+      setSignInPassword("");
       setSignInLoading(false);
     } catch (e) {
       setSignInLoading(false);

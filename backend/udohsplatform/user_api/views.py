@@ -137,12 +137,13 @@ class UserView(APIView):
         return Response(serializer.data["email"], status=status.HTTP_200_OK)
 
 
+# This view sends the Google Link
 class SendLinkTo(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request):
         clientID = os.environ.get("GOOGLE_CLIENT_ID")
-        redirectURL = "http://localhost:8000/api/getgoogledata"
+        redirectURL = "http://localhost:5173"
 
         # Construct the authorization URL
         auth_url = "https://accounts.google.com/o/oauth2/auth?" + urlencode(
@@ -160,6 +161,30 @@ class SendLinkTo(APIView):
             return Response({"theURL": serializer.data}, status=status.HTTP_200_OK)
 
 
+"""
+# NOTE: For everything to work in development:
+# 1. Make sure the frontend is on localhost E.g: "http://localhost:5173"
+# 2. Make sure the backend is on localhost as well by running: - python manage.py runserver localhost:8000
+
+# 3. Make sure that on Google consent, the "Authorized Redirect URI" is also on localhost, E.g "http://localhost:5173"
+
+# 4. Lastly, make sure that the request are being sent through the localhost from the frontend to the backend. E.g:
+'''
+import axios from "axios";
+
+// NOTE: Here, we create an axios instance with the django's base URL, so we only have to type in the django's base URL just once
+const axiosClient = axios.create({
+  baseURL: "http://localhost:8000",     # NOTE: We used 'localhost' here, instead of "127.0.0.1".
+  xsrfCookieName: "csrftoken",
+  xsrfHeaderName: "X-CSRFToken",
+  withCredentials: true,
+});
+
+export default axiosClient;
+'''
+"""
+
+
 class GetGoogleUserData(APIView):
     # If this is NOT added , only authenticated users will be allowed to access this view
     permission_classes = (permissions.AllowAny,)
@@ -167,7 +192,7 @@ class GetGoogleUserData(APIView):
     # Tells Django we are using sessionID and NOT JWT
     authentication_classes = (SessionAuthentication,)
 
-    def get(self, request):
+    def post(self, request):
         # Get the 'code' from the URL. The 'code' is sent as 'http://127.0.0.1:8000/api/getgoogledata?code=4%2Fsh3cndc'
         google_code = request.GET.get("code")
 
@@ -182,7 +207,7 @@ class GetGoogleUserData(APIView):
                 "code": authorization_code,
                 "client_id": client_id,
                 "client_secret": client_secret,
-                "redirect_uri": "http://localhost:8000/api/getgoogledata",
+                "redirect_uri": "http://localhost:5173",
                 "grant_type": "authorization_code",
             }
 
@@ -212,17 +237,23 @@ class GetGoogleUserData(APIView):
                 if email:
                     try:
                         # First, we check if the user had sign in with google before, then we log them in
-                        user = User.objects.get(email=email, auth_provider="google")
+                        googleUser = User.objects.get(
+                            email=email, auth_provider="google"
+                        )
 
                         user = authenticate(
                             username=email,
                             password=os.environ.get("GOOGLE_USER_PASSWORD"),
                         )
+
                         login(request, user)
 
-                        user = User.objects.get(email=email)
-                        serializer = UserSerializer(user)
-                        return Response(serializer.data, status=status.HTTP_200_OK)
+                        serializer = UserSerializer(googleUser)
+
+                        return Response(
+                            serializer.data["email"], status=status.HTTP_200_OK
+                        )
+
                     except:
                         try:
                             # Then we check if the user had already signed up (using username and password). If not, we will get an Integrity Constraint error
@@ -256,10 +287,10 @@ class GetGoogleUserData(APIView):
                     login(request, user)
 
                     serializer = UserSerializer(new_user)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+                    return Response(serializer.data["email"], status=status.HTTP_200_OK)
 
             except Exception as e:
-                print(e)
+                print("The error is", e)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { CgProfile } from "react-icons/cg";
 import { BiSearchAlt } from "react-icons/bi";
@@ -8,7 +8,7 @@ import { MdOutlineVerifiedUser } from "react-icons/md";
 import { HiOutlineLogin, HiOutlineLogout } from "react-icons/hi";
 import { AiOutlineLogin } from "react-icons/ai";
 import { RiChatHistoryLine } from "react-icons/ri";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMatchMedia } from "../customHooks/useMatchMedia";
 import HeaderForBigScreen from "./HeaderForBigScreen";
 import Sign_In from "./sign_in";
@@ -18,13 +18,95 @@ import axiosClient from "../utils/axiosSetup";
 import { useDispatch, useSelector } from "react-redux";
 import { userAction } from "../reduxFiles/actions";
 import { userSelector } from "../reduxFiles/selectors";
+import { useSearchParams } from "react-router-dom";
 
 const Header = () => {
   const user = useSelector(userSelector);
 
+  const [googleSignUpMessage, setGoogleSignUpMessage] = useState("appUser");
+
+  useEffect(() => {
+    console.log("user", user);
+  }, [user]);
+
+  // Get the google's code from the user and send it to the backend
+  const [searchParams] = useSearchParams();
+
+  const firstRender = useRef(); // NOTE: This is used in development to prevent the useEffect from running twice
+
+  // This function pops up the message box, when sign-up-with-google is successful or failed
+  const showGoogleMessagePopUp = () => {
+    const thePopUp = document.querySelector("#googleMessagePopUp");
+    thePopUp.classList.remove("hidden");
+
+    setTimeout(() => {
+      thePopUp.classList.remove("-bottom-36");
+      thePopUp.classList.add("bottom-16");
+    }, 0.05);
+  };
+
+  const hideGoogleMessagePopUp = () => {
+    const thePopUp = document.querySelector("#googleMessagePopUp");
+    thePopUp.classList.remove("bottom-16");
+    thePopUp.classList.add("-bottom-36");
+
+    setTimeout(() => {
+      thePopUp.classList.add("hidden");
+    }, 500);
+  };
+
+  useEffect(() => {
+    const getGoogleUser = async () => {
+      const code = searchParams.get("code");
+
+      if (code) {
+        try {
+          const response = await axiosClient.post(
+            `/api/getgoogledata?code=${code}`
+          );
+          if (response.status === 200) {
+            dispatch(userAction(response.data));
+            navigate("/");
+            setGoogleSignUpMessage("success");
+            showGoogleMessagePopUp();
+            setTimeout(hideGoogleMessagePopUp, 10000);
+          }
+        } catch (e) {
+          if (e.request.status === 403) {
+            dispatch(userAction(""));
+            navigate("/");
+            setGoogleSignUpMessage("appUser");
+            showGoogleMessagePopUp();
+            setTimeout(hideGoogleMessagePopUp, 10000);
+          } else {
+            dispatch(userAction(""));
+            navigate("/");
+            setGoogleSignUpMessage("failed");
+            showGoogleMessagePopUp();
+            setTimeout(hideGoogleMessagePopUp, 10000);
+          }
+        }
+      }
+    };
+
+    // So, if we are in development mode, we don't want this to execute twice
+    // eslint-disable-next-line no-undef
+    if (process.env.NODE_ENV === "development") {
+      if (!firstRender.current) {
+        firstRender.current = true;
+      } else {
+        getGoogleUser();
+      }
+    } else {
+      getGoogleUser();
+    }
+  }, [searchParams]);
+
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Send a request to get the user on page load
+  // This also runs when the user changes pages, so if the user had manually deleted their sessionid, or the sessionID had expires, our redux state changes. (So, we used the 'navigate' to know when the user goes to a new page)
   useEffect(() => {
     const getLoggedInUser = async () => {
       try {
@@ -34,17 +116,21 @@ const Header = () => {
         }
       } catch (e) {
         /* User's sessionid was not available in cookie, so do nothing. */
+        dispatch(userAction(""));
       }
     };
 
     getLoggedInUser();
-  }, [dispatch]);
+  }, [dispatch, navigate]);
+
+  // This listens to when a user manually deletes their sessionid, or the sessionid expires, so the user will be logged out of our app
 
   const signOut = async () => {
     try {
       const response = await axiosClient.post("/api/logout");
       if (response.status == 200) {
         dispatch(userAction(""));
+        navigate("/");
       }
     } catch {
       /*The user wasn't logged in, so do nothing*/
@@ -343,6 +429,42 @@ const Header = () => {
             showRegisterForm={() => showForm("#register_user")}
             signOut={signOut}
           />
+        )}
+
+        {googleSignUpMessage && (
+          <div
+            id="googleMessagePopUp"
+            className="-bottom-36 hidden rounded-2xl fixed font-bold z-50 max-w-[400px] right-0 w-full p-4 bg-gray-200 -translate-y-1/2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] transition-all duration-500 ease-linear"
+          >
+            {googleSignUpMessage === "success" && (
+              <p className="text-center text-green-500">Sign in Successful</p>
+            )}
+
+            {googleSignUpMessage === "failed" && (
+              <p className="text-center text-red-500">
+                Google verification failed. Please sign up with an email and
+                password
+              </p>
+            )}
+
+            {googleSignUpMessage === "appUser" && (
+              <p className="text-center text-red-500">
+                You signed up with an email and password. Please sign in to
+                continue{" "}
+              </p>
+            )}
+
+            <button
+              aria-label="close"
+              type="button"
+              className="text-2xl absolute top-1 right-1 text-black cursor-pointer"
+              onClick={() => {
+                hideGoogleMessagePopUp();
+              }}
+            >
+              <AiOutlineClose />
+            </button>
+          </div>
         )}
       </header>
 

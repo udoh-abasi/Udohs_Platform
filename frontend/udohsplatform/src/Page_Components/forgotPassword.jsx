@@ -13,6 +13,8 @@ import { Link } from "react-router-dom";
 import { BsArrowRight } from "react-icons/bs";
 import { IoIosCheckmark, IoIosCheckmarkCircle } from "react-icons/io";
 import SignUpWithGoogle from "./signupWithGoogle";
+import Loader from "./loader";
+import axiosClient from "../utils/axiosSetup";
 
 const ForgotPassword = ({
   showSignInForm,
@@ -54,10 +56,13 @@ const ForgotPassword = ({
 
   const [passwordChanged, setPasswordChanged] = useState(false);
 
-  // eslint-disable-next-line no-unused-vars
+  const [resetPasswordError, setResetPasswordError] = useState("");
+
   const [googleUser, setGoogleUser] = useState(false);
-  // eslint-disable-next-line no-unused-vars
   const [emailDoesNotExist, setEmailDoesNotExist] = useState(false);
+
+  const [requestIsLoading, setRequestIsLoading] = useState(false);
+  const [emailSendingError, setEmailSendingError] = useState("");
 
   // This function manages the regular expression, and show what the user has ticked and what they have not
   const passwordRegularExpressionCheck = (e) => {
@@ -104,6 +109,121 @@ const ForgotPassword = ({
     }
   }, [confirmPassword, password]);
 
+  // This sends an email code to verify the user's email before sign up. Returns a 403 error if the email already exists
+  const sendEmail = async (emailAddress) => {
+    try {
+      setRequestIsLoading(true);
+      setEmailSendingError("");
+
+      const response = await axiosClient.post(
+        "/api/reset_password_sendemailcode",
+        {
+          email: emailAddress,
+        }
+      );
+
+      console.log(response.status);
+
+      if (response.status === 200) {
+        setShowEmailField(false);
+      }
+      setRequestIsLoading(false);
+    } catch (e) {
+      setRequestIsLoading(false);
+      switch (e.request.status) {
+        case 403: {
+          setGoogleUser(true);
+          return;
+        }
+        case 404: {
+          setEmailDoesNotExist(true);
+          return;
+        }
+        default: {
+          setEmailSendingError("Something went wrong. Please try again later");
+          return;
+        }
+      }
+    }
+  };
+
+  const confirmEmailCode = async (code) => {
+    setRequestIsLoading(true);
+
+    try {
+      const response = await axiosClient.post(
+        "api/reset_password_confirmemail",
+        {
+          email: forgotPasswordEmail,
+          code: code,
+        }
+      );
+      if (response.status === 200) {
+        setEmailVerified(true);
+      }
+      setRequestIsLoading(false);
+    } catch {
+      setIncorrectCode(true);
+      setRequestIsLoading(false);
+    }
+  };
+
+  const resetPasswordFields = () => {
+    setForgotPasswordEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setEmailConfirmationCode("");
+    setResetPasswordError("");
+
+    setEmailVerified(false);
+    setShowEmailField(true);
+
+    setGoogleUser(false);
+    setEmailDoesNotExist(false);
+
+    setPasswordHasCharacter(false);
+    setPasswordHasLowercase(false);
+    setPasswordHasNumber(false);
+    setPasswordHasUppercase(false);
+    setPasswordIsEightDigit(false);
+
+    setRequestIsLoading(false);
+  };
+
+  const changePassword = async (email, password) => {
+    if (
+      passwordHasCharacter &&
+      passwordHasUppercase &&
+      passwordHasLowercase &&
+      passwordHasNumber &&
+      passwordIsEightDigit &&
+      passwordMatch &&
+      forgotPasswordEmail
+    ) {
+      setRequestIsLoading(true);
+      setResetPasswordError("");
+
+      try {
+        const response = await axiosClient.put(`/api/forgotpassword/${email}`, {
+          password,
+        });
+
+        if (response.status === 200) {
+          setPasswordChanged(true);
+
+          // Then reset everything back to default
+          resetPasswordFields();
+          // hideForgotPasswordForm();
+        } else {
+          throw new Error("Something went wrong");
+        }
+      } catch (e) {
+        setRequestIsLoading(false);
+        setResetPasswordError("Something went wrong with your registration.");
+      }
+    }
+  };
+
   return (
     <div
       className="flex justify-center"
@@ -118,35 +238,48 @@ const ForgotPassword = ({
           </h2>
 
           <form onSubmit={(e) => e.preventDefault()} className="mt-8">
-            {!emailVerified && (
-              <div className="flex flex-col-reverse mb-8 relative mt-16">
-                <input
-                  type="email"
-                  required
-                  placeholder=" "
-                  id="forgotPasswordEmail"
-                  disabled={!showEmailField}
-                  value={forgotPasswordEmail}
-                  onChange={(e) => {
-                    setForgotPasswordEmail(e.target.value);
-                    setInvalidEmail(false);
-                  }}
-                  className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer disabled:cursor-not-allowed disabled:bg-gray-600 disabled:ring-gray-600 disabled:text-gray-400"
-                />
+            {!passwordChanged && (
+              <>
+                {!emailVerified && (
+                  <div className="flex flex-col-reverse mb-8 relative mt-16">
+                    <input
+                      type="email"
+                      required
+                      placeholder=" "
+                      id="forgotPasswordEmail"
+                      disabled={!showEmailField}
+                      value={forgotPasswordEmail}
+                      onChange={(e) => {
+                        setForgotPasswordEmail(e.target.value);
+                        setInvalidEmail(false);
+                        setEmailDoesNotExist(false);
+                        setGoogleUser(false);
+                      }}
+                      className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer disabled:cursor-not-allowed disabled:bg-gray-600 disabled:ring-gray-600 disabled:text-gray-400"
+                    />
 
-                <label
-                  htmlFor="forgotPasswordEmail"
-                  className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
-                >
-                  Email&nbsp;<span className="text-red-500">&#42;</span>
-                </label>
-              </div>
+                    <label
+                      htmlFor="forgotPasswordEmail"
+                      className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+                    >
+                      Email&nbsp;<span className="text-red-500">&#42;</span>
+                    </label>
+                  </div>
+                )}
+              </>
             )}
 
             {invalidEmail && (
               <p className="flex items-center text-sm text-red-500 mb-4 mt-[-12px]">
                 <AiFillWarning className="text-2xl" />
                 Please enter a valid email
+              </p>
+            )}
+
+            {emailSendingError && (
+              <p className="flex items-center text-sm text-red-500 mb-4 mt-[-12px]">
+                <AiFillWarning className="text-2xl" />
+                {emailSendingError}
               </p>
             )}
 
@@ -160,9 +293,11 @@ const ForgotPassword = ({
                     onClick={() => {
                       hideForgotPasswordForm();
                       showRegisterForm();
+                      setForgotPasswordEmail("");
+                      setEmailDoesNotExist(false);
                     }}
                   >
-                    register with us
+                    Register with us
                   </Link>{" "}
                   instead.
                 </span>
@@ -180,106 +315,148 @@ const ForgotPassword = ({
               </p>
             )}
 
-            {!emailVerified && showEmailField ? (
-              <button
-                type="submit"
-                disabled={false}
-                onClick={() => {
-                  if (isEmailValid(forgotPasswordEmail)) {
-                    setShowEmailField(false);
-                  } else {
-                    setInvalidEmail(true);
-                  }
-                }}
-                className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
-              >
-                <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
-                <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
-                <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
-                <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                  Continue <BsArrowRight className="ml-2" />
-                </span>
-              </button>
-            ) : (
-              !emailVerified && (
-                <>
+            {!passwordChanged && (
+              <>
+                {!emailVerified && showEmailField ? (
                   <button
                     type="submit"
-                    disabled={false}
-                    onClick={() => setShowEmailField(true)}
-                    className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
-                  >
-                    <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
-                    <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
-                    <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
-                    <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                      Change Email
-                    </span>
-                  </button>
-
-                  <p className="mt-6 text-green-600 dark:text-green-300 flex flex-col items-center">
-                    <TbMessage2Down className="text-3xl" />{" "}
-                    <span className="text-center">
-                      {" "}
-                      A confirmation code has been sent to{" "}
-                      <strong> {forgotPasswordEmail}. </strong>
-                      Please enter the code to confirm this is your email.
-                    </span>
-                  </p>
-
-                  <div className="flex flex-col-reverse mb-4 relative mt-10">
-                    <input
-                      type="number"
-                      maxLength={6}
-                      required
-                      placeholder=" "
-                      id="signUpCode"
-                      value={emailConfirmationCode}
-                      onChange={(e) => {
-                        setEmailConfirmationCode(e.target.value);
-                        setIncorrectCode(false);
-                      }}
-                      className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
-                    />
-
-                    <label
-                      htmlFor="signUpCode"
-                      className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
-                    >
-                      Confirmation code&nbsp;
-                      <span className="text-red-500">&#42;</span>
-                    </label>
-                  </div>
-
-                  {incorrectCode && (
-                    <p className="flex items-center text-sm text-red-500 mb-4">
-                      <AiFillWarning className="text-2xl" />
-                      Email verification failed. Please check the code and try
-                      again.
-                    </p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={false}
+                    disabled={requestIsLoading}
                     onClick={() => {
-                      if (emailConfirmationCode.length === 6) {
-                        setEmailVerified(true);
+                      if (isEmailValid(forgotPasswordEmail)) {
+                        sendEmail(forgotPasswordEmail);
                       } else {
-                        setIncorrectCode(true);
+                        setInvalidEmail(true);
                       }
                     }}
-                    className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
+                    className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
                   >
                     <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
                     <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
                     <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
                     <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                      Confirm Code <BsArrowRight className="ml-2" />
+                      {requestIsLoading ? (
+                        <Loader />
+                      ) : (
+                        <>
+                          Continue <BsArrowRight className="ml-2" />
+                        </>
+                      )}
                     </span>
                   </button>
-                </>
-              )
+                ) : (
+                  !emailVerified && (
+                    <>
+                      <div className="flex flex-col gap-8 min-[500px]:flex-row">
+                        <button
+                          type="submit"
+                          disabled={false}
+                          onClick={() => {
+                            setShowEmailField(true);
+                            setEmailConfirmationCode("");
+                            setIncorrectCode(false);
+                          }}
+                          className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
+                        >
+                          <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
+                          <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
+                          <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
+                          <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
+                            Change Email
+                          </span>
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={false}
+                          onClick={() => {
+                            sendEmail(forgotPasswordEmail);
+                            setShowEmailField(true);
+                            setEmailConfirmationCode("");
+                            setIncorrectCode(false);
+                          }}
+                          className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
+                        >
+                          <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
+                          <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
+                          <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
+                          <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
+                            Resend Code
+                          </span>
+                        </button>
+                      </div>
+
+                      <p className="mt-6 text-green-600 dark:text-green-300 flex flex-col items-center">
+                        <TbMessage2Down className="text-3xl" />{" "}
+                        <span className="text-center">
+                          {" "}
+                          A confirmation code has been sent to{" "}
+                          <strong> {forgotPasswordEmail}. </strong>
+                          Please enter the code to confirm this is your email.
+                        </span>
+                      </p>
+
+                      <div className="flex flex-col-reverse mb-4 relative mt-10">
+                        <input
+                          type="number"
+                          maxLength={6}
+                          required
+                          placeholder=" "
+                          id="signUpCode"
+                          value={emailConfirmationCode}
+                          onChange={(e) => {
+                            setEmailConfirmationCode(e.target.value);
+                            setIncorrectCode(false);
+                          }}
+                          className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
+                        />
+
+                        <label
+                          htmlFor="signUpCode"
+                          className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+                        >
+                          Confirmation code&nbsp;
+                          <span className="text-red-500">&#42;</span>
+                        </label>
+                      </div>
+
+                      {incorrectCode && (
+                        <p className="flex items-center text-sm text-red-500 mb-4">
+                          <AiFillWarning className="text-2xl" />
+                          Email verification failed. Please check the code and
+                          try again.
+                        </p>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={requestIsLoading}
+                        onClick={() => {
+                          setIncorrectCode(false);
+                          if (emailConfirmationCode.length === 6) {
+                            confirmEmailCode(emailConfirmationCode);
+                          } else {
+                            setIncorrectCode(true);
+                          }
+                        }}
+                        className="w-full max-w-[250px] font-bold relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
+                      >
+                        <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
+                        <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
+                        <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
+                        <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
+                          {requestIsLoading ? (
+                            <Loader />
+                          ) : (
+                            <>
+                              Confirm Code <BsArrowRight className="ml-2" />
+                            </>
+                          )}
+                        </span>
+                      </button>
+                    </>
+                  )
+                )}
+              </>
             )}
 
             {!passwordChanged && emailVerified && (
@@ -454,29 +631,33 @@ const ForgotPassword = ({
 
                 <button
                   type="submit"
-                  disabled={false}
+                  disabled={requestIsLoading}
                   onClick={() => {
-                    if (password !== confirmPassword) {
+                    if (password && password === confirmPassword) {
+                      changePassword(forgotPasswordEmail, password);
+                    } else if (password && password !== confirmPassword) {
                       setPasswordMatch(false);
-                    } else {
-                      console.log("Password okay");
-                      console.log(forgotPasswordEmail);
-                      console.log(password);
-                      setPasswordChanged(true);
                     }
                   }}
-                  className="w-full font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group"
+                  className="w-full font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
                 >
                   <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
                   <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md "></span>
                   <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 "></span>
                   <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center">
-                    Set Password
+                    {requestIsLoading ? <Loader /> : <>Set password</>}
                   </span>
                 </button>
               </>
             )}
           </form>
+
+          {resetPasswordError && (
+            <p className="flex items-center text-sm text-red-500 mb-4 mt-[-12px]">
+              <AiFillWarning className="text-2xl" />
+              {resetPasswordError}
+            </p>
+          )}
 
           {passwordChanged && (
             <p className=" text-2xl text-green-600 dark:text-green-300 mt-8 max-[450px]:text-xl text-center mb-8">
@@ -504,7 +685,10 @@ const ForgotPassword = ({
             </Link>
           </div>
 
-          <SignUpWithGoogle text={"Sign in with Google"} />
+          <SignUpWithGoogle
+            text={"Sign in with Google"}
+            resetPasswordFields={resetPasswordFields}
+          />
 
           <button
             type="button"

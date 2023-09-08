@@ -1,7 +1,28 @@
 /* eslint-disable react/prop-types */
 // URL to documentation - https://docs.amplify.aws/lib/auth/social/q/platform/js/
 
-const SignUpWithGoogle = ({ text }) => {
+import { useEffect, useState } from "react";
+import axiosClient from "../utils/axiosSetup";
+
+const SignUpWithGoogle = ({ text, resetPasswordFields }) => {
+  const [googleLink, setGoogleLink] = useState("");
+
+  // This gets the Link that the user will be redirected to, when they click 'Sign in with Google'
+  useEffect(() => {
+    const getGoogleLink = async () => {
+      try {
+        const response = await axiosClient.get("/api/getLink");
+        if (response.status === 200) {
+          setGoogleLink(response.data.theURL.auth_url);
+        }
+      } catch {
+        //
+      }
+    };
+
+    getGoogleLink();
+  }, []);
+
   return (
     <div className="flex flex-col items-center overflow-hidden">
       <p className="flex justify-center items-center uppercase font-bold my-6 before:mr-2 before:h-[1px] before:w-[800px] before:bg-gray-400 after:h-[1px] after:w-[800px]  after:bg-gray-400 after:ml-2">
@@ -9,8 +30,12 @@ const SignUpWithGoogle = ({ text }) => {
       </p>
 
       <button
-        type="button"
-        className="flex justify-center items-center w-[90%] max-w-[280px] h-[52px] border-gray-400 border hover:bg-gray-200 hover:text-black font-medium  rounded-3xl"
+        disabled={!googleLink}
+        onClick={() => {
+          window.location.href = googleLink;
+          resetPasswordFields();
+        }}
+        className="flex justify-center items-center w-[90%] max-w-[280px] h-[52px] border-gray-400 border hover:bg-gray-200 hover:text-black font-medium  rounded-3xl disabled:text-red-500"
       >
         <svg
           version="1.1"

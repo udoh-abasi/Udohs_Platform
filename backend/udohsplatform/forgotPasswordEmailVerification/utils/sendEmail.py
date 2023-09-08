@@ -11,7 +11,5 @@ def sendEmailCode(recipient, code):
         yag.send(to=recipient, subject="Email Verification Code", contents=body)
         yag.close()
 
-        print("Email sent successfully!")
-
     except Exception as e:
-        print(e)
+        raise Exception("Error sending email")
