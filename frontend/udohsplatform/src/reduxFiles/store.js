@@ -1,6 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { userReducer } from "./reducers";
+import { isLoadingReducer, userReducer } from "./reducers";
 
-const store = configureStore({ reducer: { user: userReducer } });
+const store = configureStore({
+  reducer: { user: userReducer, isLoading: isLoadingReducer },
+});
 
 export default store;

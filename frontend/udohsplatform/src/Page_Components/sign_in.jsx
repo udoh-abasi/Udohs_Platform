@@ -24,7 +24,6 @@ const Sign_In = ({
   const [signInLoading, setSignInLoading] = useState(false);
 
   const dispatch = useDispatch();
-  // const user = useSelector(userSelector);
 
   const signIn = async () => {
     try {
@@ -35,8 +34,10 @@ const Sign_In = ({
       });
 
       if (response.status === 200) {
-        const data = response.data;
-        dispatch(userAction(data));
+        const response = await axiosClient.get("/api/user");
+        if (response.status === 200) {
+          dispatch(userAction({ userLoading: false, userData: response.data }));
+        }
 
         hideSignInForm();
         setSignInEmail("");

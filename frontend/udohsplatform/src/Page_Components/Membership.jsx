@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCheck } from "react-icons/fa";
 import { BsCreditCard2Back, BsCreditCard2FrontFill } from "react-icons/bs";
 import { AiFillWarning } from "react-icons/ai";
@@ -7,10 +7,12 @@ import { showForm } from "../utils/showOrHideSignUpAndRegisterForms";
 import { userSelector } from "../reduxFiles/selectors";
 import { useSelector } from "react-redux";
 import { MdCelebration, MdWorkspacePremium } from "react-icons/md";
+import Confetti from "react-confetti";
 
 const Membership = () => {
-  const premium_member = true;
-  const user = useSelector(userSelector);
+  // const [user.premium_member, setPremium_member] = useState(false);
+  let user = useSelector(userSelector);
+  user = user.userData;
 
   const [paymentMethod, setPaymentMethod] = useState("");
 
@@ -69,119 +71,166 @@ const Membership = () => {
     );
   }
 
+  // Controls if the confetti should show, to congratulate the user
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  // Turn off the confetti after 1 minute
+  useEffect(() => {
+    if (user && user.premium_member) {
+      setTimeout(() => {
+        setShowConfetti(false);
+      }, 10000);
+    }
+  }, [user]);
+
+  // Added so that confetti will respond to resize of the screen
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  const handleResize = () => {
+    setWindowDimensions({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  };
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <main className="min-h-screen p-4 mb-4">
       <h1 className="pt-[90px] text-[9vw] font-bold text-center text-[#81ba40] dark:text-[#70dbb8] min-[870px]:text-[75px]">
-        {user && premium_member ? "Congratulations!" : "Inspire great minds."}
+        {user && user.premium_member
+          ? "Congratulations!"
+          : "Inspire great minds."}
       </h1>
 
-      {user && premium_member ? (
-        <div className="flex justify-center">
-          <div className=" max-w-[650px]">
-            <div className="p-2 text-center ring-[#81ba40] dark:ring-[#70dbb8] ring-4 mt-8 rounded-xl">
-              <span className="flex justify-center !text-green-400 text-7xl mb-4">
-                <MdCelebration />
-              </span>
-              <strong className="text-[rgb(255,145,0)] dark:text-[#ffd700] block my-8 min-[450px]:text-2xl">
-                <MdWorkspacePremium className="inline" />
-                You are a Premium Member
-                <MdWorkspacePremium className="inline" />
-              </strong>
-              <p className="text-xl flex justify-center">
-                <span className="flex-[0_1_400px] ">
-                  You have unlimited access to everything on Udohs Platform
+      {user && user.premium_member ? (
+        <>
+          <div className="z-50 fixed top-0 left-0">
+            <Confetti
+              numberOfPieces={200}
+              width={windowDimensions.width}
+              height={windowDimensions.height}
+              gravity={0.05} // Controls how fast the confetti should fall
+              recycle={showConfetti} // Controls if the confetti will keep showing or not
+            />
+          </div>
+
+          <section className="flex justify-center">
+            <div className=" max-w-[650px]">
+              <div className="p-2 text-center ring-[#81ba40] dark:ring-[#70dbb8] ring-4 mt-8 rounded-xl">
+                <span className="flex justify-center !text-green-400 text-7xl mb-4">
+                  <MdCelebration />
                 </span>
+                <strong className="text-[rgb(255,145,0)] dark:text-[#ffd700] block my-8 min-[450px]:text-2xl">
+                  <MdWorkspacePremium className="inline" />
+                  You are a Premium Member
+                  <MdWorkspacePremium className="inline" />
+                </strong>
+                <p className="text-xl flex justify-center">
+                  <span className="flex-[0_1_400px] ">
+                    You have unlimited access to everything on Udohs Platform
+                  </span>
+                </p>
+              </div>
+
+              <p className="mt-16">
+                <Link
+                  id="start_reading"
+                  to="/allArticles"
+                  className="relative inline-flex items-center justify-center py-3 pl-4 pr-12 overflow-hidden font-semibold transition-all duration-150 ease-in-out rounded-2xl hover:pl-10 hover:pr-6  text-white dark:text-black bg-[#af4261] dark:bg-[#70dbb8] group w-full mb-4 min-[420px]:mb-8"
+                >
+                  <span className="absolute bottom-0 left-0 w-full h-1 transition-all duration-150 ease-in-out bg-black group-hover:h-full"></span>
+                  <span className="absolute right-0 pr-4 duration-200 ease-out group-hover:translate-x-12">
+                    <svg
+                      className="w-5 h-5 text-white dark:text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      ></path>
+                    </svg>
+                  </span>
+                  <span className="absolute left-0 pl-2.5 -translate-x-12 group-hover:translate-x-0 ease-out duration-200">
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      ></path>
+                    </svg>
+                  </span>
+                  <span className="relative uppercase flex justify-center w-full text-left transition-colors duration-200 ease-in-out group-hover:text-white">
+                    Start reading
+                  </span>
+                </Link>
+
+                <Link
+                  href="#_"
+                  className="relative inline-flex items-center justify-center py-3 pl-4 pr-12 overflow-hidden font-semibold text-white dark:text-black bg-[#af4261] dark:bg-[#70dbb8] transition-all duration-150 ease-in-out rounded-2xl hover:pl-10 hover:pr-6 group w-full"
+                >
+                  <span className="absolute bottom-0 left-0 w-full h-1 transition-all duration-150 ease-in-out bg-black group-hover:h-full"></span>
+                  <span className="absolute right-0 pr-4 duration-200 ease-out group-hover:translate-x-12">
+                    <svg
+                      className="w-5 h-5 text-white dark:text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      ></path>
+                    </svg>
+                  </span>
+                  <span className="absolute left-0 pl-2.5 -translate-x-12 group-hover:translate-x-0 ease-out duration-200">
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      ></path>
+                    </svg>
+                  </span>
+                  <span className="relative uppercase flex justify-center w-full text-left transition-colors duration-200 ease-in-out group-hover:text-white">
+                    Start writing
+                  </span>
+                </Link>
               </p>
             </div>
-
-            <p className="mt-16">
-              <Link
-                id="start_reading"
-                to="/allArticles"
-                className="relative inline-flex items-center justify-center py-3 pl-4 pr-12 overflow-hidden font-semibold transition-all duration-150 ease-in-out rounded-2xl hover:pl-10 hover:pr-6  text-white dark:text-black bg-[#af4261] dark:bg-[#70dbb8] group w-full mb-4 min-[420px]:mb-8"
-              >
-                <span className="absolute bottom-0 left-0 w-full h-1 transition-all duration-150 ease-in-out bg-black group-hover:h-full"></span>
-                <span className="absolute right-0 pr-4 duration-200 ease-out group-hover:translate-x-12">
-                  <svg
-                    className="w-5 h-5 text-white dark:text-black"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    ></path>
-                  </svg>
-                </span>
-                <span className="absolute left-0 pl-2.5 -translate-x-12 group-hover:translate-x-0 ease-out duration-200">
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    ></path>
-                  </svg>
-                </span>
-                <span className="relative uppercase flex justify-center w-full text-left transition-colors duration-200 ease-in-out group-hover:text-white">
-                  Start reading
-                </span>
-              </Link>
-
-              <Link
-                href="#_"
-                className="relative inline-flex items-center justify-center py-3 pl-4 pr-12 overflow-hidden font-semibold text-white dark:text-black bg-[#af4261] dark:bg-[#70dbb8] transition-all duration-150 ease-in-out rounded-2xl hover:pl-10 hover:pr-6 group w-full"
-              >
-                <span className="absolute bottom-0 left-0 w-full h-1 transition-all duration-150 ease-in-out bg-black group-hover:h-full"></span>
-                <span className="absolute right-0 pr-4 duration-200 ease-out group-hover:translate-x-12">
-                  <svg
-                    className="w-5 h-5 text-white dark:text-black"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    ></path>
-                  </svg>
-                </span>
-                <span className="absolute left-0 pl-2.5 -translate-x-12 group-hover:translate-x-0 ease-out duration-200">
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    ></path>
-                  </svg>
-                </span>
-                <span className="relative uppercase flex justify-center w-full text-left transition-colors duration-200 ease-in-out group-hover:text-white">
-                  Start writing
-                </span>
-              </Link>
-            </p>
-          </div>
-        </div>
+          </section>
+        </>
       ) : (
         <div>
           <div className="flex justify-center">
@@ -221,7 +270,7 @@ const Membership = () => {
             </section>
           </div>
 
-          {!premium_member && (
+          {user && !user.premium_member && (
             <section className="flex flex-col items-center mt-8 mb-16 min-[800px]:flex-row min-[800px]:justify-center min-[800px]:gap-4">
               <button
                 onClick={() => setPaymentMethod("naira")}
@@ -292,7 +341,7 @@ const Membership = () => {
             </p>
           )}
 
-          {user && paymentMethod && !premium_member && (
+          {user && paymentMethod && !user.premium_member && (
             <div className="flex justify-center">
               <section className="mt-[-30px] flex-[0_1_490px] min-[450px]:text-xl">
                 <p className="font-bold flex justify-between">

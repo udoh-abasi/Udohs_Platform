@@ -33,21 +33,23 @@ class AppUserManager(BaseUserManager):
 
 
 class AppUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(max_length=50, unique=True)
-    is_staff = models.BooleanField(default=False, editable=False)
-    is_email_verified = models.BooleanField(default=False, editable=False)
-    auth_provider = models.CharField(max_length=20, default="AppUser", editable=False)
-    first_name = models.CharField(max_length=50, null=True, blank=True)
-    last_name = models.CharField(max_length=50, null=True, blank=True)
-    date_joined = models.DateField(auto_now_add=True, editable=False)
-    date_updated = models.DateTimeField(auto_now=True, editable=False)
+    email = models.EmailField(max_length=40, unique=True)
+    is_staff = models.BooleanField(default=False)
+    is_email_verified = models.BooleanField(default=False)
+    auth_provider = models.CharField(max_length=10, default="AppUser")
+    first_name = models.CharField(max_length=20, null=True, blank=True)
+    last_name = models.CharField(max_length=20, null=True, blank=True)
+    date_joined = models.DateField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = "email"
     objects = AppUserManager()
 
-    bio = models.TextField(null=True, blank=True)
-    premium_member = models.BooleanField(default=False, editable=False)
-    # profile_pic = models.ImageField(upload_to="" blank=False, default="")
+    bio = models.TextField(null=True, blank=True, max_length=999)
+    premium_member = models.BooleanField(default=False)
+    profile_pic = models.ImageField(
+        upload_to="user_profile_pics", null=True, blank=True
+    )
 
 
 """ 

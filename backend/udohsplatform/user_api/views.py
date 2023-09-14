@@ -2,12 +2,16 @@ from django.contrib.auth import login, logout, get_user_model, authenticate
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser
+
 
 from .serializers import (
     UserSerializer,
     UserLoginSerializer,
     UserRegisterSerializer,
     SendLink,
+    ProfileEditSerializer,
 )
 from .validation import (
     custom_validation,
@@ -134,7 +138,69 @@ class UserView(APIView):
 
     def get(self, request):
         serializer = UserSerializer(request.user)
-        return Response(serializer.data["email"], status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# This view takes the user's id and returns the details of their account
+class AccountView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, id):
+        try:
+            if int(id):
+                user = get_object_or_404(User, id=id)
+                serializer = UserSerializer(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+# This edits the user's profile (first name, last name, bio and profile pics)
+class EditProfileView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+
+    # Because of this, any data sent to this view has to come as a FormData object
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        try:
+            user = get_object_or_404(User, id=request.user.id)
+            data = request.data
+
+            firstName = data.get("first_name", "").strip()
+            lastName = data.get("last_name", "").strip()
+            bio = data.get("bio", "").strip()
+
+            # Send the data to the serializer to validate, (incase malicious file was sent as photo)
+            serializer = ProfileEditSerializer(data=data)
+
+            if (
+                firstName
+                and lastName
+                and bio
+                and serializer.is_valid(raise_exception=True)
+            ):
+                user.bio = bio
+                user.first_name = firstName
+                user.last_name = lastName
+
+                profilePic = data.get("profile_pic", None)
+                if profilePic:
+                    user.profile_pic.delete()  # Delete the old profile picture from the database and replace with the new profile picture
+                    user.profile_pic = profilePic
+
+                user.save()
+
+                serializer = UserSerializer(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 # This view sends the Google Link
@@ -250,9 +316,7 @@ class GetGoogleUserData(APIView):
 
                         serializer = UserSerializer(googleUser)
 
-                        return Response(
-                            serializer.data["email"], status=status.HTTP_200_OK
-                        )
+                        return Response(serializer.data, status=status.HTTP_200_OK)
 
                     except:
                         try:
@@ -287,7 +351,7 @@ class GetGoogleUserData(APIView):
                     login(request, user)
 
                     serializer = UserSerializer(new_user)
-                    return Response(serializer.data["email"], status=status.HTTP_200_OK)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
 
             except Exception as e:
                 print("The error is", e)

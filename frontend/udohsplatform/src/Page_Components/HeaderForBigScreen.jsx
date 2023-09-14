@@ -39,6 +39,16 @@ const HeaderForBigScreen = ({
           Skip Navigation
         </a>
 
+        {user && user.email === "udoh.abasi.s@gmail.com" && (
+          <Link
+            to={"http://localhost:8000/admin"}
+            target="_blank"
+            className="absolute left-[150px] bottom-0 font-bold border border-r-emerald-700 bg-emerald-700 box rounded-md p-1 text-xs opacity-0 w-0 overflow-hidden h-0 focus:opacity-100 focus:w-auto focus:h-auto"
+          >
+            Admin Login
+          </Link>
+        )}
+
         <li className="group text-[#af4261] dark:text-[#a1d06d]">
           {!formHasFocus && (
             <button

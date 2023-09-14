@@ -181,8 +181,12 @@ const Register = ({ hideRegisterForm, showSignInForm }) => {
           });
 
           if (response.status === 200) {
-            const data = response.data;
-            dispatch(userAction(data));
+            const response = await axiosClient.get("/api/user");
+            if (response.status === 200) {
+              dispatch(
+                userAction({ userLoading: false, userData: response.data })
+              );
+            }
 
             // Then reset everything back to default
             setSignUpEmail("");

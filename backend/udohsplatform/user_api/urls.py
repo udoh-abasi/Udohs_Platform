@@ -7,6 +7,8 @@ from .views import (
     SendLinkTo,
     GetGoogleUserData,
     ForgotPasswordView,
+    AccountView,
+    EditProfileView,
 )
 
 urlpatterns = [
@@ -17,4 +19,6 @@ urlpatterns = [
     path("user", UserView.as_view()),
     path("getLink", SendLinkTo.as_view()),
     path("getgoogledata", GetGoogleUserData.as_view()),
+    path("account/<int:id>", AccountView.as_view()),
+    path("editProfile", EditProfileView.as_view()),
 ]

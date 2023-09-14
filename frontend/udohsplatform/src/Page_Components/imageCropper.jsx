@@ -9,6 +9,7 @@ const ImageCropper = ({
   imageToCrop,
   setImageOnInput,
   setCroppedImageOnParent,
+  setUploadCanvas,
 }) => {
   const cropperRef = useRef(null);
 
@@ -19,7 +20,7 @@ const ImageCropper = ({
     const cropper = cropperRef.current.cropper;
 
     // Access the cropped image data and do something with it
-    const croppedCanvas = cropper.getCroppedCanvas().toDataURL();
+    const croppedCanvas = cropper.getCroppedCanvas().toDataURL("image/webp");
 
     // Set the cropped image's data in a state
     if (croppedCanvas) {
@@ -46,6 +47,13 @@ const ImageCropper = ({
     const image = URL.createObjectURL(imageToCrop);
     setTheImage(image);
   }, [imageToCrop]);
+
+  // This function sets up the cropped image for upload to to the server, that is why we did not use '.toDataURL' method. We want to use '.toBlob' instead
+  const handleCropAndUpload = () => {
+    const cropper = cropperRef.current.cropper;
+    const canvas = cropper.getCroppedCanvas();
+    setUploadCanvas(canvas);
+  };
 
   return (
     <div className="fixed top-0 left-0 z-10 w-full h-full">
@@ -112,6 +120,7 @@ const ImageCropper = ({
               setShowImageCropperInterface(); // Turn off the picture cropping interface
               setImageOnInput(); // Set the image in the input field to an empty string. This was added as a fix, so that if the same picture is selected twice in a row, the picture cropping interface will still be triggered
               setCroppedImageOnParent(croppedImage); // This sends the cropped image to the 'Edit profile' interface, so it can be used instead of the original picture
+              handleCropAndUpload();
             }}
             className="px-4 w-[150px] min-[500px]:text-xl uppercase font-bold rounded-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
           >

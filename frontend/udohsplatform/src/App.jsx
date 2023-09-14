@@ -1,21 +1,61 @@
+/* eslint-disable react/prop-types */
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "./Page_Components/HomePage";
+
 import Header from "./Page_Components/Header";
 import Footer from "./Page_Components/Footer";
 import Membership from "./Page_Components/Membership";
 import AllArticles from "./Page_Components/AllArticles";
 import ProfilePage from "./Page_Components/ProfilePage";
+import HomePage from "./Page_Components/HomePage";
+import AccountPage from "./Page_Components/AccountPage";
+import { Navigate, Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { userSelector } from "./reduxFiles/selectors";
+
+// const UnusedPrivateRoute = ({ children, user }) => {
+//   if (user) {
+//     return children;
+//   } else {
+//     return <Navigate to="/" replace />;
+//   }
+// };
+
+const PrivateRoute = () => {
+  let user = useSelector(userSelector);
+
+  // So if we have a user or the user is loading, we return the JSX, else we navigate to the home page
+  return user.userData || user.userLoading ? (
+    <Outlet />
+  ) : (
+    <Navigate to="/" replace />
+  );
+};
 
 function App() {
+  // const user = useSelector(userSelector);
   return (
     <BrowserRouter>
       <Header />
 
       <Routes>
-        <Route path="/" Component={HomePage} />
-        <Route path="/membership" Component={Membership} />
-        <Route path="/allArticles" Component={AllArticles} />
-        <Route path="/userProfile" Component={ProfilePage} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/membership" element={<Membership />} />
+        <Route path="/allArticles" element={<AllArticles />} />
+
+        <Route path="/userProfile" element={<PrivateRoute />}>
+          <Route path="/userProfile" element={<ProfilePage />} />
+        </Route>
+
+        <Route path="/account/:id" element={<AccountPage />} />
+
+        {/* <Route
+          path="/userProfile"
+          element={
+            <UnusedPrivateRoute user={user}>
+              <ProfilePage />
+            </UnusedPrivateRoute>
+          }
+        /> */}
       </Routes>
 
       <Footer />

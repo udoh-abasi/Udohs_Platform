@@ -38,8 +38,28 @@ class UserLoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("email",)
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "date_joined",
+            "bio",
+            "premium_member",
+            "profile_pic",
+        )
 
 
 class SendLink(serializers.Serializer):
     auth_url = serializers.CharField()
+
+
+class ProfileEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "first_name",
+            "last_name",
+            "bio",
+            "profile_pic",
+        )

@@ -21,7 +21,8 @@ import { userSelector } from "../reduxFiles/selectors";
 import { useSearchParams } from "react-router-dom";
 
 const Header = () => {
-  const user = useSelector(userSelector);
+  let user = useSelector(userSelector);
+  user = user.userData;
 
   const [googleSignUpMessage, setGoogleSignUpMessage] = useState("appUser");
 
@@ -65,7 +66,9 @@ const Header = () => {
             `/api/getgoogledata?code=${code}`
           );
           if (response.status === 200) {
-            dispatch(userAction(response.data));
+            dispatch(
+              userAction({ userLoading: false, userData: response.data })
+            );
             navigate("/");
             setGoogleSignUpMessage("success");
             showGoogleMessagePopUp();
@@ -73,13 +76,13 @@ const Header = () => {
           }
         } catch (e) {
           if (e.request.status === 403) {
-            dispatch(userAction(""));
+            dispatch(userAction({ userLoading: false, userData: null }));
             navigate("/");
             setGoogleSignUpMessage("appUser");
             showGoogleMessagePopUp();
             setTimeout(hideGoogleMessagePopUp, 10000);
           } else {
-            dispatch(userAction(""));
+            dispatch(userAction({ userLoading: false, userData: null }));
             navigate("/");
             setGoogleSignUpMessage("failed");
             showGoogleMessagePopUp();
@@ -112,11 +115,11 @@ const Header = () => {
       try {
         const response = await axiosClient.get("/api/user");
         if (response.status === 200) {
-          dispatch(userAction(response.data));
+          dispatch(userAction({ userLoading: false, userData: response.data }));
         }
       } catch (e) {
-        /* User's sessionid was not available in cookie, so do nothing. */
-        dispatch(userAction(""));
+        /* User's sessionid was not available in cookie, */
+        dispatch(userAction({ userLoading: false, userData: null }));
       }
     };
 
@@ -129,7 +132,7 @@ const Header = () => {
     try {
       const response = await axiosClient.post("/api/logout");
       if (response.status == 200) {
-        dispatch(userAction(""));
+        dispatch(userAction({ userLoading: false, userData: null }));
         navigate("/");
       }
     } catch {
