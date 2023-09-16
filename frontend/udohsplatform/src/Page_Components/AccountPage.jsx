@@ -44,12 +44,9 @@ const AccountPage = () => {
       }
     };
 
-    // Make sure that this runs only when the logged in user is loaded.
+    // Make sure that this runs only when the logged in user is loaded. So that if they are the ones requesting their own account page, we refer them to their userProfile page
     if (id && !loggedInUser.userLoading) {
       getUserAccount();
-    } else if (!Number(id)) {
-      console.log("In wrong number");
-      navigate(-1); // Navigate the user back to the previous page
     }
   }, [id, loggedInUser, navigate]);
 

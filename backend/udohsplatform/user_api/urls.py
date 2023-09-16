@@ -19,6 +19,6 @@ urlpatterns = [
     path("user", UserView.as_view()),
     path("getLink", SendLinkTo.as_view()),
     path("getgoogledata", GetGoogleUserData.as_view()),
-    path("account/<int:id>", AccountView.as_view()),
+    path("account/<str:id>", AccountView.as_view()),
     path("editProfile", EditProfileView.as_view()),
 ]

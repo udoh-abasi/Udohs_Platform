@@ -4,6 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import sys
 
 
 from .serializers import (
@@ -147,7 +151,7 @@ class AccountView(APIView):
 
     def get(self, request, id):
         try:
-            if int(id):
+            if id:
                 user = get_object_or_404(User, id=id)
                 serializer = UserSerializer(user)
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -188,8 +192,36 @@ class EditProfileView(APIView):
 
                 profilePic = data.get("profile_pic", None)
                 if profilePic:
-                    user.profile_pic.delete()  # Delete the old profile picture from the database and replace with the new profile picture
-                    user.profile_pic = profilePic
+                    print(profilePic.name)
+                    # First check if the user has already uploaded a profile pic before
+                    if user.profile_pic:
+                        user.profile_pic.delete()  # Then Delete the old profile picture from the database and replace with the new profile picture
+
+                    theImage = Image.open(profilePic)
+
+                    # If the height and width isn't the same (300x300), then something went wrong, and the data did not come from our frontend
+                    if theImage.width != 300 or theImage.height != 300:
+                        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+                    # This is a container that will handle writing the changes that we want to make in our image
+                    outputIOStream = BytesIO()
+
+                    # Here, we state the quality we want the image to have
+                    theImage.save(outputIOStream, format="webp", quality=75)
+
+                    # Then we reset the output stream to the initial position
+                    outputIOStream.seek(0)
+
+                    compressedImage = InMemoryUploadedFile(
+                        outputIOStream,
+                        "ImageField",
+                        "%s.webp" % profilePic.name.split(".")[0],
+                        "image/webp",
+                        sys.getsizeof(outputIOStream),
+                        None,
+                    )
+
+                    user.profile_pic = compressedImage
 
                 user.save()
 

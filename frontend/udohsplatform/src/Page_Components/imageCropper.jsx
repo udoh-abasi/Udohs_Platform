@@ -10,6 +10,7 @@ const ImageCropper = ({
   setImageOnInput,
   setCroppedImageOnParent,
   setUploadCanvas,
+  imageFormat,
 }) => {
   const cropperRef = useRef(null);
 
@@ -20,7 +21,9 @@ const ImageCropper = ({
     const cropper = cropperRef.current.cropper;
 
     // Access the cropped image data and do something with it
-    const croppedCanvas = cropper.getCroppedCanvas().toDataURL("image/webp");
+    const croppedCanvas = cropper
+      .getCroppedCanvas({ width: 300, height: 300 })
+      .toDataURL(imageFormat);
 
     // Set the cropped image's data in a state
     if (croppedCanvas) {
@@ -51,7 +54,7 @@ const ImageCropper = ({
   // This function sets up the cropped image for upload to to the server, that is why we did not use '.toDataURL' method. We want to use '.toBlob' instead
   const handleCropAndUpload = () => {
     const cropper = cropperRef.current.cropper;
-    const canvas = cropper.getCroppedCanvas();
+    const canvas = cropper.getCroppedCanvas({ width: 300, height: 300 });
     setUploadCanvas(canvas);
   };
 

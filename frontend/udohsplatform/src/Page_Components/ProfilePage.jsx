@@ -150,11 +150,14 @@ const ProfilePage = () => {
 
         const currentDateTime = new Date().toISOString(); // Get current date and time and append to the name of the image. This is a fix for a bug, bcoz the backend deletes the old image and saves the new one. Which will give the old and new image the same name, therefore the frontend will not re-render that new image until you refresh bcoz its the same name
 
+        const slashIndex = imageFormat.indexOf("/"); // Since the extension will be in the format 'image/wep' or 'image/jpg', we get the index of the slash, and then slice from there
+        const imageExtension = imageFormat.slice(slashIndex + 1);
+
         // So, the name of the image will be in the form 'udoh_2023-09-14T03:14:05.752Z.webp'
         formData.append(
           "profile_pic",
           blob,
-          `${fullName}_${currentDateTime}.webp`
+          `${fullName}_${currentDateTime}.${imageExtension}`
         );
 
         formData.append("first_name", firstNameEdit);
@@ -331,6 +334,7 @@ const ProfilePage = () => {
                     setUploadCanvas={(canvas) => {
                       setUploadCanvas(canvas);
                     }}
+                    imageFormat={imageFormat}
                   />
                 )}
 
