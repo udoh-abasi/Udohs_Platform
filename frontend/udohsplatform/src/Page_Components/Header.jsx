@@ -19,9 +19,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { userAction } from "../reduxFiles/actions";
 import { userSelector } from "../reduxFiles/selectors";
 import { useSearchParams } from "react-router-dom";
+import Loader from "./loader";
 
 const Header = () => {
   let user = useSelector(userSelector);
+  const userLoading = user.userLoading;
   user = user.userData;
 
   const [googleSignUpMessage, setGoogleSignUpMessage] = useState("appUser");
@@ -61,18 +63,23 @@ const Header = () => {
       const code = searchParams.get("code");
 
       if (code) {
+        // First set that the user is loading
+        dispatch(userAction({ userLoading: true }));
         try {
           const response = await axiosClient.post(
             `/api/getgoogledata?code=${code}`
           );
+
           if (response.status === 200) {
             dispatch(
-              userAction({ userLoading: false, userData: response.data })
+              userAction({ userLoading: true, userData: response.data })
             );
             navigate("/");
+
             setGoogleSignUpMessage("success");
             showGoogleMessagePopUp();
             setTimeout(hideGoogleMessagePopUp, 10000);
+            dispatch(userAction({ userLoading: false }));
           }
         } catch (e) {
           if (e.request.status === 403) {
@@ -123,8 +130,13 @@ const Header = () => {
       }
     };
 
-    getLoggedInUser();
-  }, [dispatch, navigate]);
+    // First check to confirm we are NOT being redirected from the 'sign in with google' page.
+    // This was added as a fix, as being redirected from 'sign in with google' page stops our loader from loading, even when the user's email is still loaded by our backend
+    const code = searchParams.get("code");
+    if (!code) {
+      getLoggedInUser();
+    }
+  }, [dispatch, navigate, searchParams]);
 
   // This listens to when a user manually deletes their sessionid, or the sessionid expires, so the user will be logged out of our app
 
@@ -239,7 +251,7 @@ const Header = () => {
       <header>
         {smallScreenNav ? (
           <nav>
-            <div className="flex items-center justify-between dark:bg-[#242424] bg-white p-4 fixed w-full z-10">
+            <div className="flex items-center justify-between dark:bg-[#020617] bg-white p-4 fixed w-full z-10">
               <Link
                 to="/"
                 className="font-bold tracking-[-0.12em] text-2xl"
@@ -325,7 +337,7 @@ const Header = () => {
 
             <div
               id="menu-small-screen"
-              className="fixed overflow-auto bg-white dark:bg-[#242424] w-full h-full mt-[-16px] p-8 dark:text-[#fcffba] font-bold 
+              className="fixed overflow-auto bg-white dark:bg-[#020617] w-full h-full mt-[-16px] p-8 dark:text-[#fcffba] font-bold 
              transition-all ease-linear duration-[500ms] hidden translate-y-[-700px] z-10
             "
             >
@@ -333,7 +345,7 @@ const Header = () => {
                 <li className="w-full" onClick={toggleOffMenu}>
                   <Link
                     to=""
-                    className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                    className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Our story <RiChatHistoryLine className="ml-2" />
                   </Link>
@@ -341,7 +353,7 @@ const Header = () => {
                 <li className="w-full" onClick={toggleOffMenu}>
                   <Link
                     to="/membership"
-                    className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                    className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Membership <MdOutlineVerifiedUser className="ml-2" />
                   </Link>
@@ -349,7 +361,7 @@ const Header = () => {
                 <li className="w-full" onClick={toggleOffMenu}>
                   <Link
                     to=""
-                    className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                    className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Write
                     <BsPencilSquare className="ml-2" />
@@ -370,7 +382,7 @@ const Header = () => {
                         onClick={() => {
                           showForm("#sign_in");
                         }}
-                        className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                        className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                       >
                         Sign in <HiOutlineLogin className="ml-2" />
                       </Link>
@@ -381,7 +393,7 @@ const Header = () => {
                         onClick={() => {
                           showForm("#register_user");
                         }}
-                        className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                        className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                       >
                         Get started <AiOutlineLogin className="ml-2" />
                       </Link>
@@ -394,7 +406,7 @@ const Header = () => {
                     <li className="w-full" onClick={toggleOffMenu}>
                       <Link
                         to="/userProfile"
-                        className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                        className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                       >
                         Profile <CgProfile className="ml-2" />
                       </Link>
@@ -403,7 +415,7 @@ const Header = () => {
                     <li className="w-full" onClick={toggleOffMenu}>
                       <Link
                         to="#"
-                        className="border-2 bg-[#70dbb8] dark:bg-[#242424] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                        className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                         onClick={() => {
                           signOut();
                         }}
@@ -512,6 +524,14 @@ const Header = () => {
           hideForgotPasswordForm={() => hideForm("#forgot_password")}
         />
       </section>
+
+      {userLoading && (
+        <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[rgba(255,255,255,0.5)] dark:bg-[rgba(0,0,0,0.5)] w-full h-full">
+          <div className="fixed top-1/2 left-1/2 z-10">
+            <Loader />
+          </div>
+        </div>
+      )}
     </>
   );
 };

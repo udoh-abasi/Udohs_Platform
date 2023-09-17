@@ -57,6 +57,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
     )
+    paystack_ref = models.CharField(null=True, blank=True, max_length=500)
 
 
 """ 

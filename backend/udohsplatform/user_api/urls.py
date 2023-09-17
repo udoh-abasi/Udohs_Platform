@@ -9,6 +9,7 @@ from .views import (
     ForgotPasswordView,
     AccountView,
     EditProfileView,
+    VerifyPaymentWithPaystack,
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path("getgoogledata", GetGoogleUserData.as_view()),
     path("account/<str:id>", AccountView.as_view()),
     path("editProfile", EditProfileView.as_view()),
+    path("verifyPayment", VerifyPaymentWithPaystack.as_view()),
 ]

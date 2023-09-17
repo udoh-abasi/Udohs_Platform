@@ -231,7 +231,7 @@ const ForgotPassword = ({
         e.stopPropagation();
       }}
     >
-      <div className="bg-white fixed dark:bg-[#242424] h-full w-full overflow-auto max-w-[700px] min-[600px]:p-6 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+      <div className="bg-white fixed dark:bg-[#020617] h-full w-full overflow-auto max-w-[700px] min-[600px]:p-6 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
         <section className="p-4">
           <h2 className="text-center text-3xl text-[#81ba40] dark:text-[#70dbb8] font-bold mt-4">
             Forgot Password&#x3f;

@@ -87,7 +87,7 @@ const AccountPage = () => {
           <Loader />
         </div>
       ) : (
-        <main className="min-h-screen py-[90px] bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-[#a1d06d] via-[#ffffff] to-[#ffffff] dark:from-[#a1d06d] dark:via-[#242424] dark:to-[#242424]">
+        <main className="min-h-screen py-[90px] bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-[#a1d06d] via-[#ffffff] to-[#ffffff] dark:from-[#a1d06d] dark:via-[#020617] dark:to-[#020617]">
           <section className="p-4">
             <figure className="flex items-center flex-col gap-4">
               <div className="w-[150px] h-[150px] rounded-full overflow-hidden">

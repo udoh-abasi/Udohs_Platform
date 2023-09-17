@@ -21,7 +21,7 @@ const HeaderForBigScreen = ({
 
   return (
     <nav>
-      <ul className="flex items-center justify-between dark:bg-[#242424] bg-white p-4 fixed w-full z-10">
+      <ul className="flex items-center justify-between dark:bg-[#020617] bg-white p-4 fixed w-full z-10">
         <li>
           <Link
             to="/"

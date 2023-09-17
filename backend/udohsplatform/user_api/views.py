@@ -432,3 +432,41 @@ class ForgotPasswordView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class VerifyPaymentWithPaystack(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+
+    def post(self, request):
+        paymentRef = request.data.get("paymentRef", "")
+
+        if paymentRef:
+            try:
+                url = f"https://api.paystack.co/transaction/verify/{paymentRef}"
+                headers = {
+                    "Authorization": f"Bearer {os.environ.get('PAYSTACK_SECRET_KEY')}"
+                }
+
+                response = requests.get(url, headers=headers)
+                data = response.json()
+                data = data.get("data")
+
+                # According to paystack docs, we are to confirm the amount is what we expect from the user, and the status is 'success'
+                if (
+                    response.status_code == 200
+                    and data.get("status") == "success"
+                    and data.get("amount") == 5000
+                ):
+                    user = request.user
+                    user.premium_member = True
+                    user.paystack_ref = paymentRef
+                    user.save()
+
+                    serializer = UserSerializer(user)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                raise Exception("Bad request")
+
+            except Exception as e:
+                print(e)
+                return Response(status=status.HTTP_400_BAD_REQUEST)
