@@ -118,7 +118,7 @@ const Membership = () => {
 
     const amount =
       paymentMethod === "naira"
-        ? "5000"
+        ? "10000"
         : paymentMethod === "dollar"
         ? "100"
         : "";
@@ -345,7 +345,7 @@ const Membership = () => {
                   }`}
                 >
                   <span className="block font-bold">One-off Payment</span>
-                  <span className="block">&#8358;50</span>
+                  <span className="block">&#8358;100</span>
 
                   <span className="block mb-4 border-[2px] border-[#81ba40] dark:border-[#70dbb8] group-hover:border-white dark:group-hover:border-black w-[200px] py-1 font-bold rounded-3xl">
                     {paymentMethod === "naira" ? (
@@ -416,7 +416,7 @@ const Membership = () => {
                     <span>-</span>
 
                     {paymentMethod === "naira" ? (
-                      <span>&#8358;50 NGN</span>
+                      <span>&#8358;100 NGN</span>
                     ) : (
                       <span>$1 USD</span>
                     )}

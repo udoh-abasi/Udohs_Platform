@@ -5,11 +5,14 @@ from rest_framework.response import Response
 from .serializers import EmailSendSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 
 
 User = get_user_model()
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class SendEmailView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -59,6 +62,7 @@ class SendEmailView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class ConfirmEmailView(APIView):
     permission_classes = (permissions.AllowAny,)
 

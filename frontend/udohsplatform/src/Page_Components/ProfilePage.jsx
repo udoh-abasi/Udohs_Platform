@@ -144,6 +144,7 @@ const ProfilePage = () => {
     setEditProfileLoading(true);
     setEditProfileError(false);
 
+    // If the user want to edit their profile image
     if (uploadCanvas) {
       uploadCanvas.toBlob(async (blob) => {
         const formData = new FormData();
@@ -331,9 +332,11 @@ const ProfilePage = () => {
                     setCroppedImageOnParent={(image) => {
                       setCroppedImage(image);
                     }}
+                    // The image canvas that will be manipulated and then have the image sent to the server
                     setUploadCanvas={(canvas) => {
                       setUploadCanvas(canvas);
                     }}
+                    // The format of the image (whether image/webp, image/jpeg etc)
                     imageFormat={imageFormat}
                   />
                 )}

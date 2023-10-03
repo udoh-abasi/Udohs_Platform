@@ -3,6 +3,8 @@ from .models import EmailVerification
 
 from random import sample
 from .utils.sendEmail import sendEmailCode
+from .tasks import send_mail_func
+from django.http import HttpResponse
 
 
 def get_code(digit=6):
@@ -22,6 +24,9 @@ class EmailSendSerializer(serializers.Serializer):
             pass
 
         code = get_code()
+
         sendEmailCode(recipient, code)
+        # send_mail_func.delay()
+
         obj = EmailVerification.objects.create(email=recipient, code=code)
         obj.save()

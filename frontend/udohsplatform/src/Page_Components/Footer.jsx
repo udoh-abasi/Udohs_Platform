@@ -2,7 +2,10 @@ const Footer = () => {
   const date = new Date();
 
   return (
-    <footer className="p-4 h-[200px] min-[850px]:text-2xl text-xl font-bold text-white dark:text-black drop-shadow-[1px_1px_black] dark:drop-shadow-[0px_1px_white]">
+    <footer
+      id="pageFooter"
+      className="p-4 h-[200px] min-[850px]:text-2xl text-xl font-bold text-white dark:text-black drop-shadow-[1px_1px_black] dark:drop-shadow-[0px_1px_white]"
+    >
       <p className="text-center min-[700px]:-mb-8 dark:text-black">
         &copy;{date.getFullYear()}
       </p>

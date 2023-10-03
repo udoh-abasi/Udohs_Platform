@@ -8,6 +8,9 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
+from django.core.files.storage import FileSystemStorage
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 
 
 from .serializers import (
@@ -36,6 +39,7 @@ from django.core.exceptions import ValidationError
 User = get_user_model()
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class UserRegister(APIView):
     permission_classes = (
         UserAlreadyExistPermission,
@@ -77,6 +81,7 @@ class UserRegister(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class UserLogin(APIView):
     permission_classes = (permissions.AllowAny,)
     authentication_classes = (SessionAuthentication,)
@@ -130,12 +135,14 @@ class UserLogin(APIView):
             )
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class UserLogout(APIView):
     def post(self, request):
         logout(request)
         return Response(status=status.HTTP_200_OK)
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class UserView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
@@ -146,6 +153,7 @@ class UserView(APIView):
 
 
 # This view takes the user's id and returns the details of their account
+@method_decorator(csrf_protect, name="dispatch")
 class AccountView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -161,6 +169,7 @@ class AccountView(APIView):
 
 
 # This edits the user's profile (first name, last name, bio and profile pics)
+@method_decorator(csrf_protect, name="dispatch")
 class EditProfileView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
@@ -192,7 +201,6 @@ class EditProfileView(APIView):
 
                 profilePic = data.get("profile_pic", None)
                 if profilePic:
-                    print(profilePic.name)
                     # First check if the user has already uploaded a profile pic before
                     if user.profile_pic:
                         user.profile_pic.delete()  # Then Delete the old profile picture from the database and replace with the new profile picture
@@ -236,6 +244,7 @@ class EditProfileView(APIView):
 
 
 # This view sends the Google Link
+@method_decorator(csrf_protect, name="dispatch")
 class SendLinkTo(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -283,6 +292,7 @@ export default axiosClient;
 """
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class GetGoogleUserData(APIView):
     # If this is NOT added , only authenticated users will be allowed to access this view
     permission_classes = (permissions.AllowAny,)
@@ -391,6 +401,7 @@ class GetGoogleUserData(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class ForgotPasswordView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -434,6 +445,7 @@ class ForgotPasswordView(APIView):
             )
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class VerifyPaymentWithPaystack(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
@@ -456,7 +468,7 @@ class VerifyPaymentWithPaystack(APIView):
                 if (
                     response.status_code == 200
                     and data.get("status") == "success"
-                    and data.get("amount") == 5000
+                    and data.get("amount") == 10000
                 ):
                     user = request.user
                     user.premium_member = True
@@ -470,3 +482,65 @@ class VerifyPaymentWithPaystack(APIView):
             except Exception as e:
                 print(e)
                 return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+# This view takes the image sent by EditorJS (from the write page), and saves it to our backend, then return the URL of the saved image to the frontend, in the format requested by EditorJS
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class UploadImageFromEditorJSWritePage(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        hostURL = "http://localhost:8000"  # Change this in production
+        image = request.FILES.get("image", "")
+
+        print("content_type", image.content_type)
+
+        try:
+            if image.content_type.startswith("image"):
+                fs = (
+                    FileSystemStorage()
+                )  # This will ensure the images are saved in the media folder
+                imageName = str(image).split(".")[0]
+
+                im = Image.open(image)
+
+                original_width, original_height = im.size
+
+                desired_width = 720
+
+                # Check if the image's original width is bigger than our desired maximum width, the resize it to the desired width
+                if original_width > desired_width:
+                    width_percentage = desired_width / float(original_width)
+                    obtained_height = int(
+                        float(original_height) * float(width_percentage)
+                    )
+
+                    im = im.resize((desired_width, obtained_height))
+
+                # Store the image result (from Pillow) here if not, FileSystem will not be able to read it
+                outputIOStream = BytesIO()
+
+                # Here, we state the quality we want the image to have
+                im.save(outputIOStream, format="webp", quality=75)
+
+                # Then we reset the output stream to the initial position
+                outputIOStream.seek(0)
+
+                savedImage = fs.save(imageName, outputIOStream)
+                imageURL = fs.url(savedImage)
+
+                # This is the JSON format that EditorJS expects
+                return Response(
+                    {
+                        "success": 1,
+                        "file": {
+                            "url": f"{hostURL}{imageURL}",
+                        },
+                    }
+                )
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)

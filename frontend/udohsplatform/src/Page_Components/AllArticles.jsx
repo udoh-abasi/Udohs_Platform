@@ -74,7 +74,7 @@ const AllArticles = () => {
         </section>
 
         <section className="p-4 mt-8 items-center flex gap-8 max-[430px]:gap-0 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-          <div className="">
+          <div>
             <Link>
               <figure className="flex items-center">
                 <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">

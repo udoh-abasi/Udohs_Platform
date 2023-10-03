@@ -18,6 +18,9 @@
   -webkit-text-size-adjust: 100%;
 
   scroll-behavior: smooth !important;
+
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 body {
@@ -108,14 +111,87 @@ input[type=number] {
 }
 
 
-footer {
+footer#pageFooter {
   background: url(/wave3.svg) no-repeat;
   background-size: cover;
   background-position: center;
 }
 
 @media (prefers-color-scheme: dark) {
-  footer {
+  footer#pageFooter {
     background-image: url(/wave1.svg);
   }
+}
+
+/* Style each paragraph block of EditorJS*/
+.cdx-block {
+  /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); */
+  margin: 10px 0;
+  padding: 10px;
+}
+
+/* Style the input field that appears when a user wants to add Link */
+.ce-inline-toolbar__actions {
+  color: white !important;
+}
+
+/*Make the error message that appears when you have not set up the backend for uploading images black, even in dark mode*/
+.cdx-notifies {
+  color: #020617 !important;
+}
+
+@media (prefers-color-scheme: light) {
+  .ce-inline-toolbar__actions {
+    color: black !important;
+  }
+}
+
+
+/* Turn off the stretched, Add-border, and Add-background buttons that appears when you add an image */
+.ce-popover-item[data-item-name="stretched"],
+.ce-popover-item[data-item-name="withBorder"],
+.ce-popover-item[data-item-name="withBackground"] {
+  display: none !important;
+}
+
+/*Turn off captions that appears when a user uploads an image in EditorJS*/
+/* [data-placeholder="Caption"] {
+  display: none !important;
+} */
+
+
+/*Style the header for contents to be bold*/
+.ce-header {
+  font-weight: bold;
+}
+
+/*Hide the 'Title' part of 'Warning' Tool in EditorJS*/
+.cdx-input.cdx-warning__title {
+  display: none !important;
+}
+
+/* Change the background and text color of <code> inline-tool from red (in EditorJS field) */
+code.inline-code {
+  background-color: rgb(128, 128, 128, .5);
+  color: black;
+}
+
+
+/*When the code field is on the the page (NOT on the EditorJS field), and the user is on dark mode, we want to change the color to white*/
+@media (prefers-color-scheme: dark) {
+  code.inline-code.on-page {
+    color: white;
+  }
+}
+
+
+/*Hide the dropdown that says 'convert to' in EditorJS inline tools, when something is selected*/
+.ce-inline-toolbar__dropdown {
+  display: none;
+}
+
+/* Style the links that were added by the user from EditorJS */
+.user-link {
+  color: rgb(84, 84, 251);
+  text-decoration: underline;
 }

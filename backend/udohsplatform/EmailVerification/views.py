@@ -4,8 +4,11 @@ from .models import EmailVerification
 from rest_framework.response import Response
 from .serializers import EmailSendSerializer
 from .permissions import UserAlreadyExistPermission
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class SendEmailView(APIView):
     permission_classes = (permissions.AllowAny, UserAlreadyExistPermission)
 
@@ -17,10 +20,12 @@ class SendEmailView(APIView):
             if serializer.is_valid(raise_exception=True):
                 serializer.send_code_to_email(email)
             return Response(status=status.HTTP_200_OK)
-        except:
+        except Exception as e:
+            print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_protect, name="dispatch")
 class ConfirmEmailView(APIView):
     permission_classes = (permissions.AllowAny, UserAlreadyExistPermission)
 

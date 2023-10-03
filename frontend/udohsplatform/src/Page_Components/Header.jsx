@@ -35,6 +35,8 @@ const Header = () => {
   // Get the google's code from the user and send it to the backend
   const [searchParams] = useSearchParams();
 
+  const [googleCode, setGoogleCode] = useState("");
+
   const firstRender = useRef(); // NOTE: This is used in development to prevent the useEffect from running twice
 
   // This function pops up the message box, when sign-up-with-google is successful or failed
@@ -61,6 +63,10 @@ const Header = () => {
   useEffect(() => {
     const getGoogleUser = async () => {
       const code = searchParams.get("code");
+
+      if (code) {
+        setGoogleCode(code);
+      }
 
       if (code) {
         // First set that the user is loading
@@ -525,7 +531,7 @@ const Header = () => {
         />
       </section>
 
-      {userLoading && (
+      {userLoading && googleCode && (
         <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[rgba(255,255,255,0.5)] dark:bg-[rgba(0,0,0,0.5)] w-full h-full">
           <div className="fixed top-1/2 left-1/2 z-10">
             <Loader />

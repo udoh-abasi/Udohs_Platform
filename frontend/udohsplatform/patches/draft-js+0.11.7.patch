@@ -1,0 +1,621 @@
+diff --git a/node_modules/draft-js/lib/editOnBeforeInput.js b/node_modules/draft-js/lib/editOnBeforeInput.js
+index a1d9d81..7252831 100644
+--- a/node_modules/draft-js/lib/editOnBeforeInput.js
++++ b/node_modules/draft-js/lib/editOnBeforeInput.js
+@@ -1,3 +1,5 @@
++
++
+ /**
+  * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+@@ -5,51 +7,71 @@
+  * LICENSE file in the root directory of this source tree.
+  *
+  * @format
+- * 
++ * @flow strict-local
+  * @emails oncall+draft_js
+  */
+-'use strict';
+-
+-var DraftModifier = require("./DraftModifier");
+-
+-var EditorState = require("./EditorState");
+ 
+-var UserAgent = require("fbjs/lib/UserAgent");
+-
+-var getEntityKeyForSelection = require("./getEntityKeyForSelection");
++'use strict';
+ 
+-var isEventHandled = require("./isEventHandled");
++import  DraftEditor from 'DraftEditor.react';
++import  {DraftInlineStyle} from 'DraftInlineStyle';
+ 
+-var isSelectionAtLeafStart = require("./isSelectionAtLeafStart");
++const DraftModifier = require('DraftModifier');
++const EditorState = require('EditorState');
++const UserAgent = require('UserAgent');
+ 
+-var nullthrows = require("fbjs/lib/nullthrows");
++const editOnInput = require('editOnInput');
++const getEntityKeyForSelection = require('getEntityKeyForSelection');
++const isEventHandled = require('isEventHandled');
++const isSelectionAtLeafStart = require('isSelectionAtLeafStart');
++const nullthrows = require('nullthrows');
++const setImmediate = require('setImmediate');
+ 
+-var setImmediate = require("fbjs/lib/setImmediate"); // When nothing is focused, Firefox regards two characters, `'` and `/`, as
++// When nothing is focused, Firefox regards two characters, `'` and `/`, as
+ // commands that should open and focus the "quickfind" search bar. This should
+ // *never* happen while a contenteditable is focused, but as of v28, it
+ // sometimes does, even when the keypress event target is the contenteditable.
+ // This breaks the input. Special case these characters to ensure that when
+ // they are typed, we prevent default on the event to make sure not to
+ // trigger quickfind.
+-
+-
+-var FF_QUICKFIND_CHAR = "'";
+-var FF_QUICKFIND_LINK_CHAR = '/';
+-var isFirefox = UserAgent.isBrowser('Firefox');
++const FF_QUICKFIND_CHAR = "'";
++const FF_QUICKFIND_LINK_CHAR = '/';
++const isFirefox = UserAgent.isBrowser('Firefox');
++const isIE = UserAgent.isBrowser('IE');
+ 
+ function mustPreventDefaultForCharacter(character) {
+-  return isFirefox && (character == FF_QUICKFIND_CHAR || character == FF_QUICKFIND_LINK_CHAR);
++  return (
++    isFirefox &&
++    (character == FF_QUICKFIND_CHAR || character == FF_QUICKFIND_LINK_CHAR)
++  );
+ }
++
+ /**
+  * Replace the current selection with the specified text string, with the
+  * inline style and entity key applied to the newly inserted text.
+  */
+-
+-
+-function replaceText(editorState, text, inlineStyle, entityKey, forceSelection) {
+-  var contentState = DraftModifier.replaceText(editorState.getCurrentContent(), editorState.getSelection(), text, inlineStyle, entityKey);
+-  return EditorState.push(editorState, contentState, 'insert-characters', forceSelection);
++function replaceText(
++  editorState,
++  text,
++  inlineStyle,
++  entityKey,
++  forceSelection,
++) {
++  const contentState = DraftModifier.replaceText(
++    editorState.getCurrentContent(),
++    editorState.getSelection(),
++    text,
++    inlineStyle,
++    entityKey,
++  );
++  return EditorState.push(
++    editorState,
++    contentState,
++    'insert-characters',
++    forceSelection,
++  );
+ }
++
+ /**
+  * When `onBeforeInput` executes, the browser is attempting to insert a
+  * character into the editor. Apply this character data to the document,
+@@ -59,55 +81,89 @@ function replaceText(editorState, text, inlineStyle, entityKey, forceSelection)
+  * preserve spellcheck highlighting, which disappears or flashes if re-render
+  * occurs on the relevant text nodes.
+  */
++function editOnBeforeInput(
++  editor,
++  e,
++) {
++  // We need this here in case this beforeInput fires before our
++  // immediate below had a chance to fire in IE (say, the user is
++  // typing fast).
++  if (isIE) {
++    if (editor._pendingStateFromBeforeInput !== undefined) {
++      editor.update(editor._pendingStateFromBeforeInput);
++      editor._pendingStateFromBeforeInput = undefined;
++    }
++  }
+ 
++  const editorState = editor._latestEditorState;
+ 
+-function editOnBeforeInput(editor, e) {
+-  if (editor._pendingStateFromBeforeInput !== undefined) {
+-    editor.update(editor._pendingStateFromBeforeInput);
+-    editor._pendingStateFromBeforeInput = undefined;
+-  }
++  const chars = e.data;
+ 
+-  var editorState = editor._latestEditorState;
+-  var chars = e.data; // In some cases (ex: IE ideographic space insertion) no character data
++  // In some cases (ex: IE ideographic space insertion) no character data
+   // is provided. There's nothing to do when this happens.
+-
+   if (!chars) {
+     return;
+-  } // Allow the top-level component to handle the insertion manually. This is
++  }
++
++  // Allow the top-level component to handle the insertion manually. This is
+   // useful when triggering interesting behaviors for a character insertion,
+   // Simple examples: replacing a raw text ':)' with a smile emoji or image
+   // decorator, or setting a block to be a list item after typing '- ' at the
+   // start of the block.
+-
+-
+-  if (editor.props.handleBeforeInput && isEventHandled(editor.props.handleBeforeInput(chars, editorState, e.timeStamp))) {
++  if (
++    editor.props.handleBeforeInput &&
++    isEventHandled(
++      editor.props.handleBeforeInput(chars, editorState, e.timeStamp),
++    )
++  ) {
+     e.preventDefault();
+     return;
+-  } // If selection is collapsed, conditionally allow native behavior. This
++  }
++
++  // If selection is collapsed, conditionally allow native behavior. This
+   // reduces re-renders and preserves spellcheck highlighting. If the selection
+   // is not collapsed, we will re-render.
+-
+-
+-  var selection = editorState.getSelection();
+-  var selectionStart = selection.getStartOffset();
+-  var anchorKey = selection.getAnchorKey();
++  const selection = editorState.getSelection();
++  const selectionStart = selection.getStartOffset();
++  const anchorKey = selection.getAnchorKey();
+ 
+   if (!selection.isCollapsed()) {
+     e.preventDefault();
+-    editor.update(replaceText(editorState, chars, editorState.getCurrentInlineStyle(), getEntityKeyForSelection(editorState.getCurrentContent(), editorState.getSelection()), true));
++    editor.update(
++      replaceText(
++        editorState,
++        chars,
++        editorState.getCurrentInlineStyle(),
++        getEntityKeyForSelection(
++          editorState.getCurrentContent(),
++          editorState.getSelection(),
++        ),
++        true,
++      ),
++    );
+     return;
+   }
+ 
+-  var newEditorState = replaceText(editorState, chars, editorState.getCurrentInlineStyle(), getEntityKeyForSelection(editorState.getCurrentContent(), editorState.getSelection()), false); // Bunch of different cases follow where we need to prevent native insertion.
+-
+-  var mustPreventNative = false;
+-
++  let newEditorState = replaceText(
++    editorState,
++    chars,
++    editorState.getCurrentInlineStyle(),
++    getEntityKeyForSelection(
++      editorState.getCurrentContent(),
++      editorState.getSelection(),
++    ),
++    false,
++  );
++
++  // Bunch of different cases follow where we need to prevent native insertion.
++  let mustPreventNative = false;
+   if (!mustPreventNative) {
+     // Browsers tend to insert text in weird places in the DOM when typing at
+     // the start of a leaf, so we'll handle it ourselves.
+-    mustPreventNative = isSelectionAtLeafStart(editor._latestCommittedEditorState);
++    mustPreventNative = isSelectionAtLeafStart(
++      editor._latestCommittedEditorState,
++    );
+   }
+-
+   if (!mustPreventNative) {
+     // Let's say we have a decorator that highlights hashtags. In many cases
+     // we need to prevent native behavior and rerender ourselves --
+@@ -143,60 +199,84 @@ function editOnBeforeInput(editor, e) {
+     // the range lengths have not changed. We don't need to compare the content
+     // because the only possible mutation to consider here is inserting plain
+     // text and decorators can't affect text content.
+-    var oldBlockTree = editorState.getBlockTree(anchorKey);
+-    var newBlockTree = newEditorState.getBlockTree(anchorKey);
+-    mustPreventNative = oldBlockTree.size !== newBlockTree.size || oldBlockTree.zip(newBlockTree).some(function (_ref) {
+-      var oldLeafSet = _ref[0],
+-          newLeafSet = _ref[1];
+-      // selectionStart is guaranteed to be selectionEnd here
+-      var oldStart = oldLeafSet.get('start');
+-      var adjustedStart = oldStart + (oldStart >= selectionStart ? chars.length : 0);
+-      var oldEnd = oldLeafSet.get('end');
+-      var adjustedEnd = oldEnd + (oldEnd >= selectionStart ? chars.length : 0);
+-      var newStart = newLeafSet.get('start');
+-      var newEnd = newLeafSet.get('end');
+-      var newDecoratorKey = newLeafSet.get('decoratorKey');
+-      return (// Different decorators
+-        oldLeafSet.get('decoratorKey') !== newDecoratorKey || // Different number of inline styles
+-        oldLeafSet.get('leaves').size !== newLeafSet.get('leaves').size || // Different effective decorator position
+-        adjustedStart !== newStart || adjustedEnd !== newEnd || // Decorator already existed and its length changed
+-        newDecoratorKey != null && newEnd - newStart !== oldEnd - oldStart
+-      );
+-    });
++    const oldBlockTree = editorState.getBlockTree(anchorKey);
++    const newBlockTree = newEditorState.getBlockTree(anchorKey);
++    mustPreventNative =
++      oldBlockTree.size !== newBlockTree.size ||
++      oldBlockTree.zip(newBlockTree).some(([oldLeafSet, newLeafSet]) => {
++        // selectionStart is guaranteed to be selectionEnd here
++        const oldStart = oldLeafSet.get('start');
++        const adjustedStart =
++          oldStart + (oldStart >= selectionStart ? chars.length : 0);
++        const oldEnd = oldLeafSet.get('end');
++        const adjustedEnd =
++          oldEnd + (oldEnd >= selectionStart ? chars.length : 0);
++        const newStart = newLeafSet.get('start');
++        const newEnd = newLeafSet.get('end');
++        const newDecoratorKey = newLeafSet.get('decoratorKey');
++        return (
++          // Different decorators
++          oldLeafSet.get('decoratorKey') !== newDecoratorKey ||
++          // Different number of inline styles
++          oldLeafSet.get('leaves').size !== newLeafSet.get('leaves').size ||
++          // Different effective decorator position
++          adjustedStart !== newStart ||
++          adjustedEnd !== newEnd ||
++          // Decorator already existed and its length changed
++          (newDecoratorKey != null && newEnd - newStart !== oldEnd - oldStart)
++        );
++      });
+   }
+-
+   if (!mustPreventNative) {
+     mustPreventNative = mustPreventDefaultForCharacter(chars);
+   }
+-
+   if (!mustPreventNative) {
+-    mustPreventNative = nullthrows(newEditorState.getDirectionMap()).get(anchorKey) !== nullthrows(editorState.getDirectionMap()).get(anchorKey);
++    mustPreventNative =
++      nullthrows(newEditorState.getDirectionMap()).get(anchorKey) !==
++      nullthrows(editorState.getDirectionMap()).get(anchorKey);
+   }
+ 
+   if (mustPreventNative) {
+     e.preventDefault();
+     newEditorState = EditorState.set(newEditorState, {
+-      forceSelection: true
++      forceSelection: true,
+     });
+     editor.update(newEditorState);
+     return;
+-  } // We made it all the way! Let the browser do its thing and insert the char.
+-
++  }
+ 
+-  newEditorState = EditorState.set(newEditorState, {
+-    nativelyRenderedContent: newEditorState.getCurrentContent()
+-  }); // The native event is allowed to occur. To allow user onChange handlers to
+-  // change the inserted text, we wait until the text is actually inserted
+-  // before we actually update our state. That way when we rerender, the text
+-  // we see in the DOM will already have been inserted properly.
++  // We made it all the way! Let the native event occur, so the browser does its
++  // thing and inserts the char.
++  //
++  // To allow user onChange handlers to change the inserted text, we wait until
++  // the text is actually inserted before we actually update our state. That way
++  // when we rerender, the text we see in the DOM will already have been
++  // inserted properly.
++  //
++  // Above we do this if we prevent the native event, since there will be no
++  // input event (because we preventDefault). Otherwise, it will happen in the
++  // "input" event, which fires once the text is inserted.
++  //
++  // There is one exception however: IE (what a surprise!). IE doesn't fire
++  // input events (and React doesn't polyfill them), so we never get to see
++  // how the text changed and we never get to call editor.update (which triggers
++  // onChange).
++  //
++  // To get around this, we schedule an immediate to call our usual input
++  // handler. It's important that this be an immediate so that no other random
++  // tasks from the web page get on the way (mimicking what would happen if the
++  // browser fired both the beforeInput and input events). Calling our usual
++  // input handler does the trick.
++  if (isIE) {
++    newEditorState = EditorState.set(newEditorState, {
++      nativelyRenderedContent: newEditorState.getCurrentContent(),
++    });
+ 
+-  editor._pendingStateFromBeforeInput = newEditorState;
+-  setImmediate(function () {
+-    if (editor._pendingStateFromBeforeInput !== undefined) {
+-      editor.update(editor._pendingStateFromBeforeInput);
+-      editor._pendingStateFromBeforeInput = undefined;
+-    }
+-  });
++    editor._pendingStateFromBeforeInput = newEditorState;
++    setImmediate(() => {
++      editOnInput(editor, null);
++    });
++  }
+ }
+ 
+ module.exports = editOnBeforeInput;
+\ No newline at end of file
+diff --git a/node_modules/draft-js/lib/editOnInput.js b/node_modules/draft-js/lib/editOnInput.js
+index a491f06..4a60624 100644
+--- a/node_modules/draft-js/lib/editOnInput.js
++++ b/node_modules/draft-js/lib/editOnInput.js
+@@ -1,3 +1,4 @@
++
+ /**
+  * Copyright (c) Facebook, Inc. and its affiliates.
+  *
+@@ -5,39 +6,38 @@
+  * LICENSE file in the root directory of this source tree.
+  *
+  * @format
+- * 
++ * @flow
+  * @emails oncall+draft_js
+  */
+-'use strict';
+-
+-var DraftModifier = require("./DraftModifier");
+ 
+-var DraftOffsetKey = require("./DraftOffsetKey");
+-
+-var EditorState = require("./EditorState");
+-
+-var UserAgent = require("fbjs/lib/UserAgent");
++'use strict';
+ 
+-var _require = require("./draftKeyUtils"),
+-    notEmptyKey = _require.notEmptyKey;
++import  {SelectionObject} from 'DraftDOMTypes';
++import  DraftEditor from 'DraftEditor.react';
+ 
+-var findAncestorOffsetKey = require("./findAncestorOffsetKey");
++const DraftModifier = require('DraftModifier');
++const DraftOffsetKey = require('DraftOffsetKey');
++const EditorState = require('EditorState');
++const UserAgent = require('UserAgent');
+ 
+-var keyCommandPlainBackspace = require("./keyCommandPlainBackspace");
++const {notEmptyKey} = require('draftKeyUtils');
++const findAncestorOffsetKey = require('findAncestorOffsetKey');
++const keyCommandPlainBackspace = require('keyCommandPlainBackspace');
++const nullthrows = require('nullthrows');
+ 
+-var nullthrows = require("fbjs/lib/nullthrows");
++const isGecko = UserAgent.isEngine('Gecko');
++const isIE = UserAgent.isBrowser('IE');
+ 
+-var isGecko = UserAgent.isEngine('Gecko');
+-var DOUBLE_NEWLINE = '\n\n';
++const DOUBLE_NEWLINE = '\n\n';
+ 
+ function onInputType(inputType, editorState) {
+   switch (inputType) {
+     case 'deleteContentBackward':
+       return keyCommandPlainBackspace(editorState);
+   }
+-
+   return editorState;
+ }
++
+ /**
+  * This function serves two purposes
+  *
+@@ -61,72 +61,74 @@ function onInputType(inputType, editorState) {
+  * when an `input` change leads to a DOM/model mismatch, the change should be
+  * due to a spellcheck change, and we can incorporate it into our model.
+  */
++function editOnInput(editor, event) {
++  if (isIE) {
++    if (editor._pendingStateFromBeforeInput !== undefined) {
++      editor.update(editor._pendingStateFromBeforeInput);
++      editor._pendingStateFromBeforeInput = undefined;
++    }
++  }
++  // at this point editor is not null for sure (after input)
++  const castedEditorElement = (editor.editor);
++  const domSelection = castedEditorElement.ownerDocument.defaultView.getSelection();
+ 
+-
+-function editOnInput(editor, e) {
+-  if (editor._pendingStateFromBeforeInput !== undefined) {
+-    editor.update(editor._pendingStateFromBeforeInput);
+-    editor._pendingStateFromBeforeInput = undefined;
+-  } // at this point editor is not null for sure (after input)
+-
+-
+-  var castedEditorElement = editor.editor;
+-  var domSelection = castedEditorElement.ownerDocument.defaultView.getSelection();
+-  var anchorNode = domSelection.anchorNode,
+-      isCollapsed = domSelection.isCollapsed;
+-  var isNotTextOrElementNode = (anchorNode === null || anchorNode === void 0 ? void 0 : anchorNode.nodeType) !== Node.TEXT_NODE && (anchorNode === null || anchorNode === void 0 ? void 0 : anchorNode.nodeType) !== Node.ELEMENT_NODE;
++  const {anchorNode, isCollapsed} = domSelection;
++  const isNotTextOrElementNode =
++    anchorNode?.nodeType !== Node.TEXT_NODE &&
++    anchorNode?.nodeType !== Node.ELEMENT_NODE;
+ 
+   if (anchorNode == null || isNotTextOrElementNode) {
+     // TODO: (t16149272) figure out context for this change
+     return;
+   }
+ 
+-  if (anchorNode.nodeType === Node.TEXT_NODE && (anchorNode.previousSibling !== null || anchorNode.nextSibling !== null)) {
++  if (
++    anchorNode.nodeType === Node.TEXT_NODE &&
++    (anchorNode.previousSibling !== null || anchorNode.nextSibling !== null)
++  ) {
+     // When typing at the beginning of a visual line, Chrome splits the text
+     // nodes into two. Why? No one knows. This commit is suspicious:
+     // https://chromium.googlesource.com/chromium/src/+/a3b600981286b135632371477f902214c55a1724
+     // To work around, we'll merge the sibling text nodes back into this one.
+-    var span = anchorNode.parentNode;
+-
++    const span = anchorNode.parentNode;
+     if (span == null) {
+       // Handle null-parent case.
+       return;
+     }
+-
+     anchorNode.nodeValue = span.textContent;
+-
+-    for (var child = span.firstChild; child != null; child = child.nextSibling) {
++    for (
++      let child = span.firstChild;
++      child != null;
++      child = child.nextSibling
++    ) {
+       if (child !== anchorNode) {
+         span.removeChild(child);
+       }
+     }
+   }
+ 
+-  var domText = anchorNode.textContent;
+-  var editorState = editor._latestEditorState;
+-  var offsetKey = nullthrows(findAncestorOffsetKey(anchorNode));
++  let domText = anchorNode.textContent;
++  const editorState = editor._latestEditorState;
++  const offsetKey = nullthrows(findAncestorOffsetKey(anchorNode));
++  const {blockKey, decoratorKey, leafKey} = DraftOffsetKey.decode(offsetKey);
+ 
+-  var _DraftOffsetKey$decod = DraftOffsetKey.decode(offsetKey),
+-      blockKey = _DraftOffsetKey$decod.blockKey,
+-      decoratorKey = _DraftOffsetKey$decod.decoratorKey,
+-      leafKey = _DraftOffsetKey$decod.leafKey;
++  const {start, end} = editorState
++    .getBlockTree(blockKey)
++    .getIn([decoratorKey, 'leaves', leafKey]);
+ 
+-  var _editorState$getBlock = editorState.getBlockTree(blockKey).getIn([decoratorKey, 'leaves', leafKey]),
+-      start = _editorState$getBlock.start,
+-      end = _editorState$getBlock.end;
++  const content = editorState.getCurrentContent();
++  const block = content.getBlockForKey(blockKey);
++  const modelText = block.getText().slice(start, end);
+ 
+-  var content = editorState.getCurrentContent();
+-  var block = content.getBlockForKey(blockKey);
+-  var modelText = block.getText().slice(start, end); // Special-case soft newlines here. If the DOM text ends in a soft newline,
++  // Special-case soft newlines here. If the DOM text ends in a soft newline,
+   // we will have manually inserted an extra soft newline in DraftEditorLeaf.
+   // We want to remove this extra newline for the purpose of our comparison
+   // of DOM and model text.
+-
+   if (domText.endsWith(DOUBLE_NEWLINE)) {
+     domText = domText.slice(0, -1);
+-  } // No change -- the DOM is up to date. Nothing to do here.
+-
++  }
+ 
++  // No change -- the DOM is up to date. Nothing to do here.
+   if (domText === modelText) {
+     // This can be buggy for some Android keyboards because they don't fire
+     // standard onkeydown/pressed events and only fired editOnInput
+@@ -138,39 +140,47 @@ function editOnInput(editor, e) {
+     /* $FlowFixMe[prop-missing] inputType is only defined on a draft of a
+      * standard. https://w3c.github.io/input-events/#dom-inputevent-inputtype
+      */
+-    var inputType = e.nativeEvent.inputType;
+-
++    const inputType = event ? event.nativeEvent.inputType : undefined;
+     if (inputType) {
+-      var newEditorState = onInputType(inputType, editorState);
+-
++      const newEditorState = onInputType(inputType, editorState);
+       if (newEditorState !== editorState) {
+         editor.restoreEditorDOM();
+         editor.update(newEditorState);
+         return;
+       }
+     }
+-
+     return;
+   }
+ 
+-  var selection = editorState.getSelection(); // We'll replace the entire leaf with the text content of the target.
++  const selection = editorState.getSelection();
+ 
+-  var targetRange = selection.merge({
++  // We'll replace the entire leaf with the text content of the target.
++  const targetRange = selection.merge({
+     anchorOffset: start,
+     focusOffset: end,
+-    isBackward: false
++    isBackward: false,
+   });
+-  var entityKey = block.getEntityAt(start);
+-  var entity = notEmptyKey(entityKey) ? content.getEntity(entityKey) : null;
+-  var entityType = entity != null ? entity.getMutability() : null;
+-  var preserveEntity = entityType === 'MUTABLE'; // Immutable or segmented entities cannot properly be handled by the
++
++  const entityKey = block.getEntityAt(start);
++  const entity = notEmptyKey(entityKey) ? content.getEntity(entityKey) : null;
++  const entityType = entity != null ? entity.getMutability() : null;
++  const preserveEntity = entityType === 'MUTABLE';
++
++  // Immutable or segmented entities cannot properly be handled by the
+   // default browser undo, so we have to use a different change type to
+   // force using our internal undo method instead of falling through to the
+   // native browser undo.
++  const changeType = preserveEntity ? 'spellcheck-change' : 'apply-entity';
++
++  const newContent = DraftModifier.replaceText(
++    content,
++    targetRange,
++    domText,
++    block.getInlineStyleAt(start),
++    preserveEntity ? block.getEntityAt(start) : null,
++  );
+ 
+-  var changeType = preserveEntity ? 'spellcheck-change' : 'apply-entity';
+-  var newContent = DraftModifier.replaceText(content, targetRange, domText, block.getInlineStyleAt(start), preserveEntity ? block.getEntityAt(start) : null);
+-  var anchorOffset, focusOffset, startOffset, endOffset;
++  let anchorOffset, focusOffset, startOffset, endOffset;
+ 
+   if (isGecko) {
+     // Firefox selection does not change while the context menu is open, so
+@@ -187,24 +197,25 @@ function editOnInput(editor, e) {
+     // DOM selection. Don't trust it. Instead, use our existing SelectionState
+     // and adjust it based on the number of characters changed during the
+     // mutation.
+-    var charDelta = domText.length - modelText.length;
++    const charDelta = domText.length - modelText.length;
+     startOffset = selection.getStartOffset();
+     endOffset = selection.getEndOffset();
++
+     anchorOffset = isCollapsed ? endOffset + charDelta : startOffset;
+     focusOffset = endOffset + charDelta;
+-  } // Segmented entities are completely or partially removed when their
++  }
++
++  // Segmented entities are completely or partially removed when their
+   // text content changes. For this case we do not want any text to be selected
+   // after the change, so we are not merging the selection.
+-
+-
+-  var contentWithAdjustedDOMSelection = newContent.merge({
++  const contentWithAdjustedDOMSelection = newContent.merge({
+     selectionBefore: content.getSelectionAfter(),
+-    selectionAfter: selection.merge({
+-      anchorOffset: anchorOffset,
+-      focusOffset: focusOffset
+-    })
++    selectionAfter: selection.merge({anchorOffset, focusOffset}),
+   });
+-  editor.update(EditorState.push(editorState, contentWithAdjustedDOMSelection, changeType));
++
++  editor.update(
++    EditorState.push(editorState, contentWithAdjustedDOMSelection, changeType),
++  );
+ }
+ 
+ module.exports = editOnInput;
+\ No newline at end of file
