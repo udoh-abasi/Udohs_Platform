@@ -22,7 +22,7 @@ const ImageCropper_WritePage = ({
 
     // Access the cropped image data and do something with it
     const croppedCanvas = cropper
-      .getCroppedCanvas({ width: 720, height: 311 })
+      .getCroppedCanvas({ width: 400, height: 400 })
       .toDataURL(imageFormat);
 
     // Set the cropped image's data in a state
@@ -54,7 +54,7 @@ const ImageCropper_WritePage = ({
   // This function sets up the cropped image for upload to to the server, that is why we did not use '.toDataURL' method. We want to use '.toBlob' instead
   const handleCropAndUpload = () => {
     const cropper = cropperRef.current.cropper;
-    const canvas = cropper.getCroppedCanvas({ width: 720, height: 311 });
+    const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
     setUploadCanvas(canvas);
   };
 
@@ -80,7 +80,7 @@ const ImageCropper_WritePage = ({
               zoomOnTouch={false} // Prevent zooming in or out by pinching the image, on touch devices
               zoomOnWheel={false} // Prevent zooming in or out when the mouse is placed on the image and scrolled up or down
               viewMode={1} // Set view mode to restrict cropping to the specified aspect ratio
-              aspectRatio={2.32} // Set aspect ratio. Aspect ratio is gotten by dividing the width by the height. So, for our image of 720x311, we used 2.32 as the aspect ratio
+              aspectRatio={1} // Set aspect ratio. Aspect ratio is gotten by dividing the width by the height. So, if our image is 720x311, we used 2.32 as the aspect ratio
               autoCropArea={1} // Crop the entire image within the specified aspect
               dragMode="move" // This makes sure the image moves when dragged, instead of drawing a cropped area
               cropBoxResizable={false} // Prevents the user from resizing the cropBox. This ensures the cropped area is fixed
@@ -105,12 +105,14 @@ const ImageCropper_WritePage = ({
           </div>
 
           <div className="mt-4 min-[800px]:mt-0">
-            <h2 className="uppercase text-2xl font-bold mb-2">Preview</h2>
+            <h2 className="uppercase text-2xl font-bold mb-2 text-center">
+              Preview
+            </h2>
             {croppedImage && (
               <img
                 src={croppedImage}
                 alt="Cropped"
-                className="w-full max-w-[600px]"
+                className="w-[200px] h-[200px]"
               />
             )}
           </div>

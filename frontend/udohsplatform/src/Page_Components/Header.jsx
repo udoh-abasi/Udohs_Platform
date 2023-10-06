@@ -366,7 +366,7 @@ const Header = () => {
                 </li>
                 <li className="w-full" onClick={toggleOffMenu}>
                   <Link
-                    to=""
+                    to="/write"
                     className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Write

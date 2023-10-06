@@ -123,7 +123,7 @@ const HeaderForBigScreen = ({
             </li>
             <li>
               <Link
-                to=""
+                to="/write"
                 className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
               >
                 Write
