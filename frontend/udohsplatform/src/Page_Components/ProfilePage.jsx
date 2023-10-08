@@ -355,7 +355,7 @@ const ProfilePage = () => {
 
                   <label
                     htmlFor="firstName"
-                    className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+                    className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
                   >
                     First Name
                   </label>
@@ -383,7 +383,7 @@ const ProfilePage = () => {
 
                   <label
                     htmlFor="lastName"
-                    className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+                    className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
                   >
                     Last Name
                   </label>
@@ -410,7 +410,7 @@ const ProfilePage = () => {
 
                   <label
                     htmlFor="about"
-                    className="cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[10%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-15%] peer-focus:translate-y-[0] top-[-15%] transition-all duration-500 ease-linear"
+                    className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[10%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-15%] peer-focus:translate-y-[0] top-[-15%] transition-all duration-500 ease-linear"
                   >
                     About
                   </label>

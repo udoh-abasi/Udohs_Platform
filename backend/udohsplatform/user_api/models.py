@@ -58,6 +58,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
         blank=True,
     )
     paystack_ref = models.CharField(null=True, blank=True, max_length=500)
+    no_of_post = models.IntegerField(default=0)
 
 
 """ 

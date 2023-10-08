@@ -47,6 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
             "bio",
             "premium_member",
             "profile_pic",
+            "no_of_post",
         )
 
 

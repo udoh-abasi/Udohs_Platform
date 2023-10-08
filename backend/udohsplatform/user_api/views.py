@@ -499,9 +499,8 @@ class UploadImageFromEditorJSWritePage(APIView):
 
         try:
             if image.content_type.startswith("image"):
-                fs = (
-                    FileSystemStorage()
-                )  # This will ensure the images are saved in the media folder
+                # This will ensure the images are saved in the media folder
+                fs = FileSystemStorage()
                 imageName = str(image).split(".")[0]
 
                 im = Image.open(image)

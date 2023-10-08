@@ -19,8 +19,8 @@
 
   scroll-behavior: smooth !important;
 
-  overflow-wrap: break-word;
-  word-wrap: break-word;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
 }
 
 body {
@@ -194,4 +194,8 @@ code.inline-code {
 .user-link {
   color: rgb(84, 84, 251);
   text-decoration: underline;
+}
+
+.codex-editor__redactor {
+  padding-bottom: 100px !important;
 }

@@ -24,6 +24,9 @@ urlpatterns = [
     path("api/", include("user_api.urls")),
     path("api/", include("EmailVerification.urls")),
     path("api/", include("forgotPasswordEmailVerification.urls")),
+    path("api/", include("UserArticles.urls")),
+    path("api/", include("Comments.urls")),
+    path("api/", include("Likes.urls")),
 ]
 
 if settings.DEBUG:
