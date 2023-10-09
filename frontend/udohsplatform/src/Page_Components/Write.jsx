@@ -360,6 +360,59 @@ const MyEditor = () => {
     };
   }, []);
 
+  // This keeps track of the previous position that the user is
+  const [previousScrollPosition, setPreviousScrollPosition] = useState(0);
+
+  // This tracks if the user is scrolling up or down
+  const [scrollDir, setScrollDir] = useState("");
+
+  // This useEffect adds an event listener to listen to scroll events
+  useEffect(() => {
+    // Check if the user is currently scrolling up or down
+    const checkScroll = () => {
+      if (window.scrollY < previousScrollPosition) {
+        setScrollDir("up");
+      } else {
+        setScrollDir("down");
+      }
+    };
+
+    window.addEventListener("scroll", () => {
+      setPreviousScrollPosition(window.scrollY);
+      checkScroll();
+    });
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("scroll", () => {
+        setPreviousScrollPosition(window.scrollY);
+        checkScroll();
+      });
+    };
+  }, [previousScrollPosition]);
+
+  // This hides/shows the <div> that has the 'Write' and 'Preview' text
+  const hideWritePreview = () => {
+    const writePreviewId = document.querySelector("#WritePreview");
+    writePreviewId.classList.remove("top-16");
+    writePreviewId.classList.add("-top-36");
+  };
+
+  const showWritePreview = () => {
+    const writePreviewId = document.querySelector("#WritePreview");
+    writePreviewId.classList.remove("-top-36");
+    writePreviewId.classList.add("top-16");
+  };
+
+  // This useEffect monitors the scroll-Direction and the previous-scroll-position and then hide or show the <div> that has the 'Write' and 'Preview' text
+  useEffect(() => {
+    if (scrollDir === "down" && previousScrollPosition >= 203) {
+      hideWritePreview();
+    } else {
+      showWritePreview();
+    }
+  }, [previousScrollPosition, scrollDir]);
+
   return (
     <>
       {!articleLink ? (
@@ -372,7 +425,10 @@ const MyEditor = () => {
             </div>
           )}
 
-          <div className="flex justify-center pt-10 fixed w-full top-16 bg-white dark:bg-[#020617] z-50">
+          <div
+            id="WritePreview"
+            className="flex justify-center pt-10 fixed w-full top-16 bg-white dark:bg-[#020617] z-50 transition-all duration-300 ease-linear"
+          >
             <section className="min-[400px]:text-xl min-[500px]:text-2xl flex justify-between mb-4 p-4 flex-[0_1_670px]">
               <button
                 className={`px-4 rounded-br-xl rounded-tl-xl py-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]'

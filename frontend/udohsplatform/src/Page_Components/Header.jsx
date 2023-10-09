@@ -344,7 +344,7 @@ const Header = () => {
             <div
               id="menu-small-screen"
               className="fixed overflow-auto bg-white dark:bg-[#020617] w-full h-full mt-[-16px] p-8 dark:text-[#fcffba] font-bold 
-             transition-all ease-linear duration-[500ms] hidden translate-y-[-700px] z-10
+             transition-all ease-linear duration-[500ms] hidden translate-y-[-700px] z-[100]
             "
             >
               <ul className="flex flex-col items-center justify-around h-full text-xl">
