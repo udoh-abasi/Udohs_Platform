@@ -133,8 +133,8 @@ const MyEditor = () => {
     thePopUp.classList.remove("hidden");
 
     setTimeout(() => {
-      thePopUp.classList.remove("-bottom-36");
       thePopUp.classList.add("bottom-16");
+      thePopUp.classList.remove("-bottom-36");
     }, 0.05);
   };
 
@@ -372,7 +372,7 @@ const MyEditor = () => {
             </div>
           )}
 
-          <div className="flex justify-center">
+          <div className="flex justify-center pt-10 fixed w-full top-16 bg-white dark:bg-[#020617] z-50">
             <section className="min-[400px]:text-xl min-[500px]:text-2xl flex justify-between mb-4 p-4 flex-[0_1_670px]">
               <button
                 className={`px-4 rounded-br-xl rounded-tl-xl py-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]'
@@ -404,8 +404,10 @@ const MyEditor = () => {
             </section>
           </div>
 
-          <section className={`${viewMode === "write" ? "block" : "hidden"}`}>
-            <form className="bg-white text-black px-4 min-[645px]:px-14 flex justify-center">
+          <section
+            className={`${viewMode === "write" ? "block" : "hidden"} pt-28`}
+          >
+            <form className="bg-white text-black px-4 pt-6 min-[645px]:px-14 flex justify-center">
               <div className="flex-[0_1_650px] flex flex-col-reverse relative mt-8">
                 <input
                   type="text"
@@ -698,7 +700,9 @@ const MyEditor = () => {
             </div>
           </section>
 
-          <section className={`${viewMode === "preview" ? "block" : "hidden"}`}>
+          <section
+            className={`${viewMode === "preview" ? "block" : "hidden"} pt-36`}
+          >
             <Preview theData={draftData} title={title} />
           </section>
         </main>
