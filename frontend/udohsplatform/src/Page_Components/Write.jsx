@@ -394,14 +394,26 @@ const MyEditor = () => {
   // This hides/shows the <div> that has the 'Write' and 'Preview' text
   const hideWritePreview = () => {
     const writePreviewId = document.querySelector("#WritePreview");
-    writePreviewId.classList.remove("top-16");
-    writePreviewId.classList.add("-top-36");
+    try {
+      if (writePreviewId) {
+        writePreviewId.classList.remove("top-16");
+        writePreviewId.classList.add("-top-36");
+      }
+    } catch {
+      //Do nothing
+    }
   };
 
   const showWritePreview = () => {
     const writePreviewId = document.querySelector("#WritePreview");
-    writePreviewId.classList.remove("-top-36");
-    writePreviewId.classList.add("top-16");
+    try {
+      if (writePreviewId) {
+        writePreviewId.classList.remove("-top-36");
+        writePreviewId.classList.add("top-16");
+      }
+    } catch {
+      //Do nothing
+    }
   };
 
   // This useEffect monitors the scroll-Direction and the previous-scroll-position and then hide or show the <div> that has the 'Write' and 'Preview' text
@@ -427,7 +439,7 @@ const MyEditor = () => {
 
           <div
             id="WritePreview"
-            className="flex justify-center pt-10 fixed w-full top-16 bg-white dark:bg-[#020617] z-50 transition-all duration-300 ease-linear"
+            className="flex justify-center pt-10 fixed w-full top-16 bg-white dark:bg-[#020617] z-[5] transition-all duration-300 ease-linear"
           >
             <section className="min-[400px]:text-xl min-[500px]:text-2xl flex justify-between mb-4 p-4 flex-[0_1_670px]">
               <button

@@ -59,7 +59,7 @@ const ImageCropper_WritePage = ({
   };
 
   return (
-    <div className="fixed top-0 left-0 z-10 w-full h-full">
+    <div className="fixed top-0 left-0 z-50 w-full h-full">
       <div className="fixed rounded-3xl z-10 pt-14 bg-slate-300 dark:bg-black overflow-auto w-full h-auto max-h-full p-4 max-w-[800px] top-0 left-1/2 -translate-x-1/2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
         <div className="flex items-center flex-col justify-center gap-8 ">
           <div>

@@ -49,7 +49,7 @@ function App() {
 
         <Route path="/account/:id" element={<AccountPage />} />
 
-        <Route path="/read/:title" element={<Read />} />
+        <Route path="/read/:title/:articleID" element={<Read />} />
 
         <Route path="/write" element={<Write />} />
 

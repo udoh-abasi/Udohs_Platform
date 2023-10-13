@@ -1,88 +1,289 @@
-import { Link } from "react-router-dom";
-import { theData } from "../utils/editorJSConfig";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import convertEditorJSDataToHTML from "./ConvertEditorJSDataToHTML";
+import { useEffect, useState } from "react";
+import Loader from "./loader";
+import axiosClient from "../utils/axiosSetup";
+import { profilePicURL } from "../utils/imageURLS";
 
 const Read = () => {
-  const has_articles = true;
+  const { title, articleID } = useParams();
+  const navigate = useNavigate();
+
+  // This stores the article's writer
+  const [articleAuthor, setArticleAuthor] = useState({});
+
+  // This stores other articles written by this same author
+  const [otherArticles, setOtherArticles] = useState([]);
+
+  // This stores the main article requested by the user
+  const [article, setArticle] = useState({});
+
+  const [pageLoading, setPageLoading] = useState(true);
+
+  const [articleByOtherPoster, setArticleByOtherPoster] = useState([]);
+
+  // This sends a request to get the article
+  useEffect(() => {
+    const getArticle = async () => {
+      setPageLoading(true);
+      try {
+        const response = await axiosClient.get(
+          `/api/singleArticle/${title}/${articleID}`
+        );
+        if (response.status === 200) {
+          const data = response.data;
+          console.log(data);
+          const {
+            requestedArticle,
+            otherArticles,
+            articlePoster,
+            articleByOtherPoster,
+          } = data;
+
+          // This 'articleByOtherPoster' is an array of objects. Each object has the poster and the article the person posted
+          setArticleByOtherPoster(articleByOtherPoster);
+          setArticleAuthor(articlePoster);
+          setArticle(requestedArticle);
+          setOtherArticles(otherArticles);
+          setPageLoading(false);
+        }
+      } catch {
+        navigate("/read");
+      }
+    };
+
+    if (title && articleID) {
+      getArticle();
+    }
+  }, [title, articleID, navigate]);
+
+  const [dateOfPost, setDateOfPost] = useState("");
+
+  const getMonthAndYearOfDate = (date) => {
+    const postDate = new Date(date);
+
+    return `${postDate.toLocaleString("en-US", {
+      month: "long",
+    })}, ${postDate.getFullYear()}`;
+  };
+
+  // This function gets the the first paragraph of every article and uses it as the description
+  const getDescription = (eachData) => {
+    const theMainArticle = JSON.parse(eachData.theMainArticle);
+    const block = theMainArticle.blocks;
+
+    for (let index = 0; index < block.length; index++) {
+      const element = block[index];
+
+      const { type, data } = element;
+      if (type === "paragraph") {
+        const text = data.text;
+
+        if (text.trim()) {
+          return text.trim();
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (article) {
+      const postDate = new Date(article.datePosted);
+
+      setDateOfPost(
+        `${postDate.toLocaleString("en-US", {
+          month: "long",
+        })}, ${postDate.getFullYear()}`
+      );
+    }
+  }, [article]);
 
   return (
     <main className="min-h-screen pt-[5rem] p-4 max-w-[700px] mx-auto">
-      <h1 className="text-center font-bold text-2xl min-[500px]:text-3xl m-6">{`This is the title of the article`}</h1>
-      <Link className="my-6 block">
-        <figure className="flex items-center ">
-          <div className="rounded-full overflow-hidden mr-4 flex-[0_0_40px] h-[40px]">
-            <img alt="Udoh Abasi" src="/Profile_Image_Placeholder-small.jpg" />
+      {pageLoading ? (
+        <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[rgba(255,255,255,0.5)] dark:bg-[rgba(0,0,0,0.5)] w-full h-full">
+          <div className="fixed top-1/2 left-1/2 z-10">
+            <Loader />
           </div>
-
-          <figcaption>
-            <p id="one-line-ellipsis">Udoh Abasi Udoh AbasiUdoh Abasi</p>
-          </figcaption>
-        </figure>
-
-        <small>Published: August 10</small>
-      </Link>
-
-      {convertEditorJSDataToHTML(theData)}
-
-      <figure className="pt-8">
-        <div className="w-[100px] h-[100px] rounded-full overflow-hidden mr-4">
-          <img alt="Udoh Abasi" src="/Profile_Image_Placeholder-small.jpg" />
         </div>
+      ) : (
+        <>
+          <h1 className="text-center font-bold text-2xl min-[500px]:text-3xl m-6">
+            {article.title}
+          </h1>
 
-        <figcaption className="mt-4">
-          <p className="my-4">
-            Written by <strong> Udoh Abasi</strong>
-          </p>
-          <p>About Udoh Abasi will go here</p>
-        </figcaption>
-      </figure>
-
-      <section className="mt-20">
-        <h2 className="text-center font-bold text-2xl uppercase mb-2">
-          More from Udoh Abasi
-        </h2>
-
-        {has_articles ? (
-          <div className="flex justify-center">
-            <div className="max-w-[750px]">
-              <section className="p-4 mt-8 items-center flex gap-8 max-[730px]:gap-0 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-                <Link>
-                  <div className="hover:underline">
-                    <p id="one-line-ellipsis" className="mb-2">
-                      <strong>
-                        Gender equality - Project Title Gender equality -
-                        Project Title Gender equality - Project Title
-                      </strong>
-                    </p>
-
-                    <p id="two-line-ellipsis">
-                      Description of the post Description of the post
-                      Description of the post Description of the post
-                      Description of the post Description of the post
-                      Description of the post Description of the post
-                      Description of the post Description of the post
-                      Description of the post Description of the post
-                      Description of the post Description of the post
-                      Description of the post
-                    </p>
-                  </div>
-                  <small>August 10</small>
-                </Link>
-
-                <Link className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]">
+          <div className="my-6">
+            <Link to={`/account/${articleAuthor.id}`} className="block">
+              <figure className="flex items-center ">
+                <div className="rounded-full overflow-hidden mr-4 flex-[0_0_40px] h-[40px]">
                   <img
-                    src="/Hero photo-small.webp"
-                    alt="Hero image"
-                    className=" h-full w-full object-cover"
+                    alt={`${articleAuthor.first_name} ${articleAuthor.last_name}`}
+                    src={`${
+                      articleAuthor.profile_pic
+                        ? profilePicURL + articleAuthor.profile_pic
+                        : "/Profile_Image_Placeholder-small.jpg"
+                    }`}
                   />
-                </Link>
-              </section>
-            </div>
+                </div>
+
+                <figcaption>
+                  <p id="one-line-ellipsis">
+                    {articleAuthor.first_name} {articleAuthor.last_name}
+                  </p>
+                </figcaption>
+              </figure>
+
+              <small>Published: {dateOfPost}</small>
+            </Link>
+            {article.edited && <small>Edited</small>}
           </div>
-        ) : (
-          <p className="text-center italic">Udoh Abasi has no articles yet.</p>
-        )}
-      </section>
+
+          {convertEditorJSDataToHTML(JSON.parse(article.theMainArticle))}
+
+          <Link to={`/account/${articleAuthor.id}`}>
+            <figure className="pt-8">
+              <div className="w-[100px] h-[100px] rounded-full overflow-hidden mr-4">
+                <img
+                  alt={`${articleAuthor.first_name} ${articleAuthor.last_name}`}
+                  src={`${
+                    articleAuthor.profile_pic
+                      ? profilePicURL + articleAuthor.profile_pic
+                      : "/Profile_Image_Placeholder-small.jpg"
+                  }`}
+                />
+              </div>
+
+              <figcaption className="mt-4">
+                <p className="my-4">
+                  Written by{" "}
+                  <strong>
+                    {articleAuthor.first_name} {articleAuthor.last_name}
+                  </strong>
+                </p>
+                <p className="text-justify">{articleAuthor.bio}</p>
+              </figcaption>
+            </figure>
+          </Link>
+
+          {Object.keys(otherArticles).length ? (
+            <section className="my-20">
+              <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                More from {articleAuthor.first_name}
+              </h2>
+
+              {otherArticles.map((eachArticle) => (
+                <div key={eachArticle.id} className="flex justify-center">
+                  <div className="flex-[0_1_750px]">
+                    <section className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+                      <Link to={`/read/${eachArticle.title}/${eachArticle.id}`}>
+                        <div className="hover:underline">
+                          <p id="one-line-ellipsis" className="mb-2">
+                            <strong>{eachArticle.title}</strong>
+                          </p>
+
+                          <p id="two-line-ellipsis">
+                            {getDescription(eachArticle)}
+                          </p>
+                        </div>
+                        <small className="mt-4 -mb-4 block">
+                          {getMonthAndYearOfDate(eachArticle.datePosted)}
+                        </small>
+                      </Link>
+
+                      <Link
+                        to={`/read/${eachArticle.title}/${eachArticle.id}`}
+                        className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]"
+                      >
+                        <img
+                          src={
+                            eachArticle.heroImage
+                              ? profilePicURL + eachArticle.heroImage
+                              : "/Hero photo-small.webp"
+                          }
+                          alt="Hero image"
+                          className=" h-full w-full object-cover"
+                        />
+                      </Link>
+                    </section>
+                  </div>
+                </div>
+              ))}
+            </section>
+          ) : (
+            <span></span>
+          )}
+
+          {Object.keys(articleByOtherPoster).length ? (
+            <section className="my-20">
+              <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                You may also like
+              </h2>
+
+              {articleByOtherPoster.map((eachArticle) => {
+                const { post, poster } = eachArticle;
+                return (
+                  <section
+                    key={post.id}
+                    className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                  >
+                    <div>
+                      <Link to={`/account/${poster.id}`}>
+                        <figure className="flex items-center">
+                          <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
+                            <img
+                              alt={`${poster.first_name} ${poster.last_name}`}
+                              src={
+                                poster.profile_pic
+                                  ? profilePicURL + poster.profile_pic
+                                  : "/Profile_Image_Placeholder-small.jpg"
+                              }
+                            />
+                          </div>
+
+                          <figcaption>
+                            <p>
+                              <small>
+                                {poster.first_name} {poster.last_name}
+                              </small>
+                            </p>
+                          </figcaption>
+                        </figure>
+                      </Link>
+
+                      <Link to={`/read/${post.title}/${post.id}`}>
+                        <div className="hover:underline">
+                          <p id="one-line-ellipsis" className="my-2">
+                            <strong>{post.title}</strong>
+                          </p>
+
+                          <p id="two-line-ellipsis">{getDescription(post)}</p>
+                        </div>
+                        <small className="mt-4 block">
+                          {getMonthAndYearOfDate(post.datePosted)}
+                        </small>
+                      </Link>
+                    </div>
+
+                    <Link className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]">
+                      <img
+                        src={
+                          post.heroImage
+                            ? profilePicURL + post.heroImage
+                            : "/Hero photo-small.webp"
+                        }
+                        alt="Hero image"
+                        className=" h-full w-full object-cover"
+                      />
+                    </Link>
+                  </section>
+                );
+              })}
+            </section>
+          ) : (
+            <span></span>
+          )}
+        </>
+      )}
     </main>
   );
 };
