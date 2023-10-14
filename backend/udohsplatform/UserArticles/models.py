@@ -26,3 +26,10 @@ class User_Articles(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["user", "title"], name="unique_title")
         ]
+
+
+# NOTE: This model is for the deleted data. (It is used to set up the undo functionality)
+class DeletedData(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
+    model_id = models.IntegerField()
+    data = models.TextField()

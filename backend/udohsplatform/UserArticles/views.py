@@ -1,10 +1,11 @@
 from .serializer import (
     UserArticleSerializer,
     OtherArticlesFromSamePosterSerializer,
-    TheUser,
+    ArticlePosterSerializer,
 )
-from .models import User_Articles
+from .models import User_Articles, DeletedData
 from rest_framework.views import APIView
+from rest_framework.generics import DestroyAPIView
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -21,6 +22,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from user_api.serializers import UserSerializer
 from random import choice
+from django.core import serializers
 
 
 User = get_user_model()
@@ -106,6 +108,7 @@ class UserArticleView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+# NOTE: This view sends it response to the 'Read' page. Which will display the article that the user wants to read, other articles by the same user and by other users
 @method_decorator(csrf_protect, name="dispatch")
 class GetSingleArticleView(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -151,7 +154,8 @@ class GetSingleArticleView(APIView):
                     otherArticles, many=True
                 ).data
 
-                # This return the number we got. Maximum is 10, but it can be less if the user does not have up to 10 articles
+                # This return the number of other articles posted by the user that posted the one requested for.
+                # Maximum is 10, but it can be less if the user does not have up to 10 articles
                 totalNumberOfArticlesByPoster = otherArticles.count()
 
                 articleByOtherPoster = []
@@ -171,13 +175,16 @@ class GetSingleArticleView(APIView):
                         .order_by(theChoice)[: 10 - totalNumberOfArticlesByPoster]
                     )
 
-                    # Continue here, figure out if the function 'articleFromOtherPoster' added in the model worked
+                    # Now, we want to get the post and the poster. So we loop through all the posts made by all other user (except the one that his/her article was requested)
                     for i in articleFromOtherPoster:
+                        # Here, we get the post
                         post = OtherArticlesFromSamePosterSerializer(i).data
 
+                        # Then we get the poster (the person that made the post), from our user model
                         theUser = User.objects.get(email=i.user.email)
-                        poster = TheUser(theUser).data
+                        poster = ArticlePosterSerializer(theUser).data
 
+                        # Then, in our list, we append the post and the poster.
                         articleByOtherPoster.append({"poster": poster, "post": post})
 
                 return Response(
@@ -191,3 +198,88 @@ class GetSingleArticleView(APIView):
 
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+# This view deletes an article.
+@method_decorator(csrf_protect, name="dispatch")
+class ArticleDeleteView(DestroyAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+
+    def delete(self, request, articleID):
+        try:
+            articleID = int(articleID)
+            # First, we get the article the user wants to edit
+            article = User_Articles.objects.get(user=request.user, id=articleID)
+
+            # Here, we serialized the entire article object (converted it to a text format, so it can be easily store)
+            dataToDelete = serializers.serialize("json", [article])
+
+            # Then we checked if the user already has objects in the 'DeletedData' model, so we delete them all
+            # This is because we want a user to only be able to undo the deletion of one item at a time
+            dataExist = DeletedData.objects.filter(user=request.user)
+            if dataExist.exists():
+                for i in dataExist:
+                    i.delete()
+
+            # NOTE: Here, notice we passed in the data that we want to delete in a field called 'data'
+            DeletedData.objects.create(
+                user=request.user, model_id=article.id, data=dataToDelete
+            )
+
+            # Then we delete the article, just like the usr wanted.
+            article.delete()
+
+            # Then send back an updated articles (which will exclude the deleted data to the frontend)
+            articles = User_Articles.objects.filter(user=request.user).only(
+                "id",
+                "title",
+                "heroImage",
+                "datePosted",
+                "theMainArticle",
+            )
+
+            articleData = OtherArticlesFromSamePosterSerializer(
+                articles, many=True
+            ).data
+
+            return Response(articleData, status=status.HTTP_200_OK)
+
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+# This view takes requests to undo a delete.
+@method_decorator(csrf_protect, name="dispatch")
+class UndoDeleteView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+
+    def get(self, request, articleID):
+        articleID = int(articleID)
+
+        # First, we check and get the article the user wants to undo its delete.
+        # Notice we used 'request.user' to ensure that someone does not recover someone else article
+        retrievedArticle = DeletedData.objects.get(
+            user=request.user, model_id=articleID
+        )
+
+        # Remember that the entire object of the article was serialized (converted to a string) and stored in a DeletedData's model field called 'data'
+        # So, we recovered that 'data' field here, and deserialized it (i.e, converted it back to it original form, which is a python dictionary)
+        for article in serializers.deserialize("json", retrievedArticle.data):
+            article.save()
+
+        # Then we delete that retrieved data from the 'DeletedData' model
+        retrievedArticle.delete()
+
+        # Then send back an updated articles (which will include the deleted data that we just retrieved, to the frontend)
+        articles = User_Articles.objects.filter(user=request.user).only(
+            "id",
+            "title",
+            "heroImage",
+            "datePosted",
+            "theMainArticle",
+        )
+
+        articleData = OtherArticlesFromSamePosterSerializer(articles, many=True).data
+        return Response(articleData, status=status.HTTP_200_OK)

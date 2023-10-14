@@ -47,7 +47,7 @@ class OtherArticlesFromSamePosterSerializer(serializers.ModelSerializer):
         fields = ("id", "title", "heroImage", "datePosted", "theMainArticle")
 
 
-class TheUser(serializers.ModelSerializer):
+class ArticlePosterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "first_name", "last_name", "profile_pic")

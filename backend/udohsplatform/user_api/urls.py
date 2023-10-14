@@ -11,6 +11,7 @@ from .views import (
     EditProfileView,
     VerifyPaymentWithPaystack,
     UploadImageFromEditorJSWritePage,
+    UserArticlesView,
 )
 
 urlpatterns = [
@@ -19,6 +20,7 @@ urlpatterns = [
     path("logout", UserLogout.as_view()),
     path("forgotpassword/<str:email>", ForgotPasswordView.as_view()),
     path("user", UserView.as_view()),
+    path("userArticles", UserArticlesView.as_view()),
     path("getLink", SendLinkTo.as_view()),
     path("getgoogledata", GetGoogleUserData.as_view()),
     path("account/<str:id>", AccountView.as_view()),

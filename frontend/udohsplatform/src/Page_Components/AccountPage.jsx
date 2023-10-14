@@ -8,15 +8,42 @@ import { userSelector } from "../reduxFiles/selectors";
 import { useSelector } from "react-redux";
 
 const AccountPage = () => {
-  const has_articles = true;
-
   const loggedInUser = useSelector(userSelector);
 
   const [user, setUser] = useState(null);
+  const [userArticles, setUserArticles] = useState([]);
   const [userIsLoading, setUserIsLoading] = useState(true);
 
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // Get the month of year (in the format October 2023)
+  const getMonthAndYearOfDate = (date) => {
+    const postDate = new Date(date);
+
+    return `${postDate.toLocaleString("en-US", {
+      month: "long",
+    })}, ${postDate.getFullYear()}`;
+  };
+
+  // This function gets the the first paragraph of every article and uses it as the description
+  const getDescription = (eachData) => {
+    const theMainArticle = JSON.parse(eachData.theMainArticle);
+    const block = theMainArticle.blocks;
+
+    for (let index = 0; index < block.length; index++) {
+      const element = block[index];
+
+      const { type, data } = element;
+      if (type === "paragraph") {
+        const text = data.text;
+
+        if (text.trim()) {
+          return text.trim();
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     const getUserAccount = async () => {
@@ -25,11 +52,12 @@ const AccountPage = () => {
         // Check if the account requested exist
         const response = await axiosClient.get(`/api/account/${id}`);
         if (response.status === 200) {
-          setUser(response.data);
+          setUser(response.data.profile);
+          setUserArticles(response.data.articles);
 
           if (
             loggedInUser.userData &&
-            loggedInUser.userData.id === response.data.id
+            loggedInUser.userData.id === response.data.profile.id
           ) {
             console.log("In userprofile");
             navigate("/userProfile", { replace: true });
@@ -38,7 +66,6 @@ const AccountPage = () => {
           }
         }
       } catch (e) {
-        console.log("In catch error");
         console.log(e);
         navigate(-1); // Navigate the user back to the previous page
       }
@@ -133,73 +160,60 @@ const AccountPage = () => {
             )}
           </section>
 
-          <section className="mt-4">
-            <h2 className="text-center font-bold text-2xl uppercase mb-2">
-              Articles by {name}
-            </h2>
+          {userArticles.length ? (
+            <section className="my-20">
+              <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                Articles by {user.first_name}
+              </h2>
 
-            {has_articles ? (
-              <div className="flex justify-center">
-                <div className="max-w-[750px]">
-                  <section className="p-4 mt-8 items-center flex gap-8 max-[730px]:gap-0 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-                    <div className="">
-                      <Link>
-                        <figure className="flex items-center">
-                          <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
-                            <img
-                              alt="Udoh Abasi"
-                              src={"/Profile_Image_Placeholder-small.jpg"}
-                            />
-                          </div>
-
-                          <figcaption>
-                            <p>
-                              <small>Udoh Abasi</small>
-                            </p>
-                          </figcaption>
-                        </figure>
-                      </Link>
-
-                      <Link>
+              {userArticles.map((eachArticle) => (
+                <div key={eachArticle.id} className="flex justify-center">
+                  <div className="flex-[0_1_750px]">
+                    <section className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+                      <Link to={`/read/${eachArticle.title}/${eachArticle.id}`}>
                         <div className="hover:underline">
                           <p id="one-line-ellipsis" className="mb-2">
-                            <strong>
-                              Gender equality - Project Title Gender equality -
-                              Project Title Gender equality - Project Title
-                            </strong>
+                            <strong>{eachArticle.title}</strong>
                           </p>
 
                           <p id="two-line-ellipsis">
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post
+                            {getDescription(eachArticle)}
                           </p>
                         </div>
-                        <small>August 10</small>
+                        <small className="mt-4 -mb-4 block">
+                          {getMonthAndYearOfDate(eachArticle.datePosted)}
+                        </small>
                       </Link>
-                    </div>
 
-                    <Link className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]">
-                      <img
-                        src="/Hero photo-small.webp"
-                        alt="Hero image"
-                        className=" h-full w-full object-cover"
-                      />
-                    </Link>
-                  </section>
+                      <Link
+                        to={`/read/${eachArticle.title}/${eachArticle.id}`}
+                        className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]"
+                      >
+                        <img
+                          src={
+                            eachArticle.heroImage
+                              ? profilePicURL + eachArticle.heroImage
+                              : "/Hero photo-small.webp"
+                          }
+                          alt="Hero image"
+                          className=" h-full w-full object-cover"
+                        />
+                      </Link>
+                    </section>
+                  </div>
                 </div>
-              </div>
-            ) : (
+              ))}
+            </section>
+          ) : (
+            <section className="my-20">
+              <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                Articles by {user.first_name}
+              </h2>
               <p className="text-center italic">
-                Udoh Abasi has no articles yet.
+                {user.first_name} has no articles yet.
               </p>
-            )}
-          </section>
+            </section>
+          )}
         </main>
       )}
     </>

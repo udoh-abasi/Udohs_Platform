@@ -32,7 +32,7 @@ const Read = () => {
         );
         if (response.status === 200) {
           const data = response.data;
-          console.log(data);
+
           const {
             requestedArticle,
             otherArticles,

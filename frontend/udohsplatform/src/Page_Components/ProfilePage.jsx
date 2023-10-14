@@ -1,7 +1,10 @@
+// Set up frontend so when the usre click 'Yes Edit', the <Write/> jsx is activate
+
 import { MdOutlineDeleteForever, MdWorkspacePremium } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { AiFillWarning, AiOutlineClose } from "react-icons/ai";
 import { BiSave } from "react-icons/bi";
+import { LuFileEdit } from "react-icons/lu";
 import { useEffect, useState } from "react";
 import { hideForm, showForm } from "../utils/showOrHideSignUpAndRegisterForms";
 import ImageCropper from "./imageCropper";
@@ -13,8 +16,6 @@ import axiosClient from "../utils/axiosSetup";
 import { userAction } from "../reduxFiles/actions";
 
 const ProfilePage = () => {
-  const has_articles = true;
-
   let user = useSelector(userSelector);
   user = user.userData;
 
@@ -42,8 +43,6 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  const id = "id";
-
   const [showImageCropperInterface, setShowImageCropperInterface] =
     useState(false);
   const [imageToCrop, setImageToCrop] = useState("");
@@ -61,11 +60,20 @@ const ProfilePage = () => {
 
   // When the delete button on an article is clicked, these functions run to hide or show the the confirmation buttons
   const hideDeleteConfirmation = (id) => {
-    document.querySelector("#" + id).classList.add("hidden");
+    document.querySelector("#delete" + id).classList.add("hidden");
   };
 
   const showDeleteConfirmation = (id) => {
-    document.querySelector("#" + id).classList.remove("hidden");
+    document.querySelector("#delete" + id).classList.remove("hidden");
+  };
+
+  // When the delete button on an article is clicked, these functions run to hide or show the the confirmation buttons
+  const hideEditConfirmation = (id) => {
+    document.querySelector("#edit" + id).classList.add("hidden");
+  };
+
+  const showEditConfirmation = (id) => {
+    document.querySelector("#edit" + id).classList.remove("hidden");
   };
 
   // This useEffect hides the confirmDelete box if it is open.
@@ -86,7 +94,7 @@ const ProfilePage = () => {
     setTimeout(() => {
       thePopUp.classList.remove("-bottom-36");
       thePopUp.classList.add("bottom-16");
-    }, 0.05);
+    }, 1);
   };
 
   const hideUndoPopup = () => {
@@ -219,9 +227,128 @@ const ProfilePage = () => {
     }
   };
 
+  // Keep track of whether the user's articles has been gotten from the backend
+  const [userArticleLoading, setUserArticleLoading] = useState(true);
+
+  // Store the user's article gotten from backend
+  const [userArticles, setUserArticles] = useState([]);
+
+  // Since the user's profile data is in our redux store, this useEffect runs to get the articles posted by the user
+  useEffect(() => {
+    const getUserArticle = async () => {
+      try {
+        setUserArticleLoading(true);
+        const response = await axiosClient.get("/api/userArticles");
+        if (response.status === 200) {
+          setUserArticles(response.data);
+          setUserArticleLoading(false);
+        }
+      } catch {
+        setUserArticleLoading(false);
+      }
+    };
+
+    if (user) {
+      getUserArticle();
+    }
+  }, [user]);
+
+  // Get the month of year (in the format October 2023)
+  const getMonthAndYearOfDate = (date) => {
+    const postDate = new Date(date);
+
+    return `${postDate.toLocaleString("en-US", {
+      month: "long",
+    })}, ${postDate.getFullYear()}`;
+  };
+
+  // This function gets the the first paragraph of every article and uses it as the description
+  const getDescription = (eachData) => {
+    const theMainArticle = JSON.parse(eachData.theMainArticle);
+    const block = theMainArticle.blocks;
+
+    for (let index = 0; index < block.length; index++) {
+      const element = block[index];
+
+      const { type, data } = element;
+      if (type === "paragraph") {
+        const text = data.text;
+
+        if (text.trim()) {
+          return text.trim();
+        }
+      }
+    }
+  };
+
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [errorDeleting, setErrorDeleting] = useState(false);
+
+  // This holds the deleted article's id, so if the user clicks on the button that says 'Undo delete', it will pick the ID here
+  const [deletedArticleID, setDeletedArticleID] = useState("");
+
+  // This function runs to delete an article, when given the ID
+  const onDeleteArticle = async (id) => {
+    try {
+      setErrorDeleting(false);
+      setDeleteLoading(true);
+      const response = await axiosClient.delete(`/api/deleteArticle/${id}`);
+      if (response.status === 200) {
+        // Store the deleted article's ID incase the user clicks on 'undo'
+        setDeletedArticleID(id);
+
+        hideDeleteConfirmation(id);
+        setDeleteLoading(false);
+
+        setArticleDeleteUndone(false);
+        showUndoPopup();
+
+        const timeOutID = setTimeout(hideUndoPopup, 10000);
+        setTimeOutID(timeOutID);
+
+        setUserArticles(response.data);
+      }
+    } catch {
+      setDeleteLoading(false);
+      setErrorDeleting(true);
+    }
+  };
+
+  const [deleteUndoLoading, setDeleteUndoLoading] = useState(false);
+  const [errorUndoDeleting, setErrorUndoDeleting] = useState(false);
+
+  const onUndoDelete = async () => {
+    try {
+      setDeleteUndoLoading(true);
+      setErrorUndoDeleting(false);
+
+      const response = await axiosClient.get(
+        `/api/undoDeleteArticle/${deletedArticleID}`
+      );
+      if (response.status === 200) {
+        setUserArticles(response.data);
+
+        // This will make the message that says 'Delete Undone' to show
+        setArticleDeleteUndone(true);
+
+        // This will make sure it does not disappear after the previously set Timeout expires
+        clearTimeout(timeOutID);
+
+        // Then we set a new TimeOut and store the ID in our useState
+        const newTimeOutID = setTimeout(hideUndoPopup, 10000);
+        setTimeOutID(newTimeOutID);
+
+        setDeleteUndoLoading(false);
+      }
+    } catch {
+      setDeleteUndoLoading(false);
+      setErrorUndoDeleting(true);
+    }
+  };
+
   return (
     <>
-      {userIsLoading ? (
+      {userIsLoading || userArticleLoading ? (
         <div className="min-h-screen grid place-items-center">
           <Loader />
         </div>
@@ -477,180 +604,241 @@ const ProfilePage = () => {
             )}
           </section>
 
-          <section className="mt-4">
-            <h2 className="text-center font-bold text-2xl uppercase mb-2">
-              Articles by {fullName}
-            </h2>
+          {userArticles.length ? (
+            <section className="my-20">
+              <h2 className="text-center font-bold text-xl uppercase mb-2">
+                Your Articles
+              </h2>
 
-            {has_articles ? (
-              <div className="flex justify-center">
-                <div className="max-w-[750px]">
-                  <section className="p-4 mt-8 items-center flex gap-8 max-[730px]:gap-0 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-                    <div className="">
-                      <Link>
-                        <figure className="flex items-center">
-                          <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
-                            <img
-                              alt="Udoh Abasi"
-                              src={"/Profile_Image_Placeholder-small.jpg"}
-                            />
-                          </div>
-
-                          <figcaption>
-                            <p>
-                              <small>Udoh Abasi</small>
-                            </p>
-                          </figcaption>
-                        </figure>
-                      </Link>
-
-                      <Link>
+              {userArticles.map((eachArticle) => (
+                <div key={eachArticle.id} className="flex justify-center">
+                  <div className="flex-[0_1_750px]">
+                    <section className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+                      <Link
+                        to={`/read/${eachArticle.title}/${eachArticle.id}`}
+                        className="flex-[7_7_0%]"
+                      >
                         <div className="hover:underline">
                           <p id="one-line-ellipsis" className="mb-2">
-                            <strong>
-                              Gender equality - Project Title Gender equality -
-                              Project Title Gender equality - Project Title
-                            </strong>
+                            <strong>{eachArticle.title}</strong>
                           </p>
 
                           <p id="two-line-ellipsis">
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post Description of the post
-                            Description of the post
+                            {getDescription(eachArticle)}
                           </p>
                         </div>
-                        <small>August 10</small>
+                        <small className="mt-4 block">
+                          {getMonthAndYearOfDate(eachArticle.datePosted)}
+                        </small>
                       </Link>
-                    </div>
 
-                    <Link className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]">
-                      <img
-                        src="/Hero photo-small.webp"
-                        alt="Hero image"
-                        className=" h-full w-full object-cover"
-                      />
-                    </Link>
-
-                    <div>
-                      <button
-                        aria-label="delete article"
-                        type="button"
-                        title="Delete article"
-                        className="text-4xl text-red-500 max-[730px]:ml-2"
-                        onClick={() => {
-                          showDeleteConfirmation(id);
-                        }}
-                      >
-                        <MdOutlineDeleteForever />
-                      </button>
-
-                      <div
-                        id={id}
-                        className="confirmDelete hidden top-0 left-0 fixed w-full h-full"
-                        onClick={() => {
-                          hideDeleteConfirmation(id);
-                        }}
-                      >
-                        <article
-                          className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                          onClick={(e) => e.stopPropagation()}
+                      <div>
+                        <button
+                          aria-label="Edit article"
+                          type="button"
+                          title="Edit article"
+                          className="text-3xl max-[730px]:ml-2 block mb-4"
+                          onClick={() => {
+                            showEditConfirmation(eachArticle.id);
+                          }}
                         >
-                          <p className="mb-4 font-bold">
-                            Are you sure you want to delete this article&#x3f;
-                          </p>
+                          <LuFileEdit />
+                        </button>
 
-                          <div className="flex justify-around">
-                            <button
-                              type="button"
-                              className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-red-500 hover:bg-red-500 hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                              onClick={() => {
-                                hideDeleteConfirmation(id);
-                                showUndoPopup();
-                                setArticleDeleteUndone(false);
-
-                                const timeOutID = setTimeout(
-                                  hideUndoPopup,
-                                  5000
-                                );
-                                setTimeOutID(timeOutID);
-                              }}
-                            >
-                              Yes
-                            </button>
-
-                            <button
-                              type="button"
-                              className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                              onClick={() => {
-                                hideDeleteConfirmation(id);
-                              }}
-                            >
-                              No
-                            </button>
-                          </div>
-                          <button
-                            aria-label="close"
-                            type="button"
-                            className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
-                            onClick={() => {
-                              hideDeleteConfirmation(id);
-                            }}
+                        <div
+                          id={`edit${eachArticle.id}`}
+                          className="confirmDelete hidden top-0 left-0 fixed w-full h-full"
+                          onClick={() => {
+                            hideEditConfirmation(eachArticle.id);
+                          }}
+                        >
+                          <article
+                            className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <AiOutlineClose />
-                          </button>
-                        </article>
+                            <p className="mb-4 font-bold">
+                              Please confirm you want to edit this post
+                            </p>
+
+                            <div className="flex justify-around">
+                              <button
+                                type="button"
+                                className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                onClick={() => {
+                                  hideEditConfirmation(eachArticle.id);
+                                }}
+                              >
+                                Yes, Edit
+                              </button>
+
+                              <button
+                                type="button"
+                                className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                onClick={() => {
+                                  hideEditConfirmation(eachArticle.id);
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                            <button
+                              aria-label="close"
+                              type="button"
+                              className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
+                              onClick={() => {
+                                hideEditConfirmation(eachArticle.id);
+                              }}
+                            >
+                              <AiOutlineClose />
+                            </button>
+                          </article>
+                        </div>
+
+                        <button
+                          aria-label="delete article"
+                          type="button"
+                          title="Delete article"
+                          className="text-4xl text-red-500 max-[730px]:ml-2 block"
+                          onClick={() => {
+                            // So, incase there is a timeout, we clear it here
+                            clearTimeout(timeOutID);
+
+                            // Then we also hide the pop up that says 'Undo delete'
+                            hideUndoPopup();
+
+                            setErrorDeleting(false);
+                            setErrorUndoDeleting(false);
+
+                            showDeleteConfirmation(eachArticle.id);
+                          }}
+                        >
+                          <MdOutlineDeleteForever />
+                        </button>
+
+                        <div
+                          id={`delete${eachArticle.id}`}
+                          className="confirmDelete hidden top-0 left-0 fixed w-full h-full"
+                          onClick={() => {
+                            if (!deleteLoading) {
+                              hideDeleteConfirmation(eachArticle.id);
+                            }
+                          }}
+                        >
+                          <article
+                            className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <p className="mb-4 font-bold">
+                              Are you sure you want to delete this article&#x3f;{" "}
+                            </p>
+
+                            <div className="flex justify-around">
+                              <button
+                                disabled={deleteLoading}
+                                type="button"
+                                className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-red-500 hover:bg-red-500 hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                onClick={() => {
+                                  if (!deleteLoading) {
+                                    onDeleteArticle(eachArticle.id);
+                                  }
+                                }}
+                              >
+                                {deleteLoading ? <Loader /> : <span>Yes</span>}
+                              </button>
+
+                              <button
+                                type="button"
+                                disabled={deleteLoading}
+                                className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                onClick={() => {
+                                  if (!deleteLoading) {
+                                    hideDeleteConfirmation(eachArticle.id);
+                                  }
+                                }}
+                              >
+                                No
+                              </button>
+                            </div>
+
+                            {errorDeleting && (
+                              <p className="text-red-500 text-sm font-bold p-4 mt-2">
+                                Error Deleting, Please try again
+                              </p>
+                            )}
+
+                            <button
+                              aria-label="close"
+                              type="button"
+                              className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
+                              onClick={() => {
+                                if (!deleteLoading) {
+                                  hideDeleteConfirmation(eachArticle.id);
+                                }
+                              }}
+                            >
+                              <AiOutlineClose />
+                            </button>
+                          </article>
+                        </div>
                       </div>
-                    </div>
-
-                    <div
-                      id="deletePopUp"
-                      className="-bottom-36 hidden fixed font-bold z-50 max-w-[400px] left-1/2 w-full p-4 bg-gray-200 -translate-x-1/2 -translate-y-1/2 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] transition-all duration-500 ease-linear"
-                    >
-                      {articleDeleteUndone ? (
-                        <p className="text-center">Delete undone</p>
-                      ) : (
-                        <p className="flex justify-around">
-                          Article deleted
-                          <button
-                            type="button"
-                            className="underline text-blue-400"
-                            onClick={() => {
-                              setArticleDeleteUndone(true);
-                              clearTimeout(timeOutID);
-
-                              setTimeout(hideUndoPopup, 5000);
-                            }}
-                          >
-                            Undo
-                          </button>
-                        </p>
-                      )}
-
-                      <button
-                        aria-label="close"
-                        type="button"
-                        className="text-2xl absolute top-1 right-1 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
-                        onClick={() => {
-                          hideUndoPopup();
-                        }}
-                      >
-                        <AiOutlineClose />
-                      </button>
-                    </div>
-                  </section>
+                    </section>
+                  </div>
                 </div>
-              </div>
+              ))}
+            </section>
+          ) : (
+            <section className="my-20">
+              <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                Your Articles
+              </h2>
+              <p className="text-center italic">You have no articles yet.</p>
+            </section>
+          )}
+
+          <div
+            id="deletePopUp"
+            className="-bottom-36 hidden fixed font-bold z-50 max-w-[400px] left-1/2 w-full p-4 bg-gray-200 -translate-x-1/2 -translate-y-1/2 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] transition-all duration-500 ease-linear"
+          >
+            {articleDeleteUndone ? (
+              <p className="text-center">Delete undone</p>
             ) : (
-              <p className="text-center italic">
-                Udoh Abasi has no articles yet.
+              <p className="flex justify-around">
+                Article deleted
+                <button
+                  type="button"
+                  disabled={deleteUndoLoading}
+                  className="underline text-blue-400 disabled:cursor-not-allowed"
+                  onClick={() => {
+                    if (!deleteUndoLoading) {
+                      onUndoDelete();
+                    }
+                  }}
+                >
+                  {deleteUndoLoading ? <Loader /> : <span>Undo</span>}
+                </button>
               </p>
             )}
-          </section>
+
+            {errorUndoDeleting && (
+              <p className="text-red-500 text-sm font-bold p-4 mt-2">
+                Error undoing that delete, Please try again
+              </p>
+            )}
+
+            <button
+              aria-label="close"
+              type="button"
+              className="text-2xl absolute top-1 right-1 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
+              onClick={() => {
+                if (!deleteUndoLoading) {
+                  hideUndoPopup();
+                  clearTimeout(timeOutID);
+                }
+              }}
+            >
+              <AiOutlineClose />
+            </button>
+          </div>
         </main>
       )}
     </>

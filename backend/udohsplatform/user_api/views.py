@@ -34,6 +34,8 @@ import os
 from .permissions import UserAlreadyExistPermission
 from django.apps import apps
 from django.core.exceptions import ValidationError
+from UserArticles.models import User_Articles
+from UserArticles.serializer import OtherArticlesFromSamePosterSerializer
 
 
 User = get_user_model()
@@ -152,6 +154,32 @@ class UserView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# This view sends the logged in user's data (request will be sent to it from the 'User Profile') page in the frontend
+@method_decorator(csrf_protect, name="dispatch")
+class UserArticlesView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+
+    def get(self, request):
+        try:
+            # Then we make a query to get all the articles posted by that user
+            articles = User_Articles.objects.filter(user=request.user).only(
+                "id",
+                "title",
+                "heroImage",
+                "datePosted",
+                "theMainArticle",
+                "user",
+            )
+
+            articleData = OtherArticlesFromSamePosterSerializer(
+                articles, many=True
+            ).data
+            return Response(articleData, status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 # This view takes the user's id and returns the details of their account
 @method_decorator(csrf_protect, name="dispatch")
 class AccountView(APIView):
@@ -160,9 +188,31 @@ class AccountView(APIView):
     def get(self, request, id):
         try:
             if id:
+                # First, we get a user with that id
                 user = get_object_or_404(User, id=id)
-                serializer = UserSerializer(user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+
+                # Then we get their data
+                profileData = UserSerializer(user).data
+
+                # Then we make a query to get all the articles posted by that user
+                articles = User_Articles.objects.filter(user=user).only(
+                    "id",
+                    "title",
+                    "heroImage",
+                    "datePosted",
+                    "theMainArticle",
+                    "user",
+                )
+
+                articleData = OtherArticlesFromSamePosterSerializer(
+                    articles, many=True
+                ).data
+
+                # Then we return the profile and the article
+                return Response(
+                    {"profile": profileData, "articles": articleData},
+                    status=status.HTTP_200_OK,
+                )
 
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
