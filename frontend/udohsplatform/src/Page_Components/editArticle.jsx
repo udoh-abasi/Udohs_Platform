@@ -53,10 +53,10 @@ const EditArticle = ({
 
   const [previewData, setPreviewData] = useState(theMainArticle);
 
-  // This disables the 'Post Now' button
+  // This disables the 'Edit now' button
   const [postNowDisable, setPostNowDisable] = useState(true);
 
-  // This controls when the user clicks on 'Post Now' button, and the backend is currently processing the post
+  // This controls when the user clicks on 'Edit now' button, and the backend is currently processing the post
   const [postNowLoading, setPostNowLoading] = useState(false);
 
   const [errorPosting, setErrorPosting] = useState(false);
@@ -86,9 +86,9 @@ const EditArticle = ({
     isReady.current = true;
   }, [theMainArticle]);
 
-  // Calls the editor.save() to save the editorjs data and send to the backend
-  const saveEditor = () => {
-    if (theEditor && uploadCanvas) {
+  // Calls the editor.save() to save the changes, when 'Save Changes' button is clicked
+  const saveEditor = async () => {
+    if (theEditor) {
       setPostNowLoading(true);
       setPostNowDisable(true);
       setErrorPosting(false);
@@ -96,23 +96,69 @@ const EditArticle = ({
       // First we save the EditorJS data and get the output
       theEditor
         .save()
-        .then((outputData) => {
-          uploadCanvas.toBlob(async (blob) => {
+        .then(async (outputData) => {
+          if (uploadCanvas) {
+            uploadCanvas.toBlob(async (blob) => {
+              try {
+                const formData = new FormData();
+
+                const currentDateTime = new Date().toISOString(); // Get current date and time and append to the name of the image. This is a fix for a bug, bcoz the backend deletes the old image and saves the new one. Which will give the old and new image the same name, therefore the frontend will not re-render that new image until you refresh bcoz its the same name
+
+                const slashIndex = imageFormat.indexOf("/"); // Since the extension will be in the format 'image/wep' or 'image/jpg', we get the index of the slash, and then slice from there
+                const imageExtension = imageFormat.slice(slashIndex + 1);
+
+                // So, the name of the image will be in the form 'titleOfImage_2023-09-14T03:14:05.752Z.webp'
+                formData.append(
+                  "heroImage",
+                  blob,
+                  `${title}_${currentDateTime}.${imageExtension}`
+                );
+
+                formData.append("title", title);
+
+                // Stringify the EditorJS output data and send the string to the backend
+                const jsonString = JSON.stringify(outputData);
+
+                formData.append("theMainArticle", jsonString);
+
+                formData.append("theArticleID", articleID);
+
+                const response = await axiosClient.post(
+                  "api/editArticle",
+                  formData,
+                  {
+                    headers: {
+                      "content-type": "multipart/form-data",
+                    },
+                  }
+                );
+                if (response.status === 200) {
+                  const data = response.data;
+                  setUserArticles(data);
+                  console.log("The new article is", data);
+
+                  hidEditArticle();
+                  const theBody = document.querySelector("body");
+                  theBody.classList.remove("overflow-hidden");
+                  theBody.classList.remove("h-full");
+                }
+                setPostNowLoading(false);
+                setPostNowDisable(false);
+              } catch (error) {
+                if (error.request.status === 409) {
+                  setTitleAlreadyExist(true);
+                  setPostNowLoading(false);
+                  setPostNowDisable(false);
+                } else {
+                  setPostNowLoading(false);
+                  setPostNowDisable(false);
+                  setErrorPosting(true);
+                }
+              }
+            }, imageFormat);
+          } else {
             try {
               const formData = new FormData();
-
-              const currentDateTime = new Date().toISOString(); // Get current date and time and append to the name of the image. This is a fix for a bug, bcoz the backend deletes the old image and saves the new one. Which will give the old and new image the same name, therefore the frontend will not re-render that new image until you refresh bcoz its the same name
-
-              const slashIndex = imageFormat.indexOf("/"); // Since the extension will be in the format 'image/wep' or 'image/jpg', we get the index of the slash, and then slice from there
-              const imageExtension = imageFormat.slice(slashIndex + 1);
-
-              // So, the name of the image will be in the form 'udoh_2023-09-14T03:14:05.752Z.webp'
-              formData.append(
-                "heroImage",
-                blob,
-                `${title}_${currentDateTime}.${imageExtension}`
-              );
-
               formData.append("title", title);
 
               // Stringify the EditorJS output data and send the string to the backend
@@ -120,25 +166,26 @@ const EditArticle = ({
 
               formData.append("theMainArticle", jsonString);
 
+              formData.append("theArticleID", articleID);
+
               const response = await axiosClient.post(
-                "api/userData",
-                formData,
-                {
-                  headers: {
-                    "content-type": "multipart/form-data",
-                  },
-                }
+                "api/editArticle",
+                formData
               );
-              if (response.status === 201) {
+              if (response.status === 200) {
                 const data = response.data;
+                setUserArticles(data);
+                console.log("The new article is", data);
+
+                hidEditArticle();
+                const theBody = document.querySelector("body");
+                theBody.classList.remove("overflow-hidden");
+                theBody.classList.remove("h-full");
               }
               setPostNowLoading(false);
               setPostNowDisable(false);
             } catch (error) {
-              if (error.request.status === 406) {
-                setPostNowLoading(false);
-                setPostNowDisable(false);
-              } else if (error.request.status === 409) {
+              if (error.request.status === 409) {
                 setTitleAlreadyExist(true);
                 setPostNowLoading(false);
                 setPostNowDisable(false);
@@ -148,7 +195,7 @@ const EditArticle = ({
                 setErrorPosting(true);
               }
             }
-          }, imageFormat);
+          }
         })
         .catch(() => {
           setPostNowLoading(false);
@@ -170,79 +217,14 @@ const EditArticle = ({
     }
   }, [croppedImage]);
 
-  // This useEffect makes sure the 'Post Now' button is disabled
-  //   useEffect(() => {
-  //     if (title && previewData && previewData.blocks.length !== 0) {
-  //       setPostNowDisable(false);
-  //     } else {
-  //       setPostNowDisable(true);
-  //     }
-  //   }, [title, previewData]);
-
-  // This keeps track of the previous position that the user is
-  const [previousScrollPosition, setPreviousScrollPosition] = useState(0);
-
-  // This tracks if the user is scrolling up or down
-  const [scrollDir, setScrollDir] = useState("");
-
-  // This useEffect adds an event listener to listen to scroll events
+  // This useEffect makes sure the 'Edit now' button is disabled
   useEffect(() => {
-    // Check if the user is currently scrolling up or down
-    const checkScroll = () => {
-      if (window.scrollY < previousScrollPosition) {
-        setScrollDir("up");
-      } else {
-        setScrollDir("down");
-      }
-    };
-
-    window.addEventListener("scroll", () => {
-      setPreviousScrollPosition(window.scrollY);
-      checkScroll();
-    });
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("scroll", () => {
-        setPreviousScrollPosition(window.scrollY);
-        checkScroll();
-      });
-    };
-  }, [previousScrollPosition]);
-
-  // This hides/shows the <div> that has the 'Write' and 'Preview' text
-  const hideWritePreview = () => {
-    const writePreviewId = document.querySelector("#WritePreview");
-    try {
-      if (writePreviewId) {
-        writePreviewId.classList.remove("top-16");
-        writePreviewId.classList.add("-top-36");
-      }
-    } catch {
-      //Do nothing
-    }
-  };
-
-  const showWritePreview = () => {
-    const writePreviewId = document.querySelector("#WritePreview");
-    try {
-      if (writePreviewId) {
-        writePreviewId.classList.remove("-top-36");
-        writePreviewId.classList.add("top-16");
-      }
-    } catch {
-      //Do nothing
-    }
-  };
-
-  // This useEffect monitors the scroll-Direction and the previous-scroll-position and then hide or show the <div> that has the 'Write' and 'Preview' text
-  useEffect(() => {
-    if (scrollDir === "down" && previousScrollPosition >= 203) {
-      hideWritePreview();
+    if (title && previewData && previewData.blocks.length !== 0) {
+      setPostNowDisable(false);
     } else {
-      showWritePreview();
+      setPostNowDisable(true);
     }
-  }, [previousScrollPosition, scrollDir]);
+  }, [title, previewData]);
 
   return (
     <>
@@ -434,7 +416,7 @@ const EditArticle = ({
           {errorPosting && (
             <p className="p-4 text-red-500 text-center font-bold -mt-16 text-sm">
               <BiSolidErrorAlt className="inline text-2xl" /> Something went
-              wrong and we could not post your story. Please try again later
+              wrong and we could not edit your story. Please try again later
             </p>
           )}
 

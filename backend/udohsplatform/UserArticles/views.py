@@ -283,3 +283,92 @@ class UndoDeleteView(APIView):
 
         articleData = OtherArticlesFromSamePosterSerializer(articles, many=True).data
         return Response(articleData, status=status.HTTP_200_OK)
+
+
+# NOTE: This view Edits the user's article
+@method_decorator(csrf_protect, name="dispatch")
+class EditArticleView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+
+    # Because of this, any data sent to this view has to come as a FormData object
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        try:
+            data = request.data
+            user = request.user
+
+            articleID = data.get("theArticleID")
+
+            articleToEdit = User_Articles.objects.get(user=user, id=articleID)
+
+            # Since the mainArticle is sent from the frontend as a string, we need to convert it to python object before validating it
+            mainArticle = json.loads(data.get("theMainArticle"))
+
+            assert validate_theMainArticle(mainArticle)
+
+            title = data.get("title", "").strip()
+            heroImage = data.get("heroImage", "")
+            theMainArticle = data.get("theMainArticle")
+
+            # check that title does not exist
+            titleExist = User_Articles.objects.filter(user=user, title=title).exclude(
+                id=articleID
+            )
+
+            # Here, we check to be sure that the user does not change to another title already exist
+            if titleExist.exists():
+                return Response(status=status.HTTP_409_CONFLICT)
+
+            if title:
+                if heroImage:
+                    articleToEdit.heroImage.delete()
+                    theHeroImage = Image.open(heroImage)
+
+                    if theHeroImage.width != 400 or theHeroImage.height != 268:
+                        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+                    outputIOStream = BytesIO()
+
+                    # Here, we state the quality we want the image to have
+                    theHeroImage.save(outputIOStream, format="webp", quality=75)
+
+                    # Then we reset the output stream to the initial position
+                    outputIOStream.seek(0)
+
+                    compressedImage = InMemoryUploadedFile(
+                        outputIOStream,
+                        "ImageField",
+                        "%s.webp" % heroImage.name.split(".")[0],
+                        "image/webp",
+                        sys.getsizeof(outputIOStream),
+                        None,
+                    )
+
+                    articleToEdit.heroImage = compressedImage
+
+                articleToEdit.title = title
+                articleToEdit.theMainArticle = theMainArticle
+                articleToEdit.edited = True
+
+                articleToEdit.save()
+
+                articles = User_Articles.objects.filter(user=user).only(
+                    "id",
+                    "title",
+                    "heroImage",
+                    "datePosted",
+                    "theMainArticle",
+                )
+
+                articleData = OtherArticlesFromSamePosterSerializer(
+                    articles, many=True
+                ).data
+
+                return Response(articleData, status=status.HTTP_200_OK)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
