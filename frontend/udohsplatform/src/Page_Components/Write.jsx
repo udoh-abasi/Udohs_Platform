@@ -29,7 +29,6 @@ import Confetti from "react-confetti";
 const MyEditor = () => {
   let user = useSelector(userSelector);
   user = user.userData;
-  // user = { bio: 1, first_name: 2, last_name: 3 };
 
   // This gets EditorJS data from local-storage if available
   const getStoreDraftDataFromLocalStorage = () => {
@@ -510,6 +509,10 @@ const MyEditor = () => {
               <>
                 <div className="flex justify-center">
                   <div className="flex-[0_1_650px] p-4">
+                    <hr className="mb-8 dark:h-0 bg-[#020617] h-[3px] max-w-[650px] mx-auto" />
+                    <h2 className="text-center font-bold text-xl mb-6">
+                      Hero Image
+                    </h2>
                     {croppedImage ? (
                       <div className="flex justify-center">
                         <div className="w-[200px] h-[200px] overflow-hidden">
@@ -518,9 +521,9 @@ const MyEditor = () => {
                       </div>
                     ) : (
                       <>
-                        <h2 className="text-center font-bold text-lg">
+                        <h3 className="font-bold italic">
                           Lastly, please add a hero image
-                        </h2>
+                        </h3>
                         <p className="text-justify">
                           This will not appear on your story. It will only
                           appear on our &#8220;All Articles&#8221; page, to make

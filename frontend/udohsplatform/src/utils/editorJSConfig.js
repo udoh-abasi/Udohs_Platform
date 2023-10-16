@@ -110,6 +110,15 @@ class MyQuoteTool {
 
 // This is the configuration for EditorJS
 const editorJSConfiguration = (data, setDraftData) => {
+  let dataToPopulateEditor;
+
+  try {
+    data();
+    dataToPopulateEditor = data();
+  } catch {
+    dataToPopulateEditor = data;
+  }
+
   return {
     holder: "editorJS",
 
@@ -242,7 +251,7 @@ const editorJSConfiguration = (data, setDraftData) => {
     },
 
     // Data to pre-populate the EditorJS with
-    data: data(),
+    data: dataToPopulateEditor,
   };
 };
 

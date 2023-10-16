@@ -1,5 +1,3 @@
-// Set up frontend so when the usre click 'Yes Edit', the <Write/> jsx is activate
-
 import { MdOutlineDeleteForever, MdWorkspacePremium } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { AiFillWarning, AiOutlineClose } from "react-icons/ai";
@@ -14,6 +12,7 @@ import { profilePicURL } from "../utils/imageURLS";
 import Loader from "./loader";
 import axiosClient from "../utils/axiosSetup";
 import { userAction } from "../reduxFiles/actions";
+import EditArticle from "./editArticle";
 
 const ProfilePage = () => {
   let user = useSelector(userSelector);
@@ -346,6 +345,41 @@ const ProfilePage = () => {
     }
   };
 
+  // This useEffect makes sure the EditArticle jsx is hidden (and never loads)  until the user actually clicks the 'Edit Article' button
+  const [showEditArticle, setShowEditArticle] = useState(null);
+
+  // This function runs to show up the 'EditArticle' JSX
+  const onEditClick = (articleID) => {
+    // First, we find the article that the user wants to delete
+    const articleToEdit = userArticles.find(
+      (eachArticle) => eachArticle.id === articleID
+    );
+
+    // Then get the heroImage, mainArticle, articleID and title
+    const { id, title, heroImage, theMainArticle } = articleToEdit;
+
+    setShowEditArticle(
+      <div className="bg-white dark:bg-[#020617] fixed top-0 left-0 right-0 z-10 overflow-auto w-full h-full">
+        <EditArticle
+          articleID={id}
+          theTitle={title}
+          theHeroImage={heroImage}
+          theMainArticle={JSON.parse(theMainArticle)}
+          hidEditArticle={() => {
+            setShowEditArticle(null);
+          }}
+          setUserArticles={(newArticles) => {
+            setUserArticles(newArticles);
+          }}
+        />
+      </div>
+    );
+
+    const theBody = document.querySelector("body");
+    theBody.classList.add("overflow-hidden");
+    theBody.classList.add("h-full");
+  };
+
   return (
     <>
       {userIsLoading || userArticleLoading ? (
@@ -353,7 +387,10 @@ const ProfilePage = () => {
           <Loader />
         </div>
       ) : (
-        <main className="min-h-screen py-[90px] bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-[#a1d06d] via-[#ffffff] to-[#ffffff] dark:from-[#a1d06d] dark:via-[#020617] dark:to-[#020617]">
+        <main
+          id="profilePage"
+          className="min-h-screen py-[90px] bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-[#a1d06d] via-[#ffffff] to-[#ffffff] dark:from-[#a1d06d] dark:via-[#020617] dark:to-[#020617]"
+        >
           <section className="p-4">
             <figure className="flex items-center flex-col gap-4">
               <div className="w-[150px] h-[150px] rounded-full overflow-hidden">
@@ -666,6 +703,7 @@ const ProfilePage = () => {
                                 className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
                                 onClick={() => {
                                   hideEditConfirmation(eachArticle.id);
+                                  onEditClick(eachArticle.id);
                                 }}
                               >
                                 Yes, Edit
@@ -839,6 +877,8 @@ const ProfilePage = () => {
               <AiOutlineClose />
             </button>
           </div>
+
+          {showEditArticle}
         </main>
       )}
     </>
