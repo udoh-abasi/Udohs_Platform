@@ -393,7 +393,7 @@ class EditArticleView(APIView):
 
 
 class ArticlePagination(LimitOffsetPagination):
-    default_limit = 10  # NOTE: This is the default limit. So, only 10 items will be returned by default, per page
+    default_limit = 5  # NOTE: This is the default limit. So, only 10 items will be returned by default, per page
 
     # NOTE: This is the maximum size of a page, that can be set by the client
     max_limit = 10

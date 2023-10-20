@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axiosClient from "../utils/axiosSetup";
 import { profilePicURL } from "../utils/imageURLS";
@@ -60,18 +60,18 @@ const AllArticles = () => {
   }, [order, sortBy]);
 
   // This function gets the next ten articles to populate the page
-  const getNextPage = async () => {
-    if (nextPageLink) {
+  const getNextPage = useCallback(async () => {
+    if (nextPageLink && !nextContentLoading) {
       try {
         setErrorGettingNextPage(false);
         setNextContentLoading(true);
 
         const response = await axiosClient.get(nextPageLink);
         if (response.status === 200) {
-          const data = response.data;
+          const data = await response.data;
 
-          // Update the article with the new set of articles
-          articles.push(...data.results);
+          // Update the article with the new set of articles. NOTE: If you use articles.push here, you will run into errors as the scroll event listener causes many calls to this function when the user gets to the bottom of the page
+          setArticles([...articles, ...data.results]);
 
           // Update the link to get the next 10 articles
           setNextPageLink(data.next);
@@ -82,7 +82,30 @@ const AllArticles = () => {
         setNextContentLoading(false);
       }
     }
-  };
+  }, [nextContentLoading, nextPageLink, articles]);
+
+  // This useEffect implements the infinite scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      // NOTE: scrollTop - is how far you are from the top of the window (so, when you scroll to the very top of the page, it is zero)
+      // clientHeight - is the actual height of the screen (the viewport, i.e visible area)
+      // scrollHeight - is the entire height of the page (including non-visible area)
+      // So, scrollTop (when the user scrolls to the bottom page) + clientHeight === scrollHeight
+
+      const { scrollTop, clientHeight, scrollHeight } =
+        document.documentElement;
+
+      // Check if the item is close to the bottom. The '700' here means, 'check if the user has scrolled 700px away from the bottom'
+      if (scrollTop + clientHeight >= scrollHeight - 700) {
+        getNextPage();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [getNextPage]);
 
   // This keeps track of the previous position that the user is
   const [previousScrollPosition, setPreviousScrollPosition] = useState(0);
@@ -248,26 +271,28 @@ const AllArticles = () => {
               );
             })}
 
-            {nextPageLink && (
-              <div className="flex justify-center mt-10">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (nextPageLink) {
-                      getNextPage();
-                    }
-                  }}
-                  disabled={nextContentLoading}
-                  className="px-4 flex justify-center items-center w-[200px] font-bold rounded-br-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                >
-                  {nextContentLoading ? (
-                    <Loader />
-                  ) : (
-                    <span className="flex justify-center">See more</span>
-                  )}
-                </button>
-              </div>
-            )}
+            <div id="seeMore">
+              {nextPageLink && (
+                <div className="flex justify-center mt-10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (nextPageLink) {
+                        getNextPage();
+                      }
+                    }}
+                    disabled={nextContentLoading}
+                    className="px-4 flex justify-center items-center w-[200px] font-bold rounded-br-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                  >
+                    {nextContentLoading ? (
+                      <Loader />
+                    ) : (
+                      <span className="flex justify-center">See more</span>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
 
             {errorGettingNextPage && (
               <p className="text-red-500 text-sm text-center p-2 my-4">
@@ -277,9 +302,12 @@ const AllArticles = () => {
             )}
 
             {previousScrollPosition > 200 && scrollDir === "up" && (
-              <Link className="flex items-center flex-col fixed bottom-14 z-50 right-2 text-black dark:text-[#f3ec78] font-bold">
+              <a
+                href="#"
+                className="flex items-center flex-col fixed bottom-14 z-50 right-2 text-black dark:text-[#f3ec78] font-bold"
+              >
                 <BsFillArrowUpCircleFill className="text-3xl" /> To Top
-              </Link>
+              </a>
             )}
           </section>
         ) : (
