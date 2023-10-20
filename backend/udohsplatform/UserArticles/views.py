@@ -2,10 +2,11 @@ from .serializer import (
     UserArticleSerializer,
     OtherArticlesFromSamePosterSerializer,
     ArticlePosterSerializer,
+    AllArticleSerializer,
 )
 from .models import User_Articles, DeletedData
 from rest_framework.views import APIView
-from rest_framework.generics import DestroyAPIView
+from rest_framework.generics import DestroyAPIView, ListAPIView
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -21,8 +22,13 @@ from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from user_api.serializers import UserSerializer
+
 from random import choice
 from django.core import serializers
+from rest_framework.pagination import LimitOffsetPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
+from django.http import Http404
 
 
 User = get_user_model()
@@ -161,7 +167,7 @@ class GetSingleArticleView(APIView):
                 articleByOtherPoster = []
 
                 if 10 - totalNumberOfArticlesByPoster:
-                    # This will get us articles posted by all the users (except the one the that his/her article was requested).
+                    # This will get us articles posted by all the users (except the one that his/her article was requested).
                     articleFromOtherPoster = (
                         User_Articles.objects.exclude(user=theArticle.user)
                         .only(
@@ -186,6 +192,10 @@ class GetSingleArticleView(APIView):
 
                         # Then, in our list, we append the post and the poster.
                         articleByOtherPoster.append({"poster": poster, "post": post})
+
+                # Here, we increment the number of views of the article
+                theArticle.no_of_views += 1
+                theArticle.save()
 
                 return Response(
                     {
@@ -230,6 +240,10 @@ class ArticleDeleteView(DestroyAPIView):
             # Then we delete the article, just like the usr wanted.
             article.delete()
 
+            # Then reduce the number of articles posted by that user by 1
+            request.user.no_of_post -= 1
+            request.user.save()
+
             # Then send back an updated articles (which will exclude the deleted data to the frontend)
             articles = User_Articles.objects.filter(user=request.user).only(
                 "id",
@@ -271,6 +285,10 @@ class UndoDeleteView(APIView):
 
         # Then we delete that retrieved data from the 'DeletedData' model
         retrievedArticle.delete()
+
+        # Then increment the number of post made by that user
+        request.user.no_of_post += 1
+        request.user.save()
 
         # Then send back an updated articles (which will include the deleted data that we just retrieved, to the frontend)
         articles = User_Articles.objects.filter(user=request.user).only(
@@ -372,3 +390,76 @@ class EditArticleView(APIView):
 
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ArticlePagination(LimitOffsetPagination):
+    default_limit = 10  # NOTE: This is the default limit. So, only 10 items will be returned by default, per page
+
+    # NOTE: This is the maximum size of a page, that can be set by the client
+    max_limit = 10
+
+
+# This view gets all the articles, and returns it result to the AllArticles Page.
+@method_decorator(csrf_protect, name="dispatch")
+class GetAllArticleView(ListAPIView):
+    permission_classes = (permissions.AllowAny,)
+    pagination_class = ArticlePagination
+    serializer_class = AllArticleSerializer
+
+    # filter_backends = [
+    #     DjangoFilterBackend,
+    #     OrderingFilter,
+    # ]
+    # ordering_fields = ["user__first_name", "title", "no_of_views", "datePosted"]
+
+    # NOTE: Since our queryset returns a list, we cannot use something like - '?ordering=title' when sending a request to this route, as we will get an error that 'order_by' is not a function
+    # So, we used kwargs to send the order and sort type
+
+    # NOTE: This returns a list of 'post' and the 'poster'
+    def get_queryset(self):
+        try:
+            sortBys = ["title", "user__first_name", "datePosted", "no_of_views"]
+            orders = ["asc", "des"]
+
+            sortBy = self.kwargs.get("sortBy")
+            order = self.kwargs.get("order")
+
+            if sortBy in sortBys and order in orders:
+                articleByOtherPoster = []
+
+                # This will get us articles posted by all the users (except the one that his/her article was requested).
+                articleFromOtherPoster = User_Articles.objects.only(
+                    "id",
+                    "user",
+                    "title",
+                    "heroImage",
+                    "datePosted",
+                    "theMainArticle",
+                )
+
+                if order == "asc":
+                    articleFromOtherPoster = articleFromOtherPoster.order_by(
+                        f"{sortBy}"
+                    )
+                elif order == "des":
+                    articleFromOtherPoster = articleFromOtherPoster.order_by(
+                        f"-{sortBy}"
+                    )
+
+                # Now, we want to get the post and the poster. So we loop through all the posts made by all other user (except the one that his/her article was requested)
+                for i in articleFromOtherPoster:
+                    # Here, we get the post
+                    post = OtherArticlesFromSamePosterSerializer(i).data
+
+                    # Then we get the poster (the person that made the post), from our user model
+                    theUser = User.objects.get(email=i.user.email)
+                    poster = ArticlePosterSerializer(theUser).data
+
+                    # Then, in our list, we append the post and the poster.
+                    articleByOtherPoster.append({"poster": poster, "post": post})
+
+                return articleByOtherPoster
+
+            raise Http404("Something went wrong")
+        except:
+            raise Http404("Something went wrong")

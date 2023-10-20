@@ -7,6 +7,7 @@ from Comments.models import Comments
 User = get_user_model()
 
 
+# This model is the user's article itself
 class User_Articles(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     title = models.CharField(max_length=999, null=False, blank=False)
@@ -21,6 +22,7 @@ class User_Articles(models.Model):
     )
 
     theMainArticle = models.JSONField(default=dict, null=False, blank=False)
+    no_of_views = models.IntegerField(default=0)
 
     class Meta:
         constraints = [

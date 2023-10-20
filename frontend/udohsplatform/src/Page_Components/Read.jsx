@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import Loader from "./loader";
 import axiosClient from "../utils/axiosSetup";
 import { profilePicURL } from "../utils/imageURLS";
+import sanitizedData from "../utils/sanitizeDescription";
+import {
+  getDescription,
+  getMonthAndYearOfDate,
+} from "../utils/getDescriptionText";
 
 const Read = () => {
   const { title, articleID } = useParams();
@@ -58,33 +63,6 @@ const Read = () => {
   }, [title, articleID, navigate]);
 
   const [dateOfPost, setDateOfPost] = useState("");
-
-  const getMonthAndYearOfDate = (date) => {
-    const postDate = new Date(date);
-
-    return `${postDate.toLocaleString("en-US", {
-      month: "long",
-    })}, ${postDate.getFullYear()}`;
-  };
-
-  // This function gets the the first paragraph of every article and uses it as the description
-  const getDescription = (eachData) => {
-    const theMainArticle = JSON.parse(eachData.theMainArticle);
-    const block = theMainArticle.blocks;
-
-    for (let index = 0; index < block.length; index++) {
-      const element = block[index];
-
-      const { type, data } = element;
-      if (type === "paragraph") {
-        const text = data.text;
-
-        if (text.trim()) {
-          return text.trim();
-        }
-      }
-    }
-  };
 
   useEffect(() => {
     if (article) {
@@ -182,7 +160,12 @@ const Read = () => {
                           </p>
 
                           <p id="two-line-ellipsis">
-                            {getDescription(eachArticle)}
+                            <span
+                              dangerouslySetInnerHTML={sanitizedData(
+                                getDescription(eachArticle),
+                                []
+                              )}
+                            />
                           </p>
                         </div>
                         <small className="mt-4 -mb-4 block">
@@ -264,7 +247,10 @@ const Read = () => {
                       </Link>
                     </div>
 
-                    <Link className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]">
+                    <Link
+                      to={`/read/${post.title}/${post.id}`}
+                      className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]"
+                    >
                       <img
                         src={
                           post.heroImage

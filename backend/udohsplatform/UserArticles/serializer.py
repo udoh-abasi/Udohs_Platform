@@ -51,3 +51,12 @@ class ArticlePosterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "first_name", "last_name", "profile_pic")
+
+
+# This serializer is used to make sure that, even though its data is a list, it returns the data
+class AllArticleSerializer(serializers.Serializer):
+    post = serializers.DictField()
+    poster = serializers.DictField()
+
+    class Meta:
+        fields = ["post", "poster"]

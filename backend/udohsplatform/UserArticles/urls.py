@@ -5,6 +5,7 @@ from .views import (
     ArticleDeleteView,
     UndoDeleteView,
     EditArticleView,
+    GetAllArticleView,
 )
 
 urlpatterns = [
@@ -13,4 +14,8 @@ urlpatterns = [
     path("deleteArticle/<str:articleID>", ArticleDeleteView.as_view()),
     path("undoDeleteArticle/<str:articleID>", UndoDeleteView.as_view()),
     path("editArticle", EditArticleView.as_view()),
+    path(
+        "getAllArticles/<str:sortBy>/<str:order>",
+        GetAllArticleView.as_view(),
+    ),
 ]

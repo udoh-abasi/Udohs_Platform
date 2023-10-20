@@ -13,6 +13,11 @@ import Loader from "./loader";
 import axiosClient from "../utils/axiosSetup";
 import { userAction } from "../reduxFiles/actions";
 import EditArticle from "./editArticle";
+import sanitizedData from "../utils/sanitizeDescription";
+import {
+  getDescription,
+  getMonthAndYearOfDate,
+} from "../utils/getDescriptionText";
 
 const ProfilePage = () => {
   let user = useSelector(userSelector);
@@ -251,34 +256,6 @@ const ProfilePage = () => {
       getUserArticle();
     }
   }, [user]);
-
-  // Get the month of year (in the format October 2023)
-  const getMonthAndYearOfDate = (date) => {
-    const postDate = new Date(date);
-
-    return `${postDate.toLocaleString("en-US", {
-      month: "long",
-    })}, ${postDate.getFullYear()}`;
-  };
-
-  // This function gets the the first paragraph of every article and uses it as the description
-  const getDescription = (eachData) => {
-    const theMainArticle = JSON.parse(eachData.theMainArticle);
-    const block = theMainArticle.blocks;
-
-    for (let index = 0; index < block.length; index++) {
-      const element = block[index];
-
-      const { type, data } = element;
-      if (type === "paragraph") {
-        const text = data.text;
-
-        if (text.trim()) {
-          return text.trim();
-        }
-      }
-    }
-  };
 
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [errorDeleting, setErrorDeleting] = useState(false);
@@ -661,7 +638,12 @@ const ProfilePage = () => {
                           </p>
 
                           <p id="two-line-ellipsis">
-                            {getDescription(eachArticle)}
+                            <span
+                              dangerouslySetInnerHTML={sanitizedData(
+                                getDescription(eachArticle),
+                                []
+                              )}
+                            />
                           </p>
                         </div>
                         <small className="mt-4 block">

@@ -6,6 +6,11 @@ import Loader from "./loader";
 import axiosClient from "../utils/axiosSetup";
 import { userSelector } from "../reduxFiles/selectors";
 import { useSelector } from "react-redux";
+import sanitizedData from "../utils/sanitizeDescription";
+import {
+  getDescription,
+  getMonthAndYearOfDate,
+} from "../utils/getDescriptionText";
 
 const AccountPage = () => {
   const loggedInUser = useSelector(userSelector);
@@ -16,34 +21,6 @@ const AccountPage = () => {
 
   const { id } = useParams();
   const navigate = useNavigate();
-
-  // Get the month of year (in the format October 2023)
-  const getMonthAndYearOfDate = (date) => {
-    const postDate = new Date(date);
-
-    return `${postDate.toLocaleString("en-US", {
-      month: "long",
-    })}, ${postDate.getFullYear()}`;
-  };
-
-  // This function gets the the first paragraph of every article and uses it as the description
-  const getDescription = (eachData) => {
-    const theMainArticle = JSON.parse(eachData.theMainArticle);
-    const block = theMainArticle.blocks;
-
-    for (let index = 0; index < block.length; index++) {
-      const element = block[index];
-
-      const { type, data } = element;
-      if (type === "paragraph") {
-        const text = data.text;
-
-        if (text.trim()) {
-          return text.trim();
-        }
-      }
-    }
-  };
 
   useEffect(() => {
     const getUserAccount = async () => {
@@ -177,7 +154,12 @@ const AccountPage = () => {
                           </p>
 
                           <p id="two-line-ellipsis">
-                            {getDescription(eachArticle)}
+                            <span
+                              dangerouslySetInnerHTML={sanitizedData(
+                                getDescription(eachArticle),
+                                []
+                              )}
+                            />
                           </p>
                         </div>
                         <small className="mt-4 -mb-4 block">
