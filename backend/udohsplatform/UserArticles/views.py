@@ -3,6 +3,7 @@ from .serializer import (
     OtherArticlesFromSamePosterSerializer,
     ArticlePosterSerializer,
     AllArticleSerializer,
+    TopPostSerializer,
 )
 from .models import User_Articles, DeletedData
 from rest_framework.views import APIView
@@ -461,5 +462,41 @@ class GetAllArticleView(ListAPIView):
                 return articleByOtherPoster
 
             raise Http404("Something went wrong")
+        except:
+            raise Http404("Something went wrong")
+
+
+# This view gets the top 6 most viewed articles and sends it result to the HomePage
+@method_decorator(csrf_protect, name="dispatch")
+class TopArticlesForHomePage(ListAPIView):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = AllArticleSerializer
+
+    def get_queryset(self):
+        try:
+            postAndPoster = []
+
+            # This will get us the top six articles.
+            topPost = User_Articles.objects.only(
+                "id",
+                "user",
+                "title",
+                "datePosted",
+            ).order_by("-no_of_views")[:6]
+
+            # Now, we want to get the post and the poster. So we loop through the top six post and get their poster
+            for i in topPost:
+                # Here, we get the post
+                post = TopPostSerializer(i).data
+
+                # Then we get the poster (the person that made the post), from our user model
+                theUser = User.objects.get(email=i.user.email)
+                poster = ArticlePosterSerializer(theUser).data
+
+                # Then, in our list, we append the post and the poster.
+                postAndPoster.append({"poster": poster, "post": post})
+
+            return postAndPoster
+
         except:
             raise Http404("Something went wrong")

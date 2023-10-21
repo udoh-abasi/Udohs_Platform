@@ -195,7 +195,7 @@ const AllArticles = () => {
           </div>
         </section>
 
-        {Object.keys(articles).length ? (
+        {articles.length ? (
           <section className="my-20 mt-10">
             <h2 className="text-center font-bold text-2xl uppercase mb-2">
               All articles

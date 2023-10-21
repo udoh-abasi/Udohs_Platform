@@ -1,6 +1,36 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import axiosClient from "../utils/axiosSetup";
+import Loader from "./loader";
+import { profilePicURL } from "../utils/imageURLS";
+import { getMonthAndYearOfDate } from "../utils/getDescriptionText";
 
 const HomePage = () => {
+  const [topArticles, setTopArticles] = useState([]);
+  const [topArticlesLoading, setTopArticlesLoading] = useState(true);
+  const [errorGettingTopArticles, setErrorGettingTopArticles] = useState(false);
+
+  // This function sends a request to get the top six articles to display
+  const getTopArticles = useCallback(async () => {
+    try {
+      setTopArticlesLoading(true);
+      setErrorGettingTopArticles(false);
+
+      const response = await axiosClient.get("/api/getTopArticlesForHomePage");
+      if (response.status === 200) {
+        setTopArticles(response.data);
+      }
+      setTopArticlesLoading(false);
+    } catch {
+      setTopArticlesLoading(false);
+      setErrorGettingTopArticles(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    getTopArticles();
+  }, [getTopArticles]);
+
   return (
     <main>
       <div className="bg-[#a9bdbf] grid grid-cols-1 grid-rows-1 max-h-[660px] overflow-hidden">
@@ -135,37 +165,62 @@ const HomePage = () => {
           Trending on Udohs Platform
         </h2>
 
-        <div className="flex flex-wrap justify-center gap-6 p-6 max-w-[1300px]">
-          <article className="flex-[1_1_300px]">
-            <Link>
-              <figure className="flex items-center">
-                <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
-                  <img alt="" src="Profile_Image_Placeholder-small.jpg" />
-                </div>
-
-                <figcaption>
-                  <p>
-                    <small>Udoh Abasi</small>
-                  </p>
-                </figcaption>
-              </figure>
-            </Link>
-
-            <Link>
-              <div>
-                <p id="two-line-ellipsis" className="hover:underline">
-                  <strong>
-                    Gender equality - Project Title Gender equality - Project
-                    Title Gender equality - Project Title
-                  </strong>
-                </p>
-
-                <small>August 10</small>
+        {!errorGettingTopArticles && (
+          <div className="flex flex-wrap justify-center gap-6 p-6 max-w-[1300px]">
+            {topArticlesLoading && (
+              <div className="flex-[1_1_100%] text-center grid place-items-center h-24">
+                <Loader />
               </div>
-            </Link>
-          </article>
+            )}
 
-          <article className="flex-[1_1_300px]">
+            {topArticles.length ? (
+              <>
+                {topArticles.map((eachArticle) => {
+                  const { post, poster } = eachArticle;
+                  return (
+                    <article key={post.id} className="flex-[1_1_300px]">
+                      <Link to={`/account/${poster.id}`}>
+                        <figure className="flex items-center">
+                          <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
+                            <img
+                              alt={`${poster.first_name} ${poster.last_name}`}
+                              src={
+                                poster.profile_pic
+                                  ? profilePicURL + poster.profile_pic
+                                  : "/Profile_Image_Placeholder-small.jpg"
+                              }
+                            />
+                          </div>
+
+                          <figcaption>
+                            <p>
+                              {poster.first_name} {poster.last_name}
+                            </p>
+                          </figcaption>
+                        </figure>
+                      </Link>
+
+                      <Link to={`/read/${post.title}/${post.id}`}>
+                        <div>
+                          <p id="two-line-ellipsis" className="hover:underline">
+                            <strong>{post.title}</strong>
+                          </p>
+
+                          <small>
+                            {" "}
+                            {getMonthAndYearOfDate(post.datePosted)}
+                          </small>
+                        </div>
+                      </Link>
+                    </article>
+                  );
+                })}
+              </>
+            ) : (
+              <div></div>
+            )}
+
+            {/* <article className="flex-[1_1_300px]">
             <Link>
               <figure className="flex items-center">
                 <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
@@ -305,8 +360,9 @@ const HomePage = () => {
                 <small>August 10</small>
               </div>
             </Link>
-          </article>
-        </div>
+          </article> */}
+          </div>
+        )}
       </section>
 
       <div className="flex justify-center">

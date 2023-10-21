@@ -60,3 +60,9 @@ class AllArticleSerializer(serializers.Serializer):
 
     class Meta:
         fields = ["post", "poster"]
+
+
+class TopPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User_Articles
+        fields = ("id", "title", "user", "datePosted")

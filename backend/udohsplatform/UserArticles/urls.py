@@ -6,9 +6,11 @@ from .views import (
     UndoDeleteView,
     EditArticleView,
     GetAllArticleView,
+    TopArticlesForHomePage,
 )
 
 urlpatterns = [
+    path("getTopArticlesForHomePage", TopArticlesForHomePage.as_view()),
     path("userData", UserArticleView.as_view()),
     path("singleArticle/<str:title>/<str:articleID>", GetSingleArticleView.as_view()),
     path("deleteArticle/<str:articleID>", ArticleDeleteView.as_view()),
