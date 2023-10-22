@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { BiSearchAlt } from "react-icons/bi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const HeaderForBigScreen = ({
   user,
@@ -18,6 +18,11 @@ const HeaderForBigScreen = ({
 
   // This checks when the search form has focus, so that the 'search' button will change to an 'X' (close) button
   const [formHasFocus, setFormHasFocus] = useState(false);
+
+  // This keeps track of what the user put as their search term, in the search box
+  const [searchInputValue, setSearchInputValue] = useState("");
+
+  const navigate = useNavigate();
 
   return (
     <nav>
@@ -79,16 +84,26 @@ const HeaderForBigScreen = ({
           <div className="absolute -left-[1800px] top-16 w-full focus-within:left-0 peer-focus:left-0 transition-all duration-500">
             <form
               className="w-full flex justify-center"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSearchInputValue("");
+                document.activeElement.blur();
+                navigate(`/search?searchQuery=${searchInputValue}`);
+              }}
             >
               <div className="relative w-full max-w-[450px] text-black dark:text-white">
                 <input
                   id="search-input-field"
                   type="search"
                   placeholder="search..."
+                  required
+                  value={searchInputValue}
                   className="w-full block border-black dark:border-white border-2 rounded-3xl h-10"
                   onFocus={() => setFormHasFocus(true)}
                   onBlur={() => setFormHasFocus(false)}
+                  onChange={(e) => {
+                    setSearchInputValue(e.target.value);
+                  }}
                 />
                 <button
                   type="submit"

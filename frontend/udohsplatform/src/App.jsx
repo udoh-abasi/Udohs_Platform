@@ -12,6 +12,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { userSelector } from "./reduxFiles/selectors";
 import Write from "./Page_Components/Write";
+import Search from "./Page_Components/Search";
 
 // const UnusedPrivateRoute = ({ children, user }) => {
 //   if (user) {
@@ -52,6 +53,8 @@ function App() {
         <Route path="/read/:title/:articleID" element={<Read />} />
 
         <Route path="/write" element={<Write />} />
+
+        <Route path="/search" element={<Search />} />
 
         {/* <Route
           path="/userProfile"

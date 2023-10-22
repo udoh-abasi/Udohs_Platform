@@ -140,7 +140,7 @@ const AllArticles = () => {
 
   return (
     <main className="min-h-screen pt-[90px] flex justify-center">
-      <div className="max-w-[750px]">
+      <div className="flex-[0_1_750px]">
         {pageLoading && (
           <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[rgba(255,255,255,0.5)] dark:bg-[rgba(0,0,0,0.5)] w-full h-full">
             <div className="fixed top-1/2 left-1/2 z-10">

@@ -7,6 +7,7 @@ from .views import (
     EditArticleView,
     GetAllArticleView,
     TopArticlesForHomePage,
+    SearchArticlesView,
 )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
         "getAllArticles/<str:sortBy>/<str:order>",
         GetAllArticleView.as_view(),
     ),
+    path("search", SearchArticlesView.as_view()),
 ]

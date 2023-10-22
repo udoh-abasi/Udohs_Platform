@@ -66,3 +66,9 @@ class TopPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = User_Articles
         fields = ("id", "title", "user", "datePosted")
+
+
+class SearchArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User_Articles
+        fields = ("id", "title", "heroImage", "datePosted", "theMainArticle", "user")

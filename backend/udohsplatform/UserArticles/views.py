@@ -4,6 +4,7 @@ from .serializer import (
     ArticlePosterSerializer,
     AllArticleSerializer,
     TopPostSerializer,
+    SearchArticleSerializer,
 )
 from .models import User_Articles, DeletedData
 from rest_framework.views import APIView
@@ -28,7 +29,7 @@ from random import choice
 from django.core import serializers
 from rest_framework.pagination import LimitOffsetPagination
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from django.http import Http404
 
 
@@ -394,7 +395,7 @@ class EditArticleView(APIView):
 
 
 class ArticlePagination(LimitOffsetPagination):
-    default_limit = 5  # NOTE: This is the default limit. So, only 10 items will be returned by default, per page
+    default_limit = 3  # NOTE: This is the default limit. So, only 10 items will be returned by default, per page
 
     # NOTE: This is the maximum size of a page, that can be set by the client
     max_limit = 10
@@ -500,3 +501,49 @@ class TopArticlesForHomePage(ListAPIView):
 
         except:
             raise Http404("Something went wrong")
+
+
+# This view sends it result to the search page
+@method_decorator(csrf_protect, name="dispatch")
+class SearchArticlesView(ListAPIView):
+    permission_classes = (permissions.AllowAny,)
+    filter_backends = (SearchFilter,)
+    pagination_class = ArticlePagination
+
+    queryset = User_Articles.objects.only(
+        "id", "title", "heroImage", "datePosted", "theMainArticle", "user"
+    ).order_by("title")
+
+    serializer_class = SearchArticleSerializer
+
+    search_fields = [
+        "title",
+        "user__first_name",
+        "user__last_name",
+        "user__bio",
+        "theMainArticle",
+    ]
+
+    # First, we override the get method to return the article and the person that posted it
+    def get(self, request, *args, **kwargs):
+        # Our search will return a data, so we get that data here
+        response = super().get(request, *args, **kwargs)
+
+        # NOTE: Here, we used '.get("results")' because the data returned when we use pagination is always in the 'results' property
+        searchResultData = response.data.get("results")
+        nextLink = response.data.get("next")
+
+        postAndPoster = []
+
+        # Then loop through that data and get the poster
+        for i in searchResultData:
+            # Then we get the poster (the person that made the post), from our user model
+            theUser = User.objects.get(id=i.get("user"))
+            poster = ArticlePosterSerializer(theUser).data
+
+            # Then, in our list, we append the post and the poster.
+            postAndPoster.append({"poster": poster, "post": i})
+
+        return Response(
+            {"results": postAndPoster, "next": nextLink}, status=status.HTTP_200_OK
+        )

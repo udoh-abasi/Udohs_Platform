@@ -32,6 +32,9 @@ const Header = () => {
     console.log("user", user);
   }, [user]);
 
+  // This keeps track of what the user put as their search term, in the search box
+  const [searchInputValue, setSearchInputValue] = useState("");
+
   // Get the google's code from the user and send it to the backend
   const [searchParams] = useSearchParams();
 
@@ -296,16 +299,26 @@ const Header = () => {
                 <div className="absolute -left-[1800px] top-16 w-full focus-within:left-0 peer-focus:left-0 transition-all duration-500">
                   <form
                     className="w-full flex justify-center"
-                    onSubmit={(e) => e.preventDefault()}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      setSearchInputValue("");
+                      document.activeElement.blur();
+                      navigate(`/search?searchQuery=${searchInputValue}`);
+                    }}
                   >
                     <div className="relative w-full max-w-[450px]">
                       <input
                         id="search-input-field"
                         type="search"
+                        required
+                        value={searchInputValue}
                         placeholder="search..."
                         className="w-full block border-black dark:border-white border-2 rounded-3xl h-10"
                         onFocus={() => setFormHasFocus(true)}
                         onBlur={() => setFormHasFocus(false)}
+                        onChange={(e) => {
+                          setSearchInputValue(e.target.value);
+                        }}
                       />
                       <button
                         type="submit"
