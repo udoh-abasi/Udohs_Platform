@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import User_Articles
-from Likes.models import Likes
-from Likes.serializers import LikesSerializer
+
 from Comments.models import Comments
 from django.contrib.auth import get_user_model
 

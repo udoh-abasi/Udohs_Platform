@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from Likes.models import Likes
+
 from Comments.models import Comments
 
 
@@ -16,7 +16,6 @@ class User_Articles(models.Model):
     datePosted = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False, max_length=1)
 
-    likes = models.ForeignKey(Likes, on_delete=models.CASCADE, null=True, blank=True)
     comments = models.ForeignKey(
         Comments, on_delete=models.CASCADE, null=True, blank=True
     )

@@ -7,7 +7,6 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("Likes", "0001_initial"),
         ("Comments", "0002_comments_comment"),
         ("UserArticles", "0001_initial"),
     ]
@@ -20,14 +19,6 @@ class Migration(migrations.Migration):
                 default=1,
                 on_delete=django.db.models.deletion.CASCADE,
                 to="Comments.comments",
-            ),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name="user_articles",
-            name="likes",
-            field=models.ForeignKey(
-                default=1, on_delete=django.db.models.deletion.CASCADE, to="Likes.likes"
             ),
             preserve_default=False,
         ),

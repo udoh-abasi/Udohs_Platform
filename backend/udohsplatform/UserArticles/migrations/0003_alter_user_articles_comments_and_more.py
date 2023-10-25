@@ -6,33 +6,36 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('Comments', '0002_comments_comment'),
-        ('Likes', '0001_initial'),
+        ("Comments", "0002_comments_comment"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('UserArticles', '0002_user_articles_comments_user_articles_likes_and_more'),
+        ("UserArticles", "0002_user_articles_comments_user_articles_likes_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user_articles',
-            name='comments',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='Comments.comments'),
+            model_name="user_articles",
+            name="comments",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="Comments.comments",
+            ),
         ),
         migrations.AlterField(
-            model_name='user_articles',
-            name='heroImage',
-            field=models.ImageField(blank=True, null=True, upload_to='heroImages'),
+            model_name="user_articles",
+            name="heroImage",
+            field=models.ImageField(blank=True, null=True, upload_to="heroImages"),
         ),
         migrations.AlterField(
-            model_name='user_articles',
-            name='likes',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='Likes.likes'),
-        ),
-        migrations.AlterField(
-            model_name='user_articles',
-            name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="user_articles",
+            name="user",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

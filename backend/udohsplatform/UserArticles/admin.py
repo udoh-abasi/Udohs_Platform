@@ -8,8 +8,6 @@ class UserArticleAdmin(admin.ModelAdmin):
         "title",
         "heroImage",
         "datePosted",
-        "likes",
-        "comments",
         "theMainArticle",
     )
 
