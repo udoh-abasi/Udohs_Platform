@@ -7,21 +7,11 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("Comments", "0002_comments_comment"),
+        # ("Comments", "0002_comments_comment"),
         ("UserArticles", "0001_initial"),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="user_articles",
-            name="comments",
-            field=models.ForeignKey(
-                default=1,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="Comments.comments",
-            ),
-            preserve_default=False,
-        ),
         migrations.AddField(
             model_name="user_articles",
             name="theMainArticles",
