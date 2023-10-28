@@ -28,8 +28,7 @@ from user_api.serializers import UserSerializer
 from random import choice
 from django.core import serializers
 from rest_framework.pagination import LimitOffsetPagination
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import SearchFilter
 from django.http import Http404
 
 
@@ -395,7 +394,7 @@ class EditArticleView(APIView):
 
 
 class ArticlePagination(LimitOffsetPagination):
-    default_limit = 3  # NOTE: This is the default limit. So, only 10 items will be returned by default, per page
+    default_limit = 5  # NOTE: This is the default limit. So, only 10 items will be returned by default, per page
 
     # NOTE: This is the maximum size of a page, that can be set by the client
     max_limit = 10
@@ -507,7 +506,6 @@ class TopArticlesForHomePage(ListAPIView):
 @method_decorator(csrf_protect, name="dispatch")
 class SearchArticlesView(ListAPIView):
     permission_classes = (permissions.AllowAny,)
-    filter_backends = (SearchFilter,)
     pagination_class = ArticlePagination
 
     queryset = User_Articles.objects.only(
@@ -516,6 +514,7 @@ class SearchArticlesView(ListAPIView):
 
     serializer_class = SearchArticleSerializer
 
+    filter_backends = (SearchFilter,)
     search_fields = [
         "title",
         "user__first_name",
