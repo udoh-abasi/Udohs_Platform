@@ -9,7 +9,7 @@ User = get_user_model()
 class UsersThatReactedSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "profile_pic", "first_name", "last_name", "bio")
+        fields = ("id", "profile_pic", "first_name", "last_name", "bio", "email")
 
 
 class ReactionsSerializer(serializers.ModelSerializer):

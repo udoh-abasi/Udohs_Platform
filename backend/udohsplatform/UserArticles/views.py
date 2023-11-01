@@ -30,6 +30,8 @@ from django.core import serializers
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.filters import SearchFilter
 from django.http import Http404
+from reactions.models import Reactions
+from django.core.exceptions import ObjectDoesNotExist
 
 
 User = get_user_model()
@@ -198,12 +200,57 @@ class GetSingleArticleView(APIView):
                 theArticle.no_of_views += 1
                 theArticle.save()
 
+                # Here, we want to return the number of reactions and comment that this article has, and check if the requested user is logged in, and if they have reacted to this article before
+                # Check if there are likes on this article
+                areThereAnyLikes = False
+                if Reactions.objects.filter(
+                    article=theArticle, reaction_type="like"
+                ).exists():
+                    areThereAnyLikes = True
+
+                # Check if there are loves on this article
+                areThereAnyLoves = False
+                if Reactions.objects.filter(
+                    article=theArticle, reaction_type="love"
+                ).exists():
+                    areThereAnyLoves = True
+
+                total_num_reactions = theArticle.reactions_set.count()
+
+                youLiked = False
+                youLoved = False
+
+                # Check if the user that sent this user is authenticated (i.e is logged in)
+                if request.user.is_authenticated:
+                    try:
+                        # If the user is logged in, check if they have reacted to the article before
+                        reaction = Reactions.objects.get(
+                            article=theArticle, user=request.user
+                        )
+                        # Get their reaction type
+                        if reaction.reaction_type == "love":
+                            youLoved = True
+                            total_num_reactions -= 1
+                        elif reaction.reaction_type == "like":
+                            youLiked = True
+                            total_num_reactions -= 1
+
+                    except ObjectDoesNotExist:
+                        pass
+
                 return Response(
                     {
                         "requestedArticle": singleArticleData,
                         "otherArticles": otherArticleData,
                         "articlePoster": posterData,
                         "articleByOtherPoster": articleByOtherPoster,
+                        "reactionData": {
+                            "total_num_reactions": total_num_reactions,
+                            "areThereAnyLikes": areThereAnyLikes,
+                            "areThereAnyLoves": areThereAnyLoves,
+                            "youLiked": youLiked,
+                            "youLoved": youLoved,
+                        },
                     }
                 )
 

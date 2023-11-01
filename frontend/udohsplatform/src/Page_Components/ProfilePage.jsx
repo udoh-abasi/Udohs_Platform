@@ -139,7 +139,11 @@ const ProfilePage = () => {
       }
 
       if (user.first_name || user.last_name) {
-        setFullName(`${user.first_name} ${user.last_name}`);
+        setFullName(
+          `${user.first_name ? user.first_name : ""} ${
+            user.last_name ? user.last_name : ""
+          }`
+        );
       } else {
         const editedEmailIndex = user.email.indexOf("@");
         let editedEmail = user.email;
@@ -613,7 +617,15 @@ const ProfilePage = () => {
               </div>
             ) : (
               <p className="text-center italic">
-                {fullName} has not added an <q>About Me</q> section yet.
+                You have not added an <q>About Me</q> section yet.{" "}
+                <button
+                  onClick={() => {
+                    showForm("#editProfile");
+                  }}
+                  className="text-blue-500 underline"
+                >
+                  Add now
+                </button>
               </p>
             )}
           </section>
@@ -811,7 +823,12 @@ const ProfilePage = () => {
               <h2 className="text-center font-bold text-2xl uppercase mb-2">
                 Your Articles
               </h2>
-              <p className="text-center italic">You have no articles yet.</p>
+              <p className="text-center italic">
+                You have no articles yet.{" "}
+                <Link to="/write" className="text-blue-500 underline">
+                  Add one
+                </Link>
+              </p>
             </section>
           )}
 

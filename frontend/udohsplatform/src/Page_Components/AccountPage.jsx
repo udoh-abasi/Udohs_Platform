@@ -74,7 +74,11 @@ const AccountPage = () => {
       }
 
       if (user.first_name || user.last_name) {
-        setName(`${user.first_name} ${user.last_name}`);
+        setName(
+          `${user.first_name ? user.first_name : ""} ${
+            user.last_name ? user.last_name : ""
+          }`
+        );
       } else {
         const editedEmailIndex = user.email.indexOf("@");
         let editedEmail = user.email;
@@ -140,7 +144,7 @@ const AccountPage = () => {
           {userArticles.length ? (
             <section className="my-20">
               <h2 className="text-center font-bold text-2xl uppercase mb-2">
-                Articles by {user.first_name}
+                Articles by {user.first_name || name}
               </h2>
 
               {userArticles.map((eachArticle) => (
@@ -189,10 +193,10 @@ const AccountPage = () => {
           ) : (
             <section className="my-20">
               <h2 className="text-center font-bold text-2xl uppercase mb-2">
-                Articles by {user.first_name}
+                Articles by {user.first_name || name}
               </h2>
               <p className="text-center italic">
-                {user.first_name} has no articles yet.
+                {user.first_name || name} has no articles yet.
               </p>
             </section>
           )}

@@ -28,7 +28,8 @@ class AddReaction(APIView):
             user = request.user
             data = request.data
 
-            youReacted = False
+            youLiked = False
+            youLoved = False
 
             # Get the reaction type (whether like or love)
             reaction_type = data.get("reaction_type", "")
@@ -48,14 +49,20 @@ class AddReaction(APIView):
                 already_saved_reaction.reaction_type = reaction_type
                 already_saved_reaction.save()
 
-                youReacted = True
+                if reaction_type == "like":
+                    youLiked = True
+                elif reaction_type == "love":
+                    youLoved = True
 
             except ObjectDoesNotExist:
                 # If we get here, it means the user has not reacted to this article before
                 Reactions.objects.create(
                     user=user, article=theArticle, reaction_type=reaction_type
                 )
-                youReacted = True
+                if reaction_type == "like":
+                    youLiked = True
+                elif reaction_type == "love":
+                    youLoved = True
 
             # Check if there are likes on this article
             areThereAnyLikes = False
@@ -71,16 +78,17 @@ class AddReaction(APIView):
             ).exists():
                 areThereAnyLoves = True
 
-            # Get the total number of reactions in this article
+            # Get the total number of reactions in this article. Subtract one because the frontend will show 'You'.
             # total_num_reactions = Reactions.objects.filter(article=theArticle).count()
-            total_num_reactions = theArticle.reactions_set.count()
+            total_num_reactions = theArticle.reactions_set.count() - 1
 
             return Response(
                 {
                     "total_num_reactions": total_num_reactions,
                     "areThereAnyLikes": areThereAnyLikes,
                     "areThereAnyLoves": areThereAnyLoves,
-                    "youReacted": youReacted,
+                    "youLiked": youLiked,
+                    "youLoved": youLoved,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -120,7 +128,8 @@ class RemoveReaction(APIView):
                 areThereAnyLoves = True
 
             # If we got here, that means everything went well and the user deleted their reaction
-            youReacted = False
+            youLiked = False
+            youLoved = False
 
             total_num_reactions = theArticle.reactions_set.count()
 
@@ -129,7 +138,8 @@ class RemoveReaction(APIView):
                     "total_num_reactions": total_num_reactions,
                     "areThereAnyLikes": areThereAnyLikes,
                     "areThereAnyLoves": areThereAnyLoves,
-                    "youReacted": youReacted,
+                    "youLiked": youLiked,
+                    "youLoved": youLoved,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -186,21 +196,92 @@ class GetUsersThatReacted(ListAPIView):
             data = response.data.get("results")
             nextLink = response.data.get("next")
 
-            # This will store what we want to return to the user
-            returnResult = []
-
             # Get the article id
             article_id = kwargs.get("article_id")
             # Get the article
             theArticle = User_Articles.objects.get(id=article_id)
-            # Check the total number of people that liked the article
+
+            # Check the total number of people that liked and loved the article
             total_num_of_reactions = theArticle.reactions_set.count()
 
-            # Then loop through that data and get the users that reacted
+            # Check the total number of people that liked the article
+            total_num_of_likes = Reactions.objects.filter(
+                article=theArticle, reaction_type="like"
+            ).count()
+
+            # Check the total number of people that loved the article
+            total_num_of_love = Reactions.objects.filter(
+                article=theArticle, reaction_type="love"
+            ).count()
+
+            # This will store what we want to return to the user
+            returnResult = []
+
+            # First, we want to check if the currently logged in user has reacted to this article, so their account will appear top of our list
+            # So, we first check if there 'limit' in the URL, which will mean this is not a fresh request. (I.e, the request was sent through the next link)
+            if request.GET.get("limit") is None:
+                try:
+                    # Now, if for instance the user 'liked' the article, we want to make sure that their account appears only on the 'All' and 'Like' interface, and NOT on the 'love' interface
+                    # So, first we check if the a reaction_type was sent in the request.
+                    theSentReactionType = request.GET.get("reaction_type")
+                    if theSentReactionType:
+                        currentUserReacted = Reactions.objects.get(
+                            article=theArticle,
+                            user=request.user,
+                            reaction_type=theSentReactionType,
+                        )
+                    else:
+                        currentUserReacted = Reactions.objects.get(
+                            article=theArticle, user=request.user
+                        )
+
+                    reaction_type = currentUserReacted.reaction_type
+                    reactor = UsersThatReactedSerializer(request.user).data
+
+                    # This will make the currently logged in user appear on top, even if they were the last to like the post
+                    returnResult.append(
+                        {"reactor": reactor, "reaction_type": reaction_type}
+                    )
+
+                except:
+                    pass
+
+            # Then loop through that data sent from our 'get_query' and get the users that reacted
             for i in data:
+                # Since we already have the current logged in user, if we encounter them again, we don't want to add them to the result (so they will not appear twice)
+                if i.get("user") == request.user.id:
+                    continue
+
                 # Then we get the details of each user (the person that reacted to the post), from our user model
                 theUser = User.objects.get(id=i.get("user"))
+
                 reactor = UsersThatReactedSerializer(theUser).data
+
+                # Now, we want to check if the user that reacted has either a first or last name.
+                # If they don't, we use their email as the first name
+                if (
+                    reactor.get("first_name") is None
+                    and reactor.get("last_name") is None
+                ):
+                    # First get the email
+                    email = reactor.get("email")
+
+                    # Then check whether, in the email, a  full-stop (.) comes before an '@' sign (e.g in udoh.abasi@gmail.com, we want only 'Udoh' to be the first name)
+                    fullStopIndex = email.find(".")
+                    atSignIndex = email.find("@")
+
+                    if fullStopIndex < atSignIndex:
+                        emailEdit = email[:fullStopIndex]
+                    elif atSignIndex < fullStopIndex:
+                        emailEdit = email[:atSignIndex]
+
+                    # We want the first name we just created to have the first letter capitalized
+                    newReactor = {**reactor, "first_name": emailEdit.capitalize()}
+
+                    # Take out the email address, because we don't want to send that to the frontend
+                    newReactor.pop("email", None)
+
+                    reactor = newReactor
 
                 reaction_type = i.get("reaction_type")
 
@@ -213,9 +294,12 @@ class GetUsersThatReacted(ListAPIView):
                 dict(
                     results=returnResult,
                     total_num_of_reactions=total_num_of_reactions,
+                    total_num_of_love=total_num_of_love,
+                    total_num_of_likes=total_num_of_likes,
                     next=nextLink,
                 ),
                 status=status.HTTP_200_OK,
             )
+
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
