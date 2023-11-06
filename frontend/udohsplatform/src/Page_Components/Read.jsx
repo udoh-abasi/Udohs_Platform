@@ -22,6 +22,7 @@ import {
 import { userSelector } from "../reduxFiles/selectors";
 import { useSelector } from "react-redux";
 import { showForm } from "../utils/showOrHideSignUpAndRegisterForms";
+import Comment from "./comments";
 
 const Read = () => {
   let user = useSelector(userSelector);
@@ -43,6 +44,9 @@ const Read = () => {
 
   const [articleByOtherPoster, setArticleByOtherPoster] = useState([]);
 
+  // This keeps tracks of the total number of comments on the article
+  const [total_num_of_comments, set_total_num_of_comments] = useState(0);
+
   // This sends a request to get the article
   useEffect(() => {
     const getArticle = async () => {
@@ -60,6 +64,7 @@ const Read = () => {
             articlePoster,
             articleByOtherPoster,
             reactionData,
+            total_num_comments,
           } = data;
 
           // NOTE: Here, we got the reaction data, and set them to their proper useStates
@@ -72,6 +77,9 @@ const Read = () => {
           } else if (reactionData.youLoved) {
             setReactionType("love");
           }
+
+          // Set the total number of comments
+          set_total_num_of_comments(total_num_comments);
 
           // This 'articleByOtherPoster' is an array of objects. Each object has the poster and the article the person posted
           setArticleByOtherPoster(articleByOtherPoster);
@@ -273,7 +281,6 @@ const Read = () => {
   // This function runs to get the next 10 users that reacted.
   const getNextUsersThatReacted = useCallback(async () => {
     if (!nextContentLoading && nextUsersThatReacted) {
-      console.log("Here now 2");
       try {
         setNextContentLoading(true);
         setErrorGettingUsersThatReacted(false);
@@ -296,34 +303,68 @@ const Read = () => {
 
   // This useEffect implements the infinite scrolling, to see other users that reacted when the user scrolls close to the bottom
   useEffect(() => {
-    const handleScroll = () => {
-      // NOTE: scrollTop - is how far you are from the top of the window (so, when you scroll to the very top of the page, it is zero)
-      // clientHeight - is the actual height of the screen (the viewport, i.e visible area)
-      // scrollHeight - is the entire height of the page (including non-visible area)
-      // So, scrollTop (when the user scrolls to the bottom page) + clientHeight === scrollHeight
+    try {
+      const handleScroll = () => {
+        // NOTE: scrollTop - is how far you are from the top of the window (so, when you scroll to the very top of the page, it is zero)
+        // clientHeight - is the actual height of the screen (the viewport, i.e visible area)
+        // scrollHeight - is the entire height of the page (including non-visible area)
+        // So, scrollTop (when the user scrolls to the bottom page) + clientHeight === scrollHeight
+
+        if (document.querySelector("#reactionContainer")) {
+          const { scrollTop, clientHeight, scrollHeight } =
+            document.querySelector("#reactionContainer");
+
+          // Check if the item is close to the bottom. The '200' here means, 'check if the user has scrolled 200px close from the bottom'
+          if (scrollTop + clientHeight >= scrollHeight - 200) {
+            getNextUsersThatReacted();
+          }
+        }
+      };
 
       if (document.querySelector("#reactionContainer")) {
-        const { scrollTop, clientHeight, scrollHeight } =
-          document.querySelector("#reactionContainer");
-
-        // Check if the item is close to the bottom. The '200' here means, 'check if the user has scrolled 200px close from the bottom'
-        if (scrollTop + clientHeight >= scrollHeight - 200) {
-          getNextUsersThatReacted();
-        }
-      }
-    };
-
-    if (document.querySelector("#reactionContainer")) {
-      document
-        .querySelector("#reactionContainer")
-        .addEventListener("scroll", handleScroll);
-      return () => {
         document
           .querySelector("#reactionContainer")
-          .removeEventListener("scroll", handleScroll);
-      };
+          .addEventListener("scroll", handleScroll);
+        return () => {
+          if (document.querySelector("#reactionContainer")) {
+            document
+              .querySelector("#reactionContainer")
+              .removeEventListener("scroll", handleScroll);
+          }
+        };
+      }
+    } catch {
+      // Do nothing
     }
   }, [getNextUsersThatReacted]);
+
+  // This make the comment section slide in, from the right
+  const showComment = () => {
+    const commentOverlay = document.querySelector("#commentOverLay");
+    commentOverlay.classList.remove("hidden");
+
+    document.querySelector("body").classList.add("overflow-hidden");
+
+    setTimeout(() => {
+      const commentSection = document.querySelector("#comment");
+      commentSection.classList.remove("-right-[700px]");
+      commentSection.classList.add("right-0");
+    }, 0.00001);
+  };
+
+  // This makes the comment section slide out, through the right, and is hidden
+  const hideComment = () => {
+    const commentSection = document.querySelector("#comment");
+    commentSection.classList.remove("right-0");
+    commentSection.classList.add("-right-[700px]");
+
+    setTimeout(() => {
+      const commentOverlay = document.querySelector("#commentOverLay");
+      commentOverlay.classList.add("hidden");
+
+      document.querySelector("body").classList.remove("overflow-hidden");
+    }, 300);
+  };
 
   return (
     <main className="min-h-screen pt-[5rem] p-4 max-w-[700px] mx-auto">
@@ -523,10 +564,20 @@ const Read = () => {
                 )}
               </p>
 
-              <div>
-                <MdOutlineModeComment className="inline mr-2 text-3xl" />
-                <p className="inline text-sm">9,000,000,0000</p>
-              </div>
+              <button
+                id="commentButton"
+                type="button"
+                className="block"
+                title="Comment"
+                onClick={() => {
+                  showComment();
+                }}
+              >
+                <MdOutlineModeComment className="inline mr-1 text-3xl" />
+                <span className="text-xl mr-2">
+                  {total_num_of_comments > 0 ? total_num_of_comments : ""}
+                </span>
+              </button>
             </div>
 
             {!user && userTriedToReact && (
@@ -556,6 +607,205 @@ const Read = () => {
           </section>
 
           {convertEditorJSDataToHTML(JSON.parse(article.theMainArticle))}
+
+          <section>
+            <button
+              type="button"
+              aria-label="See all reactions"
+              title="See all reactions"
+              className="block w-full text-left"
+              onClick={() => {
+                // Here, if the current user is the only person that reacted, then the interface to see users that reacted will not show up at all
+                if (totalNumOfReactions > 0) {
+                  document
+                    .querySelector("#allLikes")
+                    .classList.remove("hidden");
+
+                  document
+                    .querySelector("body")
+                    .classList.add("overflow-hidden");
+                  setViewReactions("all");
+
+                  getUsersThatReacted();
+                }
+              }}
+            >
+              <p className="inline mr-1">
+                {areThereLikes && (
+                  <AiFillLike
+                    className="inline text-blue-500"
+                    aria-label="filled love emoji"
+                  />
+                )}
+
+                {areThereLoves && (
+                  <AiFillHeart
+                    className="inline text-red-500"
+                    aria-label="filled like emoji"
+                  />
+                )}
+              </p>
+
+              {reactionType === "like" || reactionType === "love" ? (
+                <p className="inline text-xs">
+                  You{" "}
+                  {totalNumOfReactions > 1 &&
+                    `and ${totalNumOfReactions} others`}
+                  {totalNumOfReactions == 1 &&
+                    `and ${totalNumOfReactions} other`}
+                </p>
+              ) : (
+                <>
+                  {totalNumOfReactions != 0 && (
+                    <p className="inline text-xs">{totalNumOfReactions}</p>
+                  )}
+                </>
+              )}
+            </button>
+          </section>
+
+          <section>
+            <div className="mt-4 flex justify-between py-4 rounded-xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+              <p className="inline">
+                {reactionType === "like" ? (
+                  <button
+                    type="button"
+                    aria-label="filled like"
+                    title="Unlike"
+                    onClick={() => {
+                      if (
+                        user &&
+                        Object.keys(user).length &&
+                        !reactionRequestLoading
+                      ) {
+                        setReactionType("");
+                        sendRemoveReactionRequest();
+                      } else if (!user) {
+                        setUserTriedToReact(true);
+                      }
+                    }}
+                  >
+                    <AiFillLike
+                      className="inline text-blue-500 mr-2 text-3xl"
+                      aria-label="filled love emoji"
+                    />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    aria-label="Unfilled like"
+                    title="Like"
+                    onClick={() => {
+                      if (
+                        user &&
+                        Object.keys(user).length &&
+                        !reactionRequestLoading
+                      ) {
+                        setReactionType("like");
+                        setAreThereLikes("true");
+                        sendAddReactionRequest("like");
+                      } else if (!user) {
+                        setUserTriedToReact(true);
+                      }
+                    }}
+                  >
+                    <AiOutlineLike
+                      className="inline mr-2 text-3xl"
+                      aria-label="filled like emoji"
+                    />
+                  </button>
+                )}
+
+                {reactionType === "love" ? (
+                  <button
+                    type="button"
+                    aria-label="Filled heart"
+                    title="Unlove"
+                    onClick={() => {
+                      if (
+                        user &&
+                        Object.keys(user).length &&
+                        !reactionRequestLoading
+                      ) {
+                        setReactionType("");
+                        sendRemoveReactionRequest();
+                      } else if (!user) {
+                        setUserTriedToReact(true);
+                      }
+                    }}
+                  >
+                    <AiFillHeart
+                      className="inline text-red-500 mr-2 text-3xl"
+                      aria-label="filled like emoji"
+                    />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    aria-label="Unfilled heart"
+                    title="Love"
+                    onClick={() => {
+                      if (
+                        user &&
+                        Object.keys(user).length &&
+                        !reactionRequestLoading
+                      ) {
+                        setReactionType("love");
+                        setAreThereLoves("true");
+                        sendAddReactionRequest("love");
+                      } else if (!user) {
+                        setUserTriedToReact(true);
+                      }
+                    }}
+                  >
+                    <AiOutlineHeart
+                      className="inline mr-2 text-3xl"
+                      aria-label="filled like emoji"
+                    />
+                  </button>
+                )}
+              </p>
+
+              <button
+                type="button"
+                className="block"
+                title="Comment"
+                onClick={() => {
+                  showComment();
+                }}
+              >
+                <MdOutlineModeComment className="inline mr-1 text-3xl" />
+                <span className="text-xl mr-2">
+                  {total_num_of_comments > 0 ? total_num_of_comments : ""}
+                </span>
+              </button>
+            </div>
+
+            {!user && userTriedToReact && (
+              <p className="text-xs text-red-500 mb-4 mt-8 text-center">
+                <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
+                You need to&nbsp;
+                <Link
+                  className="uppercase underline font-bold"
+                  onClick={() => {
+                    showForm("#sign_in");
+                  }}
+                >
+                  Sign in{" "}
+                </Link>
+                &nbsp;or&nbsp;
+                <Link
+                  className="uppercase underline font-bold"
+                  onClick={() => {
+                    showForm("#register_user");
+                  }}
+                >
+                  Register
+                </Link>
+                &nbsp;to add a reaction and comment.
+              </p>
+            )}
+          </section>
 
           <Link to={`/account/${articleAuthor.id}`}>
             <figure className="pt-8">
@@ -902,6 +1152,21 @@ const Read = () => {
                 <AiOutlineClose />
               </button>
             </article>
+          </div>
+
+          <div
+            id="commentOverLay"
+            className="hidden z-10 top-0 left-0 fixed w-full h-full"
+            onClick={() => {
+              hideComment();
+            }}
+          >
+            <Comment
+              hideComment={hideComment}
+              total_num_comments={total_num_of_comments}
+              set_total_num_of_comments={set_total_num_of_comments}
+              article_id={article.id}
+            />
           </div>
         </>
       )}

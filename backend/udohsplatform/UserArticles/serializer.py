@@ -8,10 +8,6 @@ User = get_user_model()
 
 
 class UserArticleSerializer(serializers.ModelSerializer):
-    # theMainArticle = serializers.DictField()  # NOTE: CHANGE THE DATA IN THIS FIELD
-
-    # the_likes = serializers.SerializerMethodField()
-
     class Meta:
         model = User_Articles
         fields = (

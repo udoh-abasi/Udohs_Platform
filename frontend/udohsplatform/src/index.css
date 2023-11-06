@@ -199,3 +199,17 @@ code.inline-code {
 .codex-editor__redactor {
   padding-bottom: 100px !important;
 }
+
+/*This is used to hide the plus button used to add a new block on editorJS
+We also hid the tune button used to move items up and down.
+This was used to ensure that on the comment field, these two will not show
+*/
+#comment .ce-toolbar__plus,
+#comment .ce-toolbar__settings-btn {
+  display: none !important;
+}
+
+/*This overrides the padding at the bottom of the editorJS. By default, it is 300px, so we reduce it to 20px*/
+#comment .codex-editor__redactor {
+  padding-bottom: 20px !important;
+}

@@ -200,7 +200,7 @@ class GetSingleArticleView(APIView):
                 theArticle.no_of_views += 1
                 theArticle.save()
 
-                # Here, we want to return the number of reactions and comment that this article has, and check if the requested user is logged in, and if they have reacted to this article before
+                # Here, we want to return the number of reactions (i.e, likes and loves)  that this article has, and check if the requested user is logged in, and if they have reacted to this article before
                 # Check if there are likes on this article
                 areThereAnyLikes = False
                 if Reactions.objects.filter(
@@ -220,7 +220,7 @@ class GetSingleArticleView(APIView):
                 youLiked = False
                 youLoved = False
 
-                # Check if the user that sent this user is authenticated (i.e is logged in)
+                # Check if the user that sent this request is authenticated (i.e is logged in)
                 if request.user.is_authenticated:
                     try:
                         # If the user is logged in, check if they have reacted to the article before
@@ -238,12 +238,17 @@ class GetSingleArticleView(APIView):
                     except ObjectDoesNotExist:
                         pass
 
+                # Now, we want to get the total number of comments on this article, and send to the frontend
+                # NOTE: 'comments' here is the name of the model, which has it foreign key set to 'User_Articles'. The model's name is 'Comments', but we use the lowercase letter throughout
+                total_num_comments = theArticle.comments_set.count()
+
                 return Response(
                     {
                         "requestedArticle": singleArticleData,
                         "otherArticles": otherArticleData,
                         "articlePoster": posterData,
                         "articleByOtherPoster": articleByOtherPoster,
+                        "total_num_comments": total_num_comments,
                         "reactionData": {
                             "total_num_reactions": total_num_reactions,
                             "areThereAnyLikes": areThereAnyLikes,

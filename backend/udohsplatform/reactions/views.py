@@ -238,6 +238,31 @@ class GetUsersThatReacted(ListAPIView):
                     reaction_type = currentUserReacted.reaction_type
                     reactor = UsersThatReactedSerializer(request.user).data
 
+                    # If they don't, we use their email as the first name
+                    if (
+                        reactor.get("first_name") is None
+                        and reactor.get("last_name") is None
+                    ):
+                        # First get the email
+                        email = reactor.get("email")
+
+                        # Then check whether, in the email, a  full-stop (.) comes before an '@' sign (e.g in udoh.abasi@gmail.com, we want only 'Udoh' to be the first name)
+                        fullStopIndex = email.find(".")
+                        atSignIndex = email.find("@")
+
+                        if fullStopIndex < atSignIndex:
+                            emailEdit = email[:fullStopIndex]
+                        elif atSignIndex < fullStopIndex:
+                            emailEdit = email[:atSignIndex]
+
+                        # We want the first name we just created to have the first letter capitalized
+                        newReactor = {**reactor, "first_name": emailEdit.capitalize()}
+
+                        # Take out the email address, because we don't want to send that to the frontend
+                        newReactor.pop("email", None)
+
+                        reactor = newReactor
+
                     # This will make the currently logged in user appear on top, even if they were the last to like the post
                     returnResult.append(
                         {"reactor": reactor, "reaction_type": reaction_type}
@@ -282,6 +307,8 @@ class GetUsersThatReacted(ListAPIView):
                     newReactor.pop("email", None)
 
                     reactor = newReactor
+
+                reactor.pop("email", None)
 
                 reaction_type = i.get("reaction_type")
 

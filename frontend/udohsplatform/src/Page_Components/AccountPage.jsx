@@ -36,7 +36,6 @@ const AccountPage = () => {
             loggedInUser.userData &&
             loggedInUser.userData.id === response.data.profile.id
           ) {
-            console.log("In userprofile");
             navigate("/userProfile", { replace: true });
           } else {
             setUserIsLoading(false);
