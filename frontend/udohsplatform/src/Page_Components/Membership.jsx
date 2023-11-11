@@ -13,6 +13,11 @@ import axiosClient from "../utils/axiosSetup";
 import { userAction } from "../reduxFiles/actions";
 import Loader from "./loader";
 
+/**
+ * @NOTE - THIS PAGE WAS ORIGINALLY DESIGNED TO HANDLE PAYMENT IN NAIRA (100 NAIRA) AND DOLLAR (1 DOLLAR)
+ * HOWEVER, DUE TO MY INABILITY TO ACCEPT PAYMENT IN DOLLARS BECAUSE OF PAYSTACK RESTRICTIONS ON MY ACCOUNT, I CHANGED IT TO ACCEPTING PAYMENT OF 100 naira and 200 naira
+ */
+
 const Membership = () => {
   let user = useSelector(userSelector);
   const userLoading = user.userLoading;
@@ -113,21 +118,36 @@ const Membership = () => {
 
   const payWithPaystack = () => {
     // Fix issue of the Paystack pop up not showing the close (x) button when the user is on dark mode
+    // This color-scheme, when set to 'light dark', makes the page black and white. So, we remove it until the paystack payment is done, or canceled.
     const colorScheme = document.querySelector('meta[name="color-scheme"]');
     colorScheme.setAttribute("content", "none");
+
+    // const amount =
+    //   paymentMethod === "naira"
+    //     ? "10000"
+    //     : paymentMethod === "dollar"
+    //     ? "100"
+    //     : "";
+
+    // const currency =
+    //   paymentMethod === "naira"
+    //     ? "NGN"
+    //     : paymentMethod === "dollar"
+    //     ? "USD"
+    //     : "";
 
     const amount =
       paymentMethod === "naira"
         ? "10000"
         : paymentMethod === "dollar"
-        ? "100"
+        ? "20000"
         : "";
 
     const currency =
       paymentMethod === "naira"
         ? "NGN"
         : paymentMethod === "dollar"
-        ? "USD"
+        ? "NGN"
         : "";
 
     const payStackPop = new PaystackPop();
@@ -367,7 +387,7 @@ const Membership = () => {
                   }`}
                 >
                   <span className="block font-bold">One-off Payment</span>
-                  <span className="block">$1</span>
+                  <span className="block">&#8358;200</span>
 
                   <span className="block mb-4 border-[2px] border-[#81ba40] dark:border-[#70dbb8] group-hover:border-white dark:group-hover:border-black w-[200px] py-1 font-bold rounded-3xl">
                     {paymentMethod === "dollar" ? (
@@ -418,10 +438,11 @@ const Membership = () => {
                     {paymentMethod === "naira" ? (
                       <span>&#8358;100 NGN</span>
                     ) : (
-                      <span>$1 USD</span>
+                      <span>&#8358;200 NGN</span>
                     )}
                   </p>
 
+                  {/* NOTE: THIS SECTION THAT SHOWS A FORM FOR THE USER TO INPUT THEIR CARD DETAILS WAS NOT USED, BECAUSE PAYSTACK HAS IT OWN FORM */}
                   {false && (
                     <form
                       onSubmit={(e) => {

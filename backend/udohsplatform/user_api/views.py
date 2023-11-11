@@ -11,8 +11,6 @@ import sys
 from django.core.files.storage import FileSystemStorage
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
-
-
 from .serializers import (
     UserSerializer,
     UserLoginSerializer,
@@ -41,7 +39,7 @@ from UserArticles.serializer import OtherArticlesFromSamePosterSerializer
 User = get_user_model()
 
 
-@method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(csrf_protect, name="dispatch")
 class UserRegister(APIView):
     permission_classes = (
         UserAlreadyExistPermission,
@@ -83,7 +81,7 @@ class UserRegister(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(csrf_protect, name="dispatch")
 class UserLogin(APIView):
     permission_classes = (permissions.AllowAny,)
     authentication_classes = (SessionAuthentication,)
@@ -137,7 +135,7 @@ class UserLogin(APIView):
             )
 
 
-@method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(csrf_protect, name="dispatch")
 class UserLogout(APIView):
     def post(self, request):
         logout(request)
@@ -181,7 +179,7 @@ class UserArticlesView(APIView):
 
 
 # This view takes the user's id and returns the details of their account
-@method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(csrf_protect, name="dispatch")
 class AccountView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -294,7 +292,7 @@ class EditProfileView(APIView):
 
 
 # This view sends the Google Link
-@method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(csrf_protect, name="dispatch")
 class SendLinkTo(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -342,7 +340,7 @@ export default axiosClient;
 """
 
 
-@method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(csrf_protect, name="dispatch")
 class GetGoogleUserData(APIView):
     # If this is NOT added , only authenticated users will be allowed to access this view
     permission_classes = (permissions.AllowAny,)
@@ -451,7 +449,7 @@ class GetGoogleUserData(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(csrf_protect, name="dispatch")
 class ForgotPasswordView(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -503,6 +501,10 @@ class VerifyPaymentWithPaystack(APIView):
     def post(self, request):
         paymentRef = request.data.get("paymentRef", "")
 
+        user = request.user
+        user.paystack_ref = paymentRef
+        user.save()
+
         if paymentRef:
             try:
                 url = f"https://api.paystack.co/transaction/verify/{paymentRef}"
@@ -518,11 +520,9 @@ class VerifyPaymentWithPaystack(APIView):
                 if (
                     response.status_code == 200
                     and data.get("status") == "success"
-                    and data.get("amount") == 10000
+                    and (data.get("amount") == 10000 or data.get("amount") == 20000)
                 ):
-                    user = request.user
                     user.premium_member = True
-                    user.paystack_ref = paymentRef
                     user.save()
 
                     serializer = UserSerializer(user)
@@ -537,7 +537,7 @@ class VerifyPaymentWithPaystack(APIView):
 # This view takes the image sent by EditorJS (from the write page), and saves it to our backend, then return the URL of the saved image to the frontend, in the format requested by EditorJS
 
 
-@method_decorator(csrf_protect, name="dispatch")
+# @method_decorator(csrf_protect, name="dispatch")
 class UploadImageFromEditorJSWritePage(APIView):
     permission_classes = (permissions.AllowAny,)
 

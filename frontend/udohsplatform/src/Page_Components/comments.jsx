@@ -23,8 +23,6 @@ const Comment = ({
   set_total_num_of_comments,
   article_id,
 }) => {
-  const reactionType = "love";
-
   let user = useSelector(userSelector);
   user = user.userData;
 
@@ -32,7 +30,6 @@ const Comment = ({
   const isReady = useRef(false);
 
   const [theEditorJS, setTheEditorJS] = useState(null);
-  const [editorLoading, setEditorLoading] = useState(false);
 
   // This keeps track of the editorJS data
   const [enteredComment, setEnteredComment] = useState({});
@@ -72,7 +69,7 @@ const Comment = ({
       // Check when the editor is ready, then stop the loading
 
       editor.isReady.then(() => {
-        setEditorLoading(false);
+        // setEditorLoading(false);
       });
     }
 
@@ -146,9 +143,10 @@ const Comment = ({
   const [errorGettingAllComments, setErrorGettingAllComments] = useState(false);
   const [nextCommentLink, setNextCommentLink] = useState(null);
 
-  // This sends a request to get all the comments made on the article
+  // This sends a request to get all the comments made on the article. NOTE: Because of how the backend is set up, only 10 comments will be gotten with this request
   const getAllComment = useCallback(async () => {
     try {
+      // I used 'setCreateCommentLoading' here bcoz when we are sending a request to get a comment, we do not want the user to be able to create a new comment until this request is complete
       setCreateCommentLoading(true);
       setErrorGettingAllComments(false);
       const response = await axiosClient.get(`/api/allComments/${article_id}`);
@@ -173,6 +171,78 @@ const Comment = ({
       setErrorGettingAllComments(true);
     }
   }, [article_id, set_total_num_of_comments]);
+
+  // This sends a request to get the next 10 comments made on the article. NOTE: Because of how the backend is set up, only 10 comments will be gotten per request
+  const getNextComment = useCallback(async () => {
+    if (nextCommentLink && !createCommentLoading) {
+      try {
+        setCreateCommentLoading(true);
+        setErrorGettingAllComments(false);
+        const response = await axiosClient.get(nextCommentLink);
+        if (response.status === 200) {
+          const data = response.data;
+
+          // Update total number of comments in parent element
+          set_total_num_of_comments(data.total_num_comments);
+
+          // Set up the link to get the next 10 comments
+          setNextCommentLink(data.nextCommentLink);
+
+          // Update the comment
+          setComments([...comments, ...data.commentData]);
+        } else {
+          throw new Error("Something is wrong");
+        }
+
+        setCreateCommentLoading(false);
+      } catch {
+        setCreateCommentLoading(false);
+        setErrorGettingAllComments(true);
+      }
+    }
+  }, [
+    set_total_num_of_comments,
+    nextCommentLink,
+    createCommentLoading,
+    comments,
+  ]);
+
+  // This useEffect implements the infinite scrolling, to see more comments when the user scrolls close to the bottom of the page
+  useEffect(() => {
+    try {
+      const handleScroll = () => {
+        // NOTE: scrollTop - is how far you are from the top of the window (so, when you scroll to the very top of the page, it is zero)
+        // clientHeight - is the actual height of the screen (the viewport, i.e visible area)
+        // scrollHeight - is the entire height of the page (including non-visible area)
+        // So, scrollTop (when the user scrolls to the bottom page) + clientHeight === scrollHeight
+
+        if (document.querySelector("#comment")) {
+          const { scrollTop, clientHeight, scrollHeight } =
+            document.querySelector("#comment");
+
+          // Check if the item is close to the bottom. The '800' here means, 'check if the user has scrolled 800px close from the bottom'
+          if (scrollTop + clientHeight >= scrollHeight - 800) {
+            getNextComment();
+          }
+        }
+      };
+
+      if (document.querySelector("#comment")) {
+        document
+          .querySelector("#comment")
+          .addEventListener("scroll", handleScroll);
+        return () => {
+          if (document.querySelector("#comment")) {
+            document
+              .querySelector("#comment")
+              .removeEventListener("scroll", handleScroll);
+          }
+        };
+      }
+    } catch {
+      // Do nothing
+    }
+  }, [getNextComment]);
 
   // This useEffect runs to add an event listener to the 'Comment' button on the parent element (i.e the Read.jsx)
   // This is done because, on the click of a 'Comment' button on the parent element, we want to execute a function that is defined in this child element
@@ -320,13 +390,125 @@ const Comment = ({
     }
   };
 
+  // Checks if a user has sent a request to either like or unlike a comment, and f the request is still loading
+  const [likeCommentRequestLoading, setLikeCommentRequestLoading] =
+    useState(false);
+
+  // This function adds a like to a comment
+  const sendLikeCommentRequest = async (comment_id) => {
+    // Since our UI automatically updates when a user likes or unlikes a comment, we need to keep track of the previous comment data, incase the backend returned an error, we will just revert to the previous comment data where that comment was either liked or unliked
+    const backUpOfComments = comments;
+
+    setLikeCommentRequestLoading(true);
+
+    // First, we quickly update the UI, as if the like was successful, so the user will not have to wait for the backend to see that their like was successful
+    const newComments = comments.map((commentData) => {
+      // So, we mapped through all comments on the page and got the comment and the commenter
+      const { comment, commenter } = commentData;
+
+      // Increase the total number of likes that comment has, by one (1)
+      const new_total_num_of_comment_likes =
+        comment.total_num_comments_likes + 1;
+
+      // Check if the comment is the one the user wants to like, then reconstruct the comment data and update the total number of likes on the comments, and if the change 'loggedInUserLiked' to 'True'
+      if (comment.id === comment_id) {
+        const newCommentData = {
+          comment: {
+            ...comment,
+            loggedInUserLiked: true,
+            total_num_comments_likes: new_total_num_of_comment_likes,
+          },
+          commenter: { ...commenter },
+        };
+
+        return newCommentData;
+      }
+      return commentData;
+    });
+
+    // Then we update comments on our page. (Remember, we already have a backup of the comments set in the 'setBackUpOfComments' useState, incase something goes wrong while sending the request to like the comment)
+    setComments(newComments);
+
+    // Here, we send the actual request
+    try {
+      const response = await axiosClient.get(
+        `/api/likeComment/${comment_id}/${article_id}`
+      );
+
+      if (response.status === 200) {
+        // Do nothing because the UI has been updated already
+      }
+
+      setLikeCommentRequestLoading(false);
+    } catch {
+      setLikeCommentRequestLoading(false);
+
+      // If something went wrong, revert back to the original 'comments'
+      setComments(backUpOfComments);
+    }
+  };
+
+  // This function remove a like to a comment
+  const sendUnLikeCommentRequest = async (comment_id) => {
+    // Since our UI automatically updates when a user likes or unlikes a comment, we need to keep track of the previous comment data, incase the backend returned an error, we will just revert to the previous comment data where that comment was either liked or unliked
+    const backUpOfComments = comments;
+
+    setLikeCommentRequestLoading(true);
+
+    // First, we quickly update the UI, as if the like was successful, so the user will not have to wait for the backend to see that their like was successful
+    const newComments = comments.map((commentData) => {
+      // So, we mapped through all comments on the page and got the comment and the commenter
+      const { comment, commenter } = commentData;
+
+      // Decrease the total number of likes that comment has, by one (1)
+      const new_total_num_of_comment_likes =
+        comment.total_num_comments_likes - 1;
+
+      // Check if the comment is the one the user wants to like, then reconstruct the comment data and update the total number of likes on the comments, and if the change 'loggedInUserLiked' to 'True'
+      if (comment.id === comment_id) {
+        const newCommentData = {
+          comment: {
+            ...comment,
+            loggedInUserLiked: false,
+            total_num_comments_likes: new_total_num_of_comment_likes,
+          },
+          commenter: { ...commenter },
+        };
+
+        return newCommentData;
+      }
+      return commentData;
+    });
+
+    // Then we update comments on our page. (Remember, we already have a backup of the comments set in the 'setBackUpOfComments' useState, incase something goes wrong while sending the request to like the comment)
+    setComments(newComments);
+
+    // Here, we send the actual request
+    try {
+      const response = await axiosClient.get(
+        `/api/unlikeComment/${comment_id}/${article_id}`
+      );
+
+      if (response.status === 200) {
+        // Do nothing because the UI has been updated already
+      }
+
+      setLikeCommentRequestLoading(false);
+    } catch {
+      setLikeCommentRequestLoading(false);
+
+      // If something went wrong, revert back to the original 'comments'
+      setComments(backUpOfComments);
+    }
+  };
+
   return (
     <section
       onClick={(e) => {
         e.stopPropagation();
       }}
       id="comment"
-      className="p-4 fixed top-0 -right-[700px] w-[90%] max-w-[400px] overflow-auto  h-full z-10 bg-gray-200 dark:bg-[#020617] transition-all duration-500 ease-linear"
+      className="p-4 pb-16 fixed top-0 -right-[700px] w-[90%] max-w-[400px] overflow-auto  h-full z-10 bg-gray-200 dark:bg-[#020617] transition-all duration-500 ease-linear"
     >
       <h2 className="text-center my-8 font-bold uppercase">
         Comments{" "}
@@ -476,26 +658,23 @@ const Comment = ({
 
             <div className="flex justify-between items-center">
               <div>
-                {reactionType === "lov" ? (
+                {comment.loggedInUserLiked ? (
                   <button
                     type="button"
                     aria-label="Filled heart"
                     title="Unlove"
-                    // onClick={() => {
-                    //   if (
-                    //     user &&
-                    //     Object.keys(user).length &&
-                    //     !reactionRequestLoading
-                    //   ) {
-                    //     setReactionType("");
-                    //     sendRemoveReactionRequest();
-                    //   } else if (!user) {
-                    //     setUserTriedToReact(true);
-                    //   }
-                    // }}
+                    onClick={() => {
+                      if (
+                        user &&
+                        Object.keys(user).length &&
+                        !likeCommentRequestLoading
+                      ) {
+                        sendUnLikeCommentRequest(comment.id);
+                      }
+                    }}
                   >
                     <AiFillHeart
-                      className="inline text-red-500 text-2xl"
+                      className="inline text-red-500 text-xl"
                       aria-label="filled like emoji"
                     />
                   </button>
@@ -504,19 +683,15 @@ const Comment = ({
                     type="button"
                     aria-label="Unfilled heart"
                     title="Love"
-                    // onClick={() => {
-                    //   if (
-                    //     user &&
-                    //     Object.keys(user).length &&
-                    //     !reactionRequestLoading
-                    //   ) {
-                    //     setReactionType("love");
-                    //     setAreThereLoves("true");
-                    //     sendAddReactionRequest("love");
-                    //   } else if (!user) {
-                    //     setUserTriedToReact(true);
-                    //   }
-                    // }}
+                    onClick={() => {
+                      if (
+                        user &&
+                        Object.keys(user).length &&
+                        !likeCommentRequestLoading
+                      ) {
+                        sendLikeCommentRequest(comment.id);
+                      }
+                    }}
                   >
                     <AiOutlineHeart
                       className="inline text-xl"
@@ -524,7 +699,7 @@ const Comment = ({
                     />
                   </button>
                 )}{" "}
-                <span>
+                <span className="text-xs">
                   {comment.total_num_comments_likes > 0
                     ? comment.total_num_comments_likes
                     : ""}
@@ -537,18 +712,6 @@ const Comment = ({
                   type="button"
                   title="Delete article"
                   className="text-red-500"
-                  // onClick={() => {
-                  //   // So, incase there is a timeout, we clear it here
-                  //   clearTimeout(timeOutID);
-
-                  //   // Then we also hide the pop up that says 'Undo delete'
-                  //   hideUndoPopup();
-
-                  //   setErrorDeleting(false);
-                  //   setErrorUndoDeleting(false);
-
-                  //   showDeleteConfirmation(eachArticle.id);
-                  // }}
                   onClick={() => {
                     showCommentDeleteConfirmation(comment.id);
                   }}
@@ -593,7 +756,6 @@ const Comment = ({
 
                   <button
                     type="button"
-                    // disabled={deleteLoading}
                     className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
                     onClick={() => {
                       hideCommentDeleteConfirmation(comment.id);
@@ -624,6 +786,29 @@ const Comment = ({
           </article>
         );
       })}
+
+      <div id="seeMore">
+        {nextCommentLink && (
+          <div className="flex justify-center mt-10">
+            <button
+              type="button"
+              onClick={() => {
+                if (nextCommentLink && !createCommentLoading) {
+                  getNextComment();
+                }
+              }}
+              disabled={createCommentLoading}
+              className="px-2 flex justify-center items-center w-[150px] font-bold rounded-br-xl rounded-tl-xl py-1 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+            >
+              {createCommentLoading ? (
+                <Loader />
+              ) : (
+                <span className="flex justify-center">See more</span>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
 
       {errorGettingAllComments && (
         <p className="text-red-500 text-xs my-2 mb-4 text-center">

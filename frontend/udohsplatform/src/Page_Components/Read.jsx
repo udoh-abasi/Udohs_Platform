@@ -567,7 +567,7 @@ const Read = () => {
               <button
                 id="commentButton"
                 type="button"
-                className="block"
+                className="commentButton block"
                 title="Comment"
                 onClick={() => {
                   showComment();
@@ -768,10 +768,11 @@ const Read = () => {
 
               <button
                 type="button"
-                className="block"
+                className="commentButton block"
                 title="Comment"
                 onClick={() => {
                   showComment();
+                  document.querySelector("#commentButton").click();
                 }}
               >
                 <MdOutlineModeComment className="inline mr-1 text-3xl" />

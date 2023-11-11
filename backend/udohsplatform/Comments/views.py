@@ -14,6 +14,8 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework.pagination import LimitOffsetPagination
 from django.http import Http404
+from django.core.exceptions import ObjectDoesNotExist
+from .models import Comments
 
 User = get_user_model()
 
@@ -193,11 +195,21 @@ class AllCommentsView(ListAPIView):
                         # Get the number of likes on the comment
                         total_num_comments_likes = comment.comment_likes.count()
 
+                        # Check if the logged in user liked the comment
+                        loggedInUserLiked = False
+
+                        # Check if the logged in user is in the list of 'comment_likes'
+                        commentLike = comment.comment_likes.filter(pk=request.user.pk)
+
+                        if commentLike.exists():
+                            loggedInUserLiked = True
+
                         returnResult.append(
                             {
                                 "comment": {
                                     **theCommentData,
                                     "total_num_comments_likes": total_num_comments_likes,
+                                    "loggedInUserLiked": loggedInUserLiked,
                                 },
                                 "commenter": commenterData,
                             },
@@ -211,6 +223,16 @@ class AllCommentsView(ListAPIView):
 
                 # Here, we would have used 'serializer = CommentSerializer(data=comment)', but if we do so, we will not be able to get the number of likes on the comment, so we have to get the comment object first
                 comment = get_object_or_404(Comments, id=comment.get("id"))
+
+                # Check if the logged in user liked the comment
+                loggedInUserLiked = False
+
+                # Check if the logged in user is in the list of 'comment_likes'
+                commentLike = comment.comment_likes.filter(pk=request.user.pk)
+
+                if commentLike.exists():
+                    loggedInUserLiked = True
+
                 serializer = CommentSerializer(comment)
 
                 # Here, we want to get the details of the user who created the comment
@@ -254,6 +276,7 @@ class AllCommentsView(ListAPIView):
                         "comment": {
                             **serializer.data,
                             "total_num_comments_likes": total_num_comments_likes,
+                            "loggedInUserLiked": loggedInUserLiked,
                         },
                         "commenter": commenterData,
                     },
@@ -270,6 +293,7 @@ class AllCommentsView(ListAPIView):
                 ),
                 status=status.HTTP_200_OK,
             )
+
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -299,6 +323,85 @@ class DeleteCommentView(APIView):
             commentToDelete.delete()
 
             return Response({"deletedCommentID": comment_id}, status=status.HTTP_200_OK)
+
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+# This view is used to comment to an article.
+@method_decorator(csrf_protect, name="dispatch")
+class LikeCommentView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+
+    def get(self, request, comment_id, article_id):
+        try:
+            user = request.user
+
+            comment_id = int(comment_id)
+
+            # Get the comment that the user wants to like.
+            commentToUnLike = Comments.objects.get(id=comment_id)
+
+            # Then confirm that the comment that the user wants to like is in the article that the user sent
+            assert commentToUnLike.article.id == int(article_id)
+
+            # Like the comment
+            commentToUnLike.comment_likes.add(user)
+
+            # Get the total number of comments
+            total_num_of_comment_likes = commentToUnLike.comment_likes.count()
+
+            # Check if the logged-in user liked the comment
+            logged_in_user_liked = True
+
+            return Response(
+                dict(
+                    total_num_of_comment_likes=total_num_of_comment_likes,
+                    logged_in_user_liked=logged_in_user_liked,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+# This view is used to comment to an article.
+@method_decorator(csrf_protect, name="dispatch")
+class UnlikeCommentView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (SessionAuthentication,)
+
+    def get(self, request, comment_id, article_id):
+        try:
+            user = request.user
+
+            comment_id = int(comment_id)
+
+            # Get the comment that the user wants to unlike.
+            commentToUnLike = Comments.objects.get(id=comment_id)
+
+            # Then confirm that the comment that the user wants to like is in the article that the user sent
+            assert commentToUnLike.article.id == int(article_id)
+
+            # Unlike the comment
+            commentToUnLike.comment_likes.remove(user)
+
+            # Get the total number of comments
+            total_num_of_comment_likes = commentToUnLike.comment_likes.count()
+
+            # Check if the logged-in user liked the comment
+            logged_in_user_liked = False
+
+            print("Done")
+
+            return Response(
+                dict(
+                    total_num_of_comment_likes=total_num_of_comment_likes,
+                    logged_in_user_liked=logged_in_user_liked,
+                ),
+                status=status.HTTP_200_OK,
+            )
 
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
