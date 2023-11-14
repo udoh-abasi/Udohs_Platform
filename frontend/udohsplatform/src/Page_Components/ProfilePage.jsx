@@ -14,10 +14,8 @@ import axiosClient from "../utils/axiosSetup";
 import { userAction } from "../reduxFiles/actions";
 import EditArticle from "./editArticle";
 import sanitizedData from "../utils/sanitizeDescription";
-import {
-  getDescription,
-  getMonthAndYearOfDate,
-} from "../utils/getDescriptionText";
+import { getDescription } from "../utils/getDescriptionText";
+import getDayMonthAndYearOfDate from "../utils/getDayMonthAndYearOfDate";
 
 const ProfilePage = () => {
   let user = useSelector(userSelector);
@@ -659,7 +657,7 @@ const ProfilePage = () => {
                           </p>
                         </div>
                         <small className="mt-4 block">
-                          {getMonthAndYearOfDate(eachArticle.datePosted)}
+                          {getDayMonthAndYearOfDate(eachArticle.datePosted)}
                         </small>
                       </Link>
 

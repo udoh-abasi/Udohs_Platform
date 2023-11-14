@@ -6,10 +6,8 @@ import Loader from "./loader";
 import { AiFillWarning } from "react-icons/ai";
 import { BsFillArrowUpCircleFill } from "react-icons/bs";
 import sanitizedData from "../utils/sanitizeDescription";
-import {
-  getDescription,
-  getMonthAndYearOfDate,
-} from "../utils/getDescriptionText";
+import { getDescription } from "../utils/getDescriptionText";
+import getDayMonthAndYearOfDate from "../utils/getDayMonthAndYearOfDate";
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -216,7 +214,7 @@ const Search = () => {
                           </p>
                         </div>
                         <small className="mt-4 block">
-                          {getMonthAndYearOfDate(post.datePosted)}
+                          {getDayMonthAndYearOfDate(post.datePosted)}
                         </small>
                       </Link>
                     </div>

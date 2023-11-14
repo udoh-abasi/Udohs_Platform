@@ -16,6 +16,7 @@ import { profilePicURL } from "../utils/imageURLS";
 import { sanitizedData } from "./ConvertEditorJSDataToHTML";
 import { userSelector } from "../reduxFiles/selectors";
 import { useSelector } from "react-redux";
+import getDayMonthAndYearOfDate from "../utils/getDayMonthAndYearOfDate";
 
 const Comment = ({
   hideComment,
@@ -296,20 +297,6 @@ const Comment = ({
       return theMap;
     } catch (e) {
       console.log("Error with the data from EditorJS", e);
-    }
-  };
-
-  // This function runs to display the date a comment was made. In the format (November 5 2023)
-  const getDayMonthAndYearOfDate = (date) => {
-    try {
-      const postDate = new Date(date);
-
-      return `${postDate.toLocaleString("en-US", {
-        month: "long",
-        day: "numeric",
-      })}, ${postDate.getFullYear()}`;
-    } catch {
-      // Do nothing
     }
   };
 

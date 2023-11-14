@@ -1,15 +1,3 @@
-export const getMonthAndYearOfDate = (date) => {
-  try {
-    const postDate = new Date(date);
-
-    return `${postDate.toLocaleString("en-US", {
-      month: "long",
-    })}, ${postDate.getFullYear()}`;
-  } catch {
-    // Do nothing
-  }
-};
-
 // This function gets the the first paragraph of every article and uses it as the description
 export const getDescription = (eachData) => {
   try {

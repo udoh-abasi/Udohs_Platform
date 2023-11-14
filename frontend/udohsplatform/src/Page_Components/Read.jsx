@@ -15,10 +15,8 @@ import {
 } from "react-icons/ai";
 
 import { MdOutlineModeComment } from "react-icons/md";
-import {
-  getDescription,
-  getMonthAndYearOfDate,
-} from "../utils/getDescriptionText";
+import { getDescription } from "../utils/getDescriptionText";
+import getDayMonthAndYearOfDate from "../utils/getDayMonthAndYearOfDate";
 import { userSelector } from "../reduxFiles/selectors";
 import { useSelector } from "react-redux";
 import { showForm } from "../utils/showOrHideSignUpAndRegisterForms";
@@ -104,11 +102,7 @@ const Read = () => {
     if (article) {
       const postDate = new Date(article.datePosted);
 
-      setDateOfPost(
-        `${postDate.toLocaleString("en-US", {
-          month: "long",
-        })}, ${postDate.getFullYear()}`
-      );
+      setDateOfPost(getDayMonthAndYearOfDate(postDate));
     }
   }, [article]);
 
@@ -859,7 +853,7 @@ const Read = () => {
                           </p>
                         </div>
                         <small className="mt-4 -mb-4 block">
-                          {getMonthAndYearOfDate(eachArticle.datePosted)}
+                          {getDayMonthAndYearOfDate(eachArticle.datePosted)}
                         </small>
                       </Link>
 
@@ -932,7 +926,7 @@ const Read = () => {
                           <p id="two-line-ellipsis">{getDescription(post)}</p>
                         </div>
                         <small className="mt-4 block">
-                          {getMonthAndYearOfDate(post.datePosted)}
+                          {getDayMonthAndYearOfDate(post.datePosted)}
                         </small>
                       </Link>
                     </div>

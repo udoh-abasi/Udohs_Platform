@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { userSelector } from "./reduxFiles/selectors";
 import Write from "./Page_Components/Write";
 import Search from "./Page_Components/Search";
+import OurStory from "./Page_Components/OurStory";
 
 // const UnusedPrivateRoute = ({ children, user }) => {
 //   if (user) {
@@ -41,6 +42,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/story" element={<OurStory />} />
         <Route path="/membership" element={<Membership />} />
         <Route path="/allArticles" element={<AllArticles />} />
 

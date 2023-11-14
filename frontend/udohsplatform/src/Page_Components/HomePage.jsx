@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import axiosClient from "../utils/axiosSetup";
 import Loader from "./loader";
 import { profilePicURL } from "../utils/imageURLS";
-import { getMonthAndYearOfDate } from "../utils/getDescriptionText";
+import getDayMonthAndYearOfDate from "../utils/getDayMonthAndYearOfDate";
 
 const HomePage = () => {
   const [topArticles, setTopArticles] = useState([]);
@@ -208,7 +208,7 @@ const HomePage = () => {
 
                           <small>
                             {" "}
-                            {getMonthAndYearOfDate(post.datePosted)}
+                            {getDayMonthAndYearOfDate(post.datePosted)}
                           </small>
                         </div>
                       </Link>

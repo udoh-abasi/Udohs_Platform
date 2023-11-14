@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { CgProfile } from "react-icons/cg";
 import { BiSearchAlt } from "react-icons/bi";
-import { AiOutlineClose } from "react-icons/ai";
+import { AiOutlineClose, AiOutlineRead } from "react-icons/ai";
 import { BsPencilSquare } from "react-icons/bs";
 import { MdOutlineVerifiedUser } from "react-icons/md";
 import { HiOutlineLogin, HiOutlineLogout } from "react-icons/hi";
@@ -183,7 +183,7 @@ const Header = () => {
     searchInputField.focus();
   };
 
-  const smallScreenNav = useMatchMedia("(max-width:716px)");
+  const smallScreenNav = useMatchMedia("(max-width:776px)");
 
   // Listen to when a new <nav> is returned, then remove 'menuOpen' from <body> element. This is fix incase the nav was open on mobile before resizing screen to desktop
   useEffect(() => {
@@ -363,7 +363,7 @@ const Header = () => {
               <ul className="flex flex-col items-center justify-around h-full text-xl">
                 <li className="w-full" onClick={toggleOffMenu}>
                   <Link
-                    to=""
+                    to="/story"
                     className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Our story <RiChatHistoryLine className="ml-2" />
@@ -375,6 +375,15 @@ const Header = () => {
                     className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
                   >
                     Membership <MdOutlineVerifiedUser className="ml-2" />
+                  </Link>
+                </li>
+                <li className="w-full" onClick={toggleOffMenu}>
+                  <Link
+                    to="/allArticles"
+                    className="border-2 bg-[#70dbb8] dark:bg-[#020617] dark:border-[#fcffba] w-full text-center p-2 rounded-2xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] flex items-center justify-center"
+                  >
+                    Read
+                    <AiOutlineRead className="ml-2" />
                   </Link>
                 </li>
                 <li className="w-full" onClick={toggleOffMenu}>

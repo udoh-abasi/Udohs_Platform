@@ -122,7 +122,7 @@ const HeaderForBigScreen = ({
           <div className="flex items-center gap-4 text-[#af4261] dark:text-[#a1d06d] text-lg font-bold min-[900px]:text-xl">
             <li>
               <Link
-                to=""
+                to="/story"
                 className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
               >
                 Our story
@@ -134,6 +134,14 @@ const HeaderForBigScreen = ({
                 className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
               >
                 Membership
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/allArticles"
+                className="flex relative transition-all duration-500 after:duration-500 hover:text-[white] after:bg-[#af4261] dark:hover:text-[black] after:transition-all dark:after:bg-[#a1d06d] after:rounded-md after:w-full after:h-[2px] after:absolute after:bottom-0 hover:after:h-full z-10 after:z-[-10]"
+              >
+                Read
               </Link>
             </li>
             <li>

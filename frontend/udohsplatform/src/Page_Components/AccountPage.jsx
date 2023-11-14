@@ -7,10 +7,8 @@ import axiosClient from "../utils/axiosSetup";
 import { userSelector } from "../reduxFiles/selectors";
 import { useSelector } from "react-redux";
 import sanitizedData from "../utils/sanitizeDescription";
-import {
-  getDescription,
-  getMonthAndYearOfDate,
-} from "../utils/getDescriptionText";
+import { getDescription } from "../utils/getDescriptionText";
+import getDayMonthAndYearOfDate from "../utils/getDayMonthAndYearOfDate";
 
 const AccountPage = () => {
   const loggedInUser = useSelector(userSelector);
@@ -166,7 +164,7 @@ const AccountPage = () => {
                           </p>
                         </div>
                         <small className="mt-4 -mb-4 block">
-                          {getMonthAndYearOfDate(eachArticle.datePosted)}
+                          {getDayMonthAndYearOfDate(eachArticle.datePosted)}
                         </small>
                       </Link>
 
