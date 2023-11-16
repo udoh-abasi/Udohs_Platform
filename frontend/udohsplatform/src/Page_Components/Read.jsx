@@ -361,23 +361,453 @@ const Read = () => {
   };
 
   return (
-    <main className="min-h-screen pt-[5rem] p-4 max-w-[700px] mx-auto">
-      {pageLoading ? (
-        <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[rgba(255,255,255,0.5)] dark:bg-[rgba(0,0,0,0.5)] w-full h-full">
-          <div className="fixed top-1/2 left-1/2 z-10">
-            <Loader />
-          </div>
-        </div>
-      ) : (
-        <>
-          <h1 className="text-center font-bold text-2xl min-[500px]:text-3xl m-6">
-            {article.title}
-          </h1>
+    <>
+      <title>{article.title} - udohsplatform</title>
 
-          <div className="my-6">
-            <Link to={`/account/${articleAuthor.id}`} className="block">
-              <figure className="flex items-center ">
-                <div className="rounded-full overflow-hidden mr-4 flex-[0_0_40px] h-[40px]">
+      <main className="min-h-screen pt-[5rem] p-4 max-w-[700px] mx-auto">
+        {pageLoading ? (
+          <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[rgba(255,255,255,0.5)] dark:bg-[rgba(0,0,0,0.5)] w-full h-full">
+            <div className="fixed top-1/2 left-1/2 z-10">
+              <Loader />
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-center font-bold text-2xl min-[500px]:text-3xl m-6">
+              {article.title}
+            </h1>
+
+            <div className="my-6">
+              <Link to={`/account/${articleAuthor.id}`} className="block">
+                <figure className="flex items-center ">
+                  <div className="rounded-full overflow-hidden mr-4 flex-[0_0_40px] h-[40px]">
+                    <img
+                      alt={`${articleAuthor.first_name} ${articleAuthor.last_name}`}
+                      src={`${
+                        articleAuthor.profile_pic
+                          ? profilePicURL + articleAuthor.profile_pic
+                          : "/Profile_Image_Placeholder-small.jpg"
+                      }`}
+                    />
+                  </div>
+
+                  <figcaption>
+                    <p id="one-line-ellipsis">
+                      {articleAuthor.first_name} {articleAuthor.last_name}
+                    </p>
+                  </figcaption>
+                </figure>
+
+                <small>Published: {dateOfPost}</small>
+              </Link>
+              {article.edited && <small>Edited</small>}
+            </div>
+
+            <section>
+              <button
+                type="button"
+                aria-label="See all reactions"
+                title="See all reactions"
+                className="block w-full text-left"
+                onClick={() => {
+                  // Here, if the current user is the only person that reacted, then the interface to see users that reacted will not show up at all
+                  if (totalNumOfReactions > 0) {
+                    document
+                      .querySelector("#allLikes")
+                      .classList.remove("hidden");
+
+                    document
+                      .querySelector("body")
+                      .classList.add("overflow-hidden");
+                    setViewReactions("all");
+
+                    getUsersThatReacted();
+                  }
+                }}
+              >
+                <p className="inline mr-1">
+                  {areThereLikes && (
+                    <AiFillLike
+                      className="inline text-blue-500"
+                      aria-label="filled love emoji"
+                    />
+                  )}
+
+                  {areThereLoves && (
+                    <AiFillHeart
+                      className="inline text-red-500"
+                      aria-label="filled like emoji"
+                    />
+                  )}
+                </p>
+
+                {reactionType === "like" || reactionType === "love" ? (
+                  <p className="inline text-xs">
+                    You{" "}
+                    {totalNumOfReactions > 1 &&
+                      `and ${totalNumOfReactions} others`}
+                    {totalNumOfReactions == 1 &&
+                      `and ${totalNumOfReactions} other`}
+                  </p>
+                ) : (
+                  <>
+                    {totalNumOfReactions != 0 && (
+                      <p className="inline text-xs">{totalNumOfReactions}</p>
+                    )}
+                  </>
+                )}
+              </button>
+            </section>
+
+            <section>
+              <div className="mt-4 flex justify-between py-4 rounded-xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+                <p className="inline">
+                  {reactionType === "like" ? (
+                    <button
+                      type="button"
+                      aria-label="filled like"
+                      title="Unlike"
+                      onClick={() => {
+                        if (
+                          user &&
+                          Object.keys(user).length &&
+                          !reactionRequestLoading
+                        ) {
+                          setReactionType("");
+                          sendRemoveReactionRequest();
+                        } else if (!user) {
+                          setUserTriedToReact(true);
+                        }
+                      }}
+                    >
+                      <AiFillLike
+                        className="inline text-blue-500 mr-2 text-3xl"
+                        aria-label="filled love emoji"
+                      />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-label="Unfilled like"
+                      title="Like"
+                      onClick={() => {
+                        if (
+                          user &&
+                          Object.keys(user).length &&
+                          !reactionRequestLoading
+                        ) {
+                          setReactionType("like");
+                          setAreThereLikes("true");
+                          sendAddReactionRequest("like");
+                        } else if (!user) {
+                          setUserTriedToReact(true);
+                        }
+                      }}
+                    >
+                      <AiOutlineLike
+                        className="inline mr-2 text-3xl"
+                        aria-label="filled like emoji"
+                      />
+                    </button>
+                  )}
+
+                  {reactionType === "love" ? (
+                    <button
+                      type="button"
+                      aria-label="Filled heart"
+                      title="Unlove"
+                      onClick={() => {
+                        if (
+                          user &&
+                          Object.keys(user).length &&
+                          !reactionRequestLoading
+                        ) {
+                          setReactionType("");
+                          sendRemoveReactionRequest();
+                        } else if (!user) {
+                          setUserTriedToReact(true);
+                        }
+                      }}
+                    >
+                      <AiFillHeart
+                        className="inline text-red-500 mr-2 text-3xl"
+                        aria-label="filled like emoji"
+                      />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-label="Unfilled heart"
+                      title="Love"
+                      onClick={() => {
+                        if (
+                          user &&
+                          Object.keys(user).length &&
+                          !reactionRequestLoading
+                        ) {
+                          setReactionType("love");
+                          setAreThereLoves("true");
+                          sendAddReactionRequest("love");
+                        } else if (!user) {
+                          setUserTriedToReact(true);
+                        }
+                      }}
+                    >
+                      <AiOutlineHeart
+                        className="inline mr-2 text-3xl"
+                        aria-label="filled like emoji"
+                      />
+                    </button>
+                  )}
+                </p>
+
+                <button
+                  id="commentButton"
+                  type="button"
+                  className="commentButton block"
+                  title="Comment"
+                  onClick={() => {
+                    showComment();
+                  }}
+                >
+                  <MdOutlineModeComment className="inline mr-1 text-3xl" />
+                  <span className="text-xl mr-2">
+                    {total_num_of_comments > 0 ? total_num_of_comments : ""}
+                  </span>
+                </button>
+              </div>
+
+              {!user && userTriedToReact && (
+                <p className="text-xs text-red-500 mb-4 mt-8 text-center">
+                  <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
+                  You need to&nbsp;
+                  <Link
+                    className="uppercase underline font-bold"
+                    onClick={() => {
+                      showForm("#sign_in");
+                    }}
+                  >
+                    Sign in{" "}
+                  </Link>
+                  &nbsp;or&nbsp;
+                  <Link
+                    className="uppercase underline font-bold"
+                    onClick={() => {
+                      showForm("#register_user");
+                    }}
+                  >
+                    Register
+                  </Link>
+                  &nbsp;to add a reaction and comment.
+                </p>
+              )}
+            </section>
+
+            {convertEditorJSDataToHTML(JSON.parse(article.theMainArticle))}
+
+            <section>
+              <button
+                type="button"
+                aria-label="See all reactions"
+                title="See all reactions"
+                className="block w-full text-left"
+                onClick={() => {
+                  // Here, if the current user is the only person that reacted, then the interface to see users that reacted will not show up at all
+                  if (totalNumOfReactions > 0) {
+                    document
+                      .querySelector("#allLikes")
+                      .classList.remove("hidden");
+
+                    document
+                      .querySelector("body")
+                      .classList.add("overflow-hidden");
+                    setViewReactions("all");
+
+                    getUsersThatReacted();
+                  }
+                }}
+              >
+                <p className="inline mr-1">
+                  {areThereLikes && (
+                    <AiFillLike
+                      className="inline text-blue-500"
+                      aria-label="filled love emoji"
+                    />
+                  )}
+
+                  {areThereLoves && (
+                    <AiFillHeart
+                      className="inline text-red-500"
+                      aria-label="filled like emoji"
+                    />
+                  )}
+                </p>
+
+                {reactionType === "like" || reactionType === "love" ? (
+                  <p className="inline text-xs">
+                    You{" "}
+                    {totalNumOfReactions > 1 &&
+                      `and ${totalNumOfReactions} others`}
+                    {totalNumOfReactions == 1 &&
+                      `and ${totalNumOfReactions} other`}
+                  </p>
+                ) : (
+                  <>
+                    {totalNumOfReactions != 0 && (
+                      <p className="inline text-xs">{totalNumOfReactions}</p>
+                    )}
+                  </>
+                )}
+              </button>
+            </section>
+
+            <section>
+              <div className="mt-4 flex justify-between py-4 rounded-xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+                <p className="inline">
+                  {reactionType === "like" ? (
+                    <button
+                      type="button"
+                      aria-label="filled like"
+                      title="Unlike"
+                      onClick={() => {
+                        if (
+                          user &&
+                          Object.keys(user).length &&
+                          !reactionRequestLoading
+                        ) {
+                          setReactionType("");
+                          sendRemoveReactionRequest();
+                        } else if (!user) {
+                          setUserTriedToReact(true);
+                        }
+                      }}
+                    >
+                      <AiFillLike
+                        className="inline text-blue-500 mr-2 text-3xl"
+                        aria-label="filled love emoji"
+                      />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-label="Unfilled like"
+                      title="Like"
+                      onClick={() => {
+                        if (
+                          user &&
+                          Object.keys(user).length &&
+                          !reactionRequestLoading
+                        ) {
+                          setReactionType("like");
+                          setAreThereLikes("true");
+                          sendAddReactionRequest("like");
+                        } else if (!user) {
+                          setUserTriedToReact(true);
+                        }
+                      }}
+                    >
+                      <AiOutlineLike
+                        className="inline mr-2 text-3xl"
+                        aria-label="filled like emoji"
+                      />
+                    </button>
+                  )}
+
+                  {reactionType === "love" ? (
+                    <button
+                      type="button"
+                      aria-label="Filled heart"
+                      title="Unlove"
+                      onClick={() => {
+                        if (
+                          user &&
+                          Object.keys(user).length &&
+                          !reactionRequestLoading
+                        ) {
+                          setReactionType("");
+                          sendRemoveReactionRequest();
+                        } else if (!user) {
+                          setUserTriedToReact(true);
+                        }
+                      }}
+                    >
+                      <AiFillHeart
+                        className="inline text-red-500 mr-2 text-3xl"
+                        aria-label="filled like emoji"
+                      />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-label="Unfilled heart"
+                      title="Love"
+                      onClick={() => {
+                        if (
+                          user &&
+                          Object.keys(user).length &&
+                          !reactionRequestLoading
+                        ) {
+                          setReactionType("love");
+                          setAreThereLoves("true");
+                          sendAddReactionRequest("love");
+                        } else if (!user) {
+                          setUserTriedToReact(true);
+                        }
+                      }}
+                    >
+                      <AiOutlineHeart
+                        className="inline mr-2 text-3xl"
+                        aria-label="filled like emoji"
+                      />
+                    </button>
+                  )}
+                </p>
+
+                <button
+                  type="button"
+                  className="commentButton block"
+                  title="Comment"
+                  onClick={() => {
+                    showComment();
+                    document.querySelector("#commentButton").click();
+                  }}
+                >
+                  <MdOutlineModeComment className="inline mr-1 text-3xl" />
+                  <span className="text-xl mr-2">
+                    {total_num_of_comments > 0 ? total_num_of_comments : ""}
+                  </span>
+                </button>
+              </div>
+
+              {!user && userTriedToReact && (
+                <p className="text-xs text-red-500 mb-4 mt-8 text-center">
+                  <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
+                  You need to&nbsp;
+                  <Link
+                    className="uppercase underline font-bold"
+                    onClick={() => {
+                      showForm("#sign_in");
+                    }}
+                  >
+                    Sign in{" "}
+                  </Link>
+                  &nbsp;or&nbsp;
+                  <Link
+                    className="uppercase underline font-bold"
+                    onClick={() => {
+                      showForm("#register_user");
+                    }}
+                  >
+                    Register
+                  </Link>
+                  &nbsp;to add a reaction and comment.
+                </p>
+              )}
+            </section>
+
+            <Link to={`/account/${articleAuthor.id}`}>
+              <figure className="pt-8">
+                <div className="w-[100px] h-[100px] rounded-full overflow-hidden mr-4">
                   <img
                     alt={`${articleAuthor.first_name} ${articleAuthor.last_name}`}
                     src={`${
@@ -388,483 +818,132 @@ const Read = () => {
                   />
                 </div>
 
-                <figcaption>
-                  <p id="one-line-ellipsis">
-                    {articleAuthor.first_name} {articleAuthor.last_name}
+                <figcaption className="mt-4">
+                  <p className="my-4">
+                    Written by{" "}
+                    <strong>
+                      {articleAuthor.first_name} {articleAuthor.last_name}
+                    </strong>
                   </p>
+                  <p className="text-justify">{articleAuthor.bio}</p>
                 </figcaption>
               </figure>
-
-              <small>Published: {dateOfPost}</small>
             </Link>
-            {article.edited && <small>Edited</small>}
-          </div>
 
-          <section>
-            <button
-              type="button"
-              aria-label="See all reactions"
-              title="See all reactions"
-              className="block w-full text-left"
-              onClick={() => {
-                // Here, if the current user is the only person that reacted, then the interface to see users that reacted will not show up at all
-                if (totalNumOfReactions > 0) {
-                  document
-                    .querySelector("#allLikes")
-                    .classList.remove("hidden");
+            {Object.keys(otherArticles).length ? (
+              <section className="my-20">
+                <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                  More from {articleAuthor.first_name}
+                </h2>
 
-                  document
-                    .querySelector("body")
-                    .classList.add("overflow-hidden");
-                  setViewReactions("all");
+                {otherArticles.map((eachArticle) => (
+                  <div key={eachArticle.id} className="flex justify-center">
+                    <div className="flex-[0_1_750px]">
+                      <section className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+                        <Link
+                          to={`/read/${eachArticle.title}/${eachArticle.id}`}
+                        >
+                          <div className="hover:underline">
+                            <p id="one-line-ellipsis" className="mb-2">
+                              <strong>{eachArticle.title}</strong>
+                            </p>
 
-                  getUsersThatReacted();
-                }
-              }}
-            >
-              <p className="inline mr-1">
-                {areThereLikes && (
-                  <AiFillLike
-                    className="inline text-blue-500"
-                    aria-label="filled love emoji"
-                  />
-                )}
+                            <p id="two-line-ellipsis">
+                              <span
+                                dangerouslySetInnerHTML={sanitizedData(
+                                  getDescription(eachArticle),
+                                  []
+                                )}
+                              />
+                            </p>
+                          </div>
+                          <small className="mt-4 -mb-4 block">
+                            {getDayMonthAndYearOfDate(eachArticle.datePosted)}
+                          </small>
+                        </Link>
 
-                {areThereLoves && (
-                  <AiFillHeart
-                    className="inline text-red-500"
-                    aria-label="filled like emoji"
-                  />
-                )}
-              </p>
-
-              {reactionType === "like" || reactionType === "love" ? (
-                <p className="inline text-xs">
-                  You{" "}
-                  {totalNumOfReactions > 1 &&
-                    `and ${totalNumOfReactions} others`}
-                  {totalNumOfReactions == 1 &&
-                    `and ${totalNumOfReactions} other`}
-                </p>
-              ) : (
-                <>
-                  {totalNumOfReactions != 0 && (
-                    <p className="inline text-xs">{totalNumOfReactions}</p>
-                  )}
-                </>
-              )}
-            </button>
-          </section>
-
-          <section>
-            <div className="mt-4 flex justify-between py-4 rounded-xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-              <p className="inline">
-                {reactionType === "like" ? (
-                  <button
-                    type="button"
-                    aria-label="filled like"
-                    title="Unlike"
-                    onClick={() => {
-                      if (
-                        user &&
-                        Object.keys(user).length &&
-                        !reactionRequestLoading
-                      ) {
-                        setReactionType("");
-                        sendRemoveReactionRequest();
-                      } else if (!user) {
-                        setUserTriedToReact(true);
-                      }
-                    }}
-                  >
-                    <AiFillLike
-                      className="inline text-blue-500 mr-2 text-3xl"
-                      aria-label="filled love emoji"
-                    />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    aria-label="Unfilled like"
-                    title="Like"
-                    onClick={() => {
-                      if (
-                        user &&
-                        Object.keys(user).length &&
-                        !reactionRequestLoading
-                      ) {
-                        setReactionType("like");
-                        setAreThereLikes("true");
-                        sendAddReactionRequest("like");
-                      } else if (!user) {
-                        setUserTriedToReact(true);
-                      }
-                    }}
-                  >
-                    <AiOutlineLike
-                      className="inline mr-2 text-3xl"
-                      aria-label="filled like emoji"
-                    />
-                  </button>
-                )}
-
-                {reactionType === "love" ? (
-                  <button
-                    type="button"
-                    aria-label="Filled heart"
-                    title="Unlove"
-                    onClick={() => {
-                      if (
-                        user &&
-                        Object.keys(user).length &&
-                        !reactionRequestLoading
-                      ) {
-                        setReactionType("");
-                        sendRemoveReactionRequest();
-                      } else if (!user) {
-                        setUserTriedToReact(true);
-                      }
-                    }}
-                  >
-                    <AiFillHeart
-                      className="inline text-red-500 mr-2 text-3xl"
-                      aria-label="filled like emoji"
-                    />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    aria-label="Unfilled heart"
-                    title="Love"
-                    onClick={() => {
-                      if (
-                        user &&
-                        Object.keys(user).length &&
-                        !reactionRequestLoading
-                      ) {
-                        setReactionType("love");
-                        setAreThereLoves("true");
-                        sendAddReactionRequest("love");
-                      } else if (!user) {
-                        setUserTriedToReact(true);
-                      }
-                    }}
-                  >
-                    <AiOutlineHeart
-                      className="inline mr-2 text-3xl"
-                      aria-label="filled like emoji"
-                    />
-                  </button>
-                )}
-              </p>
-
-              <button
-                id="commentButton"
-                type="button"
-                className="commentButton block"
-                title="Comment"
-                onClick={() => {
-                  showComment();
-                }}
-              >
-                <MdOutlineModeComment className="inline mr-1 text-3xl" />
-                <span className="text-xl mr-2">
-                  {total_num_of_comments > 0 ? total_num_of_comments : ""}
-                </span>
-              </button>
-            </div>
-
-            {!user && userTriedToReact && (
-              <p className="text-xs text-red-500 mb-4 mt-8 text-center">
-                <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
-                You need to&nbsp;
-                <Link
-                  className="uppercase underline font-bold"
-                  onClick={() => {
-                    showForm("#sign_in");
-                  }}
-                >
-                  Sign in{" "}
-                </Link>
-                &nbsp;or&nbsp;
-                <Link
-                  className="uppercase underline font-bold"
-                  onClick={() => {
-                    showForm("#register_user");
-                  }}
-                >
-                  Register
-                </Link>
-                &nbsp;to add a reaction and comment.
-              </p>
+                        <Link
+                          to={`/read/${eachArticle.title}/${eachArticle.id}`}
+                          className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]"
+                        >
+                          <img
+                            src={
+                              eachArticle.heroImage
+                                ? profilePicURL + eachArticle.heroImage
+                                : "/Hero photo-small.webp"
+                            }
+                            alt="Hero image"
+                            className=" h-full w-full object-cover"
+                          />
+                        </Link>
+                      </section>
+                    </div>
+                  </div>
+                ))}
+              </section>
+            ) : (
+              <span></span>
             )}
-          </section>
 
-          {convertEditorJSDataToHTML(JSON.parse(article.theMainArticle))}
+            {Object.keys(articleByOtherPoster).length ? (
+              <section className="my-20">
+                <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                  You may also like
+                </h2>
 
-          <section>
-            <button
-              type="button"
-              aria-label="See all reactions"
-              title="See all reactions"
-              className="block w-full text-left"
-              onClick={() => {
-                // Here, if the current user is the only person that reacted, then the interface to see users that reacted will not show up at all
-                if (totalNumOfReactions > 0) {
-                  document
-                    .querySelector("#allLikes")
-                    .classList.remove("hidden");
+                {articleByOtherPoster.map((eachArticle) => {
+                  const { post, poster } = eachArticle;
+                  return (
+                    <section
+                      key={post.id}
+                      className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                    >
+                      <div>
+                        <Link to={`/account/${poster.id}`}>
+                          <figure className="flex items-center">
+                            <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
+                              <img
+                                alt={`${poster.first_name} ${poster.last_name}`}
+                                src={
+                                  poster.profile_pic
+                                    ? profilePicURL + poster.profile_pic
+                                    : "/Profile_Image_Placeholder-small.jpg"
+                                }
+                              />
+                            </div>
 
-                  document
-                    .querySelector("body")
-                    .classList.add("overflow-hidden");
-                  setViewReactions("all");
+                            <figcaption>
+                              <p>
+                                <small>
+                                  {poster.first_name} {poster.last_name}
+                                </small>
+                              </p>
+                            </figcaption>
+                          </figure>
+                        </Link>
 
-                  getUsersThatReacted();
-                }
-              }}
-            >
-              <p className="inline mr-1">
-                {areThereLikes && (
-                  <AiFillLike
-                    className="inline text-blue-500"
-                    aria-label="filled love emoji"
-                  />
-                )}
+                        <Link to={`/read/${post.title}/${post.id}`}>
+                          <div className="hover:underline">
+                            <p id="one-line-ellipsis" className="my-2">
+                              <strong>{post.title}</strong>
+                            </p>
 
-                {areThereLoves && (
-                  <AiFillHeart
-                    className="inline text-red-500"
-                    aria-label="filled like emoji"
-                  />
-                )}
-              </p>
-
-              {reactionType === "like" || reactionType === "love" ? (
-                <p className="inline text-xs">
-                  You{" "}
-                  {totalNumOfReactions > 1 &&
-                    `and ${totalNumOfReactions} others`}
-                  {totalNumOfReactions == 1 &&
-                    `and ${totalNumOfReactions} other`}
-                </p>
-              ) : (
-                <>
-                  {totalNumOfReactions != 0 && (
-                    <p className="inline text-xs">{totalNumOfReactions}</p>
-                  )}
-                </>
-              )}
-            </button>
-          </section>
-
-          <section>
-            <div className="mt-4 flex justify-between py-4 rounded-xl shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-              <p className="inline">
-                {reactionType === "like" ? (
-                  <button
-                    type="button"
-                    aria-label="filled like"
-                    title="Unlike"
-                    onClick={() => {
-                      if (
-                        user &&
-                        Object.keys(user).length &&
-                        !reactionRequestLoading
-                      ) {
-                        setReactionType("");
-                        sendRemoveReactionRequest();
-                      } else if (!user) {
-                        setUserTriedToReact(true);
-                      }
-                    }}
-                  >
-                    <AiFillLike
-                      className="inline text-blue-500 mr-2 text-3xl"
-                      aria-label="filled love emoji"
-                    />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    aria-label="Unfilled like"
-                    title="Like"
-                    onClick={() => {
-                      if (
-                        user &&
-                        Object.keys(user).length &&
-                        !reactionRequestLoading
-                      ) {
-                        setReactionType("like");
-                        setAreThereLikes("true");
-                        sendAddReactionRequest("like");
-                      } else if (!user) {
-                        setUserTriedToReact(true);
-                      }
-                    }}
-                  >
-                    <AiOutlineLike
-                      className="inline mr-2 text-3xl"
-                      aria-label="filled like emoji"
-                    />
-                  </button>
-                )}
-
-                {reactionType === "love" ? (
-                  <button
-                    type="button"
-                    aria-label="Filled heart"
-                    title="Unlove"
-                    onClick={() => {
-                      if (
-                        user &&
-                        Object.keys(user).length &&
-                        !reactionRequestLoading
-                      ) {
-                        setReactionType("");
-                        sendRemoveReactionRequest();
-                      } else if (!user) {
-                        setUserTriedToReact(true);
-                      }
-                    }}
-                  >
-                    <AiFillHeart
-                      className="inline text-red-500 mr-2 text-3xl"
-                      aria-label="filled like emoji"
-                    />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    aria-label="Unfilled heart"
-                    title="Love"
-                    onClick={() => {
-                      if (
-                        user &&
-                        Object.keys(user).length &&
-                        !reactionRequestLoading
-                      ) {
-                        setReactionType("love");
-                        setAreThereLoves("true");
-                        sendAddReactionRequest("love");
-                      } else if (!user) {
-                        setUserTriedToReact(true);
-                      }
-                    }}
-                  >
-                    <AiOutlineHeart
-                      className="inline mr-2 text-3xl"
-                      aria-label="filled like emoji"
-                    />
-                  </button>
-                )}
-              </p>
-
-              <button
-                type="button"
-                className="commentButton block"
-                title="Comment"
-                onClick={() => {
-                  showComment();
-                  document.querySelector("#commentButton").click();
-                }}
-              >
-                <MdOutlineModeComment className="inline mr-1 text-3xl" />
-                <span className="text-xl mr-2">
-                  {total_num_of_comments > 0 ? total_num_of_comments : ""}
-                </span>
-              </button>
-            </div>
-
-            {!user && userTriedToReact && (
-              <p className="text-xs text-red-500 mb-4 mt-8 text-center">
-                <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
-                You need to&nbsp;
-                <Link
-                  className="uppercase underline font-bold"
-                  onClick={() => {
-                    showForm("#sign_in");
-                  }}
-                >
-                  Sign in{" "}
-                </Link>
-                &nbsp;or&nbsp;
-                <Link
-                  className="uppercase underline font-bold"
-                  onClick={() => {
-                    showForm("#register_user");
-                  }}
-                >
-                  Register
-                </Link>
-                &nbsp;to add a reaction and comment.
-              </p>
-            )}
-          </section>
-
-          <Link to={`/account/${articleAuthor.id}`}>
-            <figure className="pt-8">
-              <div className="w-[100px] h-[100px] rounded-full overflow-hidden mr-4">
-                <img
-                  alt={`${articleAuthor.first_name} ${articleAuthor.last_name}`}
-                  src={`${
-                    articleAuthor.profile_pic
-                      ? profilePicURL + articleAuthor.profile_pic
-                      : "/Profile_Image_Placeholder-small.jpg"
-                  }`}
-                />
-              </div>
-
-              <figcaption className="mt-4">
-                <p className="my-4">
-                  Written by{" "}
-                  <strong>
-                    {articleAuthor.first_name} {articleAuthor.last_name}
-                  </strong>
-                </p>
-                <p className="text-justify">{articleAuthor.bio}</p>
-              </figcaption>
-            </figure>
-          </Link>
-
-          {Object.keys(otherArticles).length ? (
-            <section className="my-20">
-              <h2 className="text-center font-bold text-2xl uppercase mb-2">
-                More from {articleAuthor.first_name}
-              </h2>
-
-              {otherArticles.map((eachArticle) => (
-                <div key={eachArticle.id} className="flex justify-center">
-                  <div className="flex-[0_1_750px]">
-                    <section className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-                      <Link to={`/read/${eachArticle.title}/${eachArticle.id}`}>
-                        <div className="hover:underline">
-                          <p id="one-line-ellipsis" className="mb-2">
-                            <strong>{eachArticle.title}</strong>
-                          </p>
-
-                          <p id="two-line-ellipsis">
-                            <span
-                              dangerouslySetInnerHTML={sanitizedData(
-                                getDescription(eachArticle),
-                                []
-                              )}
-                            />
-                          </p>
-                        </div>
-                        <small className="mt-4 -mb-4 block">
-                          {getDayMonthAndYearOfDate(eachArticle.datePosted)}
-                        </small>
-                      </Link>
+                            <p id="two-line-ellipsis">{getDescription(post)}</p>
+                          </div>
+                          <small className="mt-4 block">
+                            {getDayMonthAndYearOfDate(post.datePosted)}
+                          </small>
+                        </Link>
+                      </div>
 
                       <Link
-                        to={`/read/${eachArticle.title}/${eachArticle.id}`}
+                        to={`/read/${post.title}/${post.id}`}
                         className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]"
                       >
                         <img
                           src={
-                            eachArticle.heroImage
-                              ? profilePicURL + eachArticle.heroImage
+                            post.heroImage
+                              ? profilePicURL + post.heroImage
                               : "/Hero photo-small.webp"
                           }
                           alt="Hero image"
@@ -872,300 +951,227 @@ const Read = () => {
                         />
                       </Link>
                     </section>
-                  </div>
-                </div>
-              ))}
-            </section>
-          ) : (
-            <span></span>
-          )}
+                  );
+                })}
+              </section>
+            ) : (
+              <span></span>
+            )}
 
-          {Object.keys(articleByOtherPoster).length ? (
-            <section className="my-20">
-              <h2 className="text-center font-bold text-2xl uppercase mb-2">
-                You may also like
-              </h2>
-
-              {articleByOtherPoster.map((eachArticle) => {
-                const { post, poster } = eachArticle;
-                return (
-                  <section
-                    key={post.id}
-                    className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                  >
-                    <div>
-                      <Link to={`/account/${poster.id}`}>
-                        <figure className="flex items-center">
-                          <div className="w-[30px] h-[30px] rounded-full overflow-hidden mr-4">
-                            <img
-                              alt={`${poster.first_name} ${poster.last_name}`}
-                              src={
-                                poster.profile_pic
-                                  ? profilePicURL + poster.profile_pic
-                                  : "/Profile_Image_Placeholder-small.jpg"
-                              }
-                            />
-                          </div>
-
-                          <figcaption>
-                            <p>
-                              <small>
-                                {poster.first_name} {poster.last_name}
-                              </small>
-                            </p>
-                          </figcaption>
-                        </figure>
-                      </Link>
-
-                      <Link to={`/read/${post.title}/${post.id}`}>
-                        <div className="hover:underline">
-                          <p id="one-line-ellipsis" className="my-2">
-                            <strong>{post.title}</strong>
-                          </p>
-
-                          <p id="two-line-ellipsis">{getDescription(post)}</p>
-                        </div>
-                        <small className="mt-4 block">
-                          {getDayMonthAndYearOfDate(post.datePosted)}
-                        </small>
-                      </Link>
-                    </div>
-
-                    <Link
-                      to={`/read/${post.title}/${post.id}`}
-                      className="w-[100px] h-[134px] flex-[0_0_100px] min-[550px]:flex-[0_0_150px] min-[730px]:flex-[0_0_200px]"
-                    >
-                      <img
-                        src={
-                          post.heroImage
-                            ? profilePicURL + post.heroImage
-                            : "/Hero photo-small.webp"
-                        }
-                        alt="Hero image"
-                        className=" h-full w-full object-cover"
-                      />
-                    </Link>
-                  </section>
-                );
-              })}
-            </section>
-          ) : (
-            <span></span>
-          )}
-
-          <div
-            id="allLikes"
-            className="hidden top-0 left-0 fixed w-full h-full"
-            onClick={() => {
-              document.querySelector("#allLikes").classList.add("hidden");
-              document
-                .querySelector("body")
-                .classList.remove("overflow-hidden");
-              setViewReactions("all");
-            }}
-          >
-            <article
-              className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] h-[80%] overflow-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-              onClick={(e) => e.stopPropagation()}
-              id="reactionContainer"
+            <div
+              id="allLikes"
+              className="hidden top-0 left-0 fixed w-full h-full"
+              onClick={() => {
+                document.querySelector("#allLikes").classList.add("hidden");
+                document
+                  .querySelector("body")
+                  .classList.remove("overflow-hidden");
+                setViewReactions("all");
+              }}
             >
-              <section className="flex justify-evenly my-4 border-b-[1px] border-black dark:border-white pb-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setViewReactions("all");
-                    getUsersThatReacted();
-                  }}
-                  className={`border-b-4  ${
-                    viewReactions === "all"
-                      ? "border-blue-500"
-                      : "border-transparent"
-                  }`}
-                >
-                  All <span>{totalUsersThatReacted}</span>
-                </button>
-
-                {totalNumOfLikes > 0 && (
+              <article
+                className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] h-[80%] overflow-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                onClick={(e) => e.stopPropagation()}
+                id="reactionContainer"
+              >
+                <section className="flex justify-evenly my-4 border-b-[1px] border-black dark:border-white pb-2 gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setViewReactions("likes");
-                      getUsersThatReacted("like");
-                    }}
-                    className={`border-b-4 ${
-                      viewReactions === "likes"
-                        ? "border-blue-500"
-                        : "border-transparent"
-                    }`}
-                  >
-                    <AiFillLike
-                      className="inline text-blue-500 text-xl"
-                      aria-label="filled love emoji"
-                    />{" "}
-                    <span>{totalNumOfLikes}</span>
-                  </button>
-                )}
-
-                {totalNumOfLoves > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setViewReactions("loves");
-                      getUsersThatReacted("love");
+                      setViewReactions("all");
+                      getUsersThatReacted();
                     }}
                     className={`border-b-4  ${
-                      viewReactions === "loves"
+                      viewReactions === "all"
                         ? "border-blue-500"
                         : "border-transparent"
                     }`}
                   >
-                    <AiFillHeart
-                      className="inline text-red-500 text-xl"
-                      aria-label="filled love emoji"
-                    />{" "}
-                    <span>{totalNumOfLoves}</span>
+                    All <span>{totalUsersThatReacted}</span>
                   </button>
-                )}
-              </section>
 
-              <section>
-                {usersThatReactedLoading ? (
-                  <Loader />
-                ) : (
-                  <>
-                    {usersThatReacted.map((eachData) => {
-                      const { reactor, reaction_type } = eachData;
-                      return (
-                        <Link
-                          key={reactor.id}
-                          to={`/account/${reactor.id}`}
-                          className="block my-4"
-                          onClick={() => {
-                            document
-                              .querySelector("#allLikes")
-                              .classList.add("hidden");
-                            document
-                              .querySelector("body")
-                              .classList.remove("overflow-hidden");
-                            setViewReactions("all");
-                          }}
-                        >
-                          <figure className="grid grid-cols-[auto_minmax(0,100%)]">
-                            <div className="relative">
-                              <div className="rounded-full overflow-hidden mr-4 w-[40px] h-[40px]">
-                                <img
-                                  alt={`${reactor.first_name} ${reactor.last_name}`}
-                                  src={`${
-                                    reactor.profile_pic
-                                      ? profilePicURL + reactor.profile_pic
-                                      : "/Profile_Image_Placeholder-small.jpg"
-                                  }`}
-                                />
+                  {totalNumOfLikes > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewReactions("likes");
+                        getUsersThatReacted("like");
+                      }}
+                      className={`border-b-4 ${
+                        viewReactions === "likes"
+                          ? "border-blue-500"
+                          : "border-transparent"
+                      }`}
+                    >
+                      <AiFillLike
+                        className="inline text-blue-500 text-xl"
+                        aria-label="filled love emoji"
+                      />{" "}
+                      <span>{totalNumOfLikes}</span>
+                    </button>
+                  )}
+
+                  {totalNumOfLoves > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewReactions("loves");
+                        getUsersThatReacted("love");
+                      }}
+                      className={`border-b-4  ${
+                        viewReactions === "loves"
+                          ? "border-blue-500"
+                          : "border-transparent"
+                      }`}
+                    >
+                      <AiFillHeart
+                        className="inline text-red-500 text-xl"
+                        aria-label="filled love emoji"
+                      />{" "}
+                      <span>{totalNumOfLoves}</span>
+                    </button>
+                  )}
+                </section>
+
+                <section>
+                  {usersThatReactedLoading ? (
+                    <Loader />
+                  ) : (
+                    <>
+                      {usersThatReacted.map((eachData) => {
+                        const { reactor, reaction_type } = eachData;
+                        return (
+                          <Link
+                            key={reactor.id}
+                            to={`/account/${reactor.id}`}
+                            className="block my-4"
+                            onClick={() => {
+                              document
+                                .querySelector("#allLikes")
+                                .classList.add("hidden");
+                              document
+                                .querySelector("body")
+                                .classList.remove("overflow-hidden");
+                              setViewReactions("all");
+                            }}
+                          >
+                            <figure className="grid grid-cols-[auto_minmax(0,100%)]">
+                              <div className="relative">
+                                <div className="rounded-full overflow-hidden mr-4 w-[40px] h-[40px]">
+                                  <img
+                                    alt={`${reactor.first_name} ${reactor.last_name}`}
+                                    src={`${
+                                      reactor.profile_pic
+                                        ? profilePicURL + reactor.profile_pic
+                                        : "/Profile_Image_Placeholder-small.jpg"
+                                    }`}
+                                  />
+                                </div>
+
+                                <p className="absolute bottom-3 right-2">
+                                  {reaction_type === "like" && (
+                                    <AiFillLike
+                                      className="bg-blue-500 p-1 text-xl text-white rounded-full"
+                                      aria-label="filled love emoji"
+                                    />
+                                  )}
+
+                                  {reaction_type === "love" && (
+                                    <AiFillHeart
+                                      className="bg-red-500 p-1 text-xl text-white rounded-full"
+                                      aria-label="filled like emoji"
+                                    />
+                                  )}
+                                </p>
                               </div>
 
-                              <p className="absolute bottom-3 right-2">
-                                {reaction_type === "like" && (
-                                  <AiFillLike
-                                    className="bg-blue-500 p-1 text-xl text-white rounded-full"
-                                    aria-label="filled love emoji"
-                                  />
-                                )}
+                              <div className="">
+                                <figcaption className="font-bold text-left">
+                                  <p id="one-line-ellipsis">
+                                    {reactor.first_name} {reactor.last_name}
+                                  </p>
+                                </figcaption>
 
-                                {reaction_type === "love" && (
-                                  <AiFillHeart
-                                    className="bg-red-500 p-1 text-xl text-white rounded-full"
-                                    aria-label="filled like emoji"
-                                  />
-                                )}
-                              </p>
-                            </div>
+                                <figcaption className="text-xs text-left">
+                                  <p id="two-line-ellipsis">{reactor.bio}</p>
+                                </figcaption>
+                              </div>
+                            </figure>
+                          </Link>
+                        );
+                      })}
 
-                            <div className="">
-                              <figcaption className="font-bold text-left">
-                                <p id="one-line-ellipsis">
-                                  {reactor.first_name} {reactor.last_name}
-                                </p>
-                              </figcaption>
+                      <div id="seeMore">
+                        {nextUsersThatReacted && (
+                          <div className="flex justify-center mt-10">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (nextUsersThatReacted) {
+                                  getNextUsersThatReacted();
+                                }
+                              }}
+                              disabled={nextContentLoading}
+                              className="px-2 flex justify-center items-center w-[150px] font-bold rounded-br-xl rounded-tl-xl py-1 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                            >
+                              {nextContentLoading ? (
+                                <Loader />
+                              ) : (
+                                <span className="flex justify-center">
+                                  See more
+                                </span>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
-                              <figcaption className="text-xs text-left">
-                                <p id="two-line-ellipsis">{reactor.bio}</p>
-                              </figcaption>
-                            </div>
-                          </figure>
-                        </Link>
-                      );
-                    })}
-
-                    <div id="seeMore">
-                      {nextUsersThatReacted && (
-                        <div className="flex justify-center mt-10">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (nextUsersThatReacted) {
-                                getNextUsersThatReacted();
-                              }
-                            }}
-                            disabled={nextContentLoading}
-                            className="px-2 flex justify-center items-center w-[150px] font-bold rounded-br-xl rounded-tl-xl py-1 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                          >
-                            {nextContentLoading ? (
-                              <Loader />
-                            ) : (
-                              <span className="flex justify-center">
-                                See more
-                              </span>
-                            )}
-                          </button>
-                        </div>
+                      {errorGettingUsersThatReacted && (
+                        <p className="text-red-500 text-sm text-center p-2 my-4">
+                          <AiFillWarning className="inline text-lg mr-1" />
+                          Something went wrong. Please reload the page to try
+                          again.
+                        </p>
                       )}
-                    </div>
+                    </>
+                  )}
+                </section>
 
-                    {errorGettingUsersThatReacted && (
-                      <p className="text-red-500 text-sm text-center p-2 my-4">
-                        <AiFillWarning className="inline text-lg mr-1" />
-                        Something went wrong. Please reload the page to try
-                        again.
-                      </p>
-                    )}
-                  </>
-                )}
-              </section>
+                <button
+                  aria-label="close"
+                  type="button"
+                  className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
+                  onClick={() => {
+                    document.querySelector("#allLikes").classList.add("hidden");
+                    document
+                      .querySelector("body")
+                      .classList.remove("overflow-hidden");
+                    setViewReactions("all");
+                  }}
+                >
+                  <AiOutlineClose />
+                </button>
+              </article>
+            </div>
 
-              <button
-                aria-label="close"
-                type="button"
-                className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
-                onClick={() => {
-                  document.querySelector("#allLikes").classList.add("hidden");
-                  document
-                    .querySelector("body")
-                    .classList.remove("overflow-hidden");
-                  setViewReactions("all");
-                }}
-              >
-                <AiOutlineClose />
-              </button>
-            </article>
-          </div>
-
-          <div
-            id="commentOverLay"
-            className="hidden z-10 top-0 left-0 fixed w-full h-full"
-            onClick={() => {
-              hideComment();
-            }}
-          >
-            <Comment
-              hideComment={hideComment}
-              total_num_comments={total_num_of_comments}
-              set_total_num_of_comments={set_total_num_of_comments}
-              article_id={article.id}
-            />
-          </div>
-        </>
-      )}
-    </main>
+            <div
+              id="commentOverLay"
+              className="hidden z-10 top-0 left-0 fixed w-full h-full"
+              onClick={() => {
+                hideComment();
+              }}
+            >
+              <Comment
+                hideComment={hideComment}
+                total_num_comments={total_num_of_comments}
+                set_total_num_of_comments={set_total_num_of_comments}
+                article_id={article.id}
+              />
+            </div>
+          </>
+        )}
+      </main>
+    </>
   );
 };
 

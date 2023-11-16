@@ -361,523 +361,532 @@ const ProfilePage = () => {
 
   return (
     <>
-      {userIsLoading || userArticleLoading ? (
-        <div className="min-h-screen grid place-items-center">
-          <Loader />
-        </div>
-      ) : (
-        <main
-          id="profilePage"
-          className="min-h-screen py-[90px] bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-[#a1d06d] via-[#ffffff] to-[#ffffff] dark:from-[#a1d06d] dark:via-[#020617] dark:to-[#020617]"
-        >
-          <section className="p-4">
-            <figure className="flex items-center flex-col gap-4">
-              <div className="w-[150px] h-[150px] rounded-full overflow-hidden">
-                <img
-                  alt=""
-                  src={
-                    user.profile_pic
-                      ? profilePicURL + `${user.profile_pic}`
-                      : "/Profile_Image_Placeholder-small.jpg"
-                  }
-                />
-              </div>
+      <title>{fullName} - udohsplatform</title>
 
-              <figcaption className="text-xl text-center">
-                <p className="mb-3">
-                  <strong> {fullName} </strong>
-                </p>
-                <small>Udohs Platform member since {dateJoined}</small>
-                {user.premium_member && (
-                  <strong className="text-[rgb(255,145,0)] dark:text-[#ffd700] block">
-                    <MdWorkspacePremium className="inline" />
-                    Premium member
-                    <MdWorkspacePremium className="inline" />
-                  </strong>
-                )}
-              </figcaption>
-            </figure>
-          </section>
-
-          <div className="text-center my-4">
-            <button
-              type="button"
-              className="px-4 font-bold rounded-br-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-              onClick={() => {
-                showForm("#editProfile");
-              }}
-            >
-              Edit profile
-            </button>
-
-            {/* NOTE: WHEN THE 'Edit profile' BUTTON IS CLICKED, THE <div> THAT WRAPS THE <form> THAT WILL POP UP, STARTS HERE */}
-            <div
-              id="editProfile"
-              className="flex justify-center fixed top-0 left-0 w-full h-full z-10 hidden scale-[0] rounded-full transition-all duration-500 ease-linear"
-            >
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-
-                  editProfile();
-                }}
-                className="fixed overflow-auto w-full pb-16 pt-6 bg-slate-200 dark:bg-black h-full top-0 z-30 p-4 max-w-[700px]"
-              >
-                <div className="flex justify-center">
-                  <div className="w-[150px] h-[150px] rounded-full overflow-hidden">
-                    <img alt="" src={showCroppedImage()} />
-                  </div>
-                </div>
-
-                <div>
-                  <input
-                    type="file"
-                    id="changeProfilePicture"
-                    accept="image/*"
-                    className="max-w-full hidden"
-                    multiple={false}
-                    value={imageOnInput}
-                    onChange={(e) => {
-                      // Check if a file was provided, then check if the file is an image file
-                      if (
-                        e.target.files.length &&
-                        e.target.files[0].type.startsWith("image/")
-                      ) {
-                        setImageFormat(e.target.files[0].type);
-                        setImageToCrop(e.target.files[0]);
-                        setShowImageCropperInterface(true);
-                      } else {
-                        console.log("Invalid file provided");
-                      }
-                    }}
-                  />
-                  <label
-                    htmlFor="changeProfilePicture"
-                    className="block mt-3 underline text-blue-500 cursor-pointer"
-                  >
-                    Change picture
-                  </label>
-                </div>
-
-                {showImageCropperInterface && (
-                  <ImageCropper
-                    // Send the image that we want to crop
-                    imageToCrop={imageToCrop}
-                    // Hide this 'ImageCropper' interface
-                    setShowImageCropperInterface={() => {
-                      setShowImageCropperInterface(false);
-                    }}
-                    // Clear the <input type="file" /> field
-                    setImageOnInput={() => {
-                      setImageOnInput("");
-                    }}
-                    // Get the cropped image
-                    setCroppedImageOnParent={(image) => {
-                      setCroppedImage(image);
-                    }}
-                    // The image canvas that will be manipulated and then have the image sent to the server
-                    setUploadCanvas={(canvas) => {
-                      setUploadCanvas(canvas);
-                    }}
-                    // The format of the image (whether image/webp, image/jpeg etc)
-                    imageFormat={imageFormat}
-                  />
-                )}
-
-                <div className="flex flex-col-reverse mb-8 relative mt-16">
-                  <input
-                    type="text"
-                    placeholder=" "
-                    id="firstName"
-                    maxLength={20}
-                    required
-                    value={firstNameEdit}
-                    onChange={(e) => setFirstNameEdit(e.target.value)}
-                    className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
-                  />
-
-                  <label
-                    htmlFor="firstName"
-                    className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
-                  >
-                    First Name
-                  </label>
-
-                  <small
-                    className={`self-start absolute top-10 left-2 ${
-                      firstNameEdit.length >= 15 && "text-red-500"
-                    }`}
-                  >
-                    {firstNameEdit.length}/20
-                  </small>
-                </div>
-
-                <div className="flex flex-col-reverse mb-8 relative mt-16">
-                  <input
-                    type="text"
-                    required
-                    placeholder=" "
-                    maxLength={20}
-                    id="lastName"
-                    value={lastNameEdit}
-                    onChange={(e) => setLastNameEdit(e.target.value)}
-                    className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
-                  />
-
-                  <label
-                    htmlFor="lastName"
-                    className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
-                  >
-                    Last Name
-                  </label>
-
-                  <small
-                    className={`self-start absolute top-10 left-2 ${
-                      lastNameEdit.length >= 15 && "text-red-500"
-                    }`}
-                  >
-                    {lastNameEdit.length}/20
-                  </small>
-                </div>
-
-                <div className="flex flex-col-reverse mb-8 relative mt-16">
-                  <textarea
-                    placeholder=" "
-                    required
-                    id="about"
-                    maxLength={999}
-                    value={bioEdit}
-                    onChange={(e) => setBioEdit(e.target.value)}
-                    className="h-[250px] resize-none rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
-                  ></textarea>
-
-                  <label
-                    htmlFor="about"
-                    className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[10%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-15%] peer-focus:translate-y-[0] top-[-15%] transition-all duration-500 ease-linear"
-                  >
-                    About
-                  </label>
-
-                  <small
-                    className={`self-start absolute -bottom-5 left-2 ${
-                      bioEdit.length >= 950 && "text-red-500"
-                    }`}
-                  >
-                    {bioEdit.length}/999
-                  </small>
-                </div>
-
-                {editProfileError && (
-                  <p className="text-red-500 text-sm text-center mb-4">
-                    <AiFillWarning className="inline text-lg mr-1" />
-                    Something went wrong
-                  </p>
-                )}
-
-                <div className="flex justify-center">
-                  <button
-                    type="submit"
-                    disabled={editProfileLoading}
-                    className="px-4 flex justify-center items-center w-[200px] uppercase font-bold rounded-br-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                  >
-                    {editProfileLoading ? (
-                      <Loader />
-                    ) : (
-                      <span className="flex justify-center">
-                        Save <BiSave className="text-xl ml-2 inline" />
-                      </span>
-                    )}
-                  </button>
-                </div>
-
-                <button
-                  aria-label="close"
-                  type="button"
-                  className="text-4xl absolute right-3 top-3 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
-                  onClick={() => {
-                    hideForm("#editProfile");
-                  }}
-                >
-                  <AiOutlineClose />
-                </button>
-              </form>
-            </div>
+      <>
+        {userIsLoading || userArticleLoading ? (
+          <div className="min-h-screen grid place-items-center">
+            <Loader />
           </div>
+        ) : (
+          <main
+            id="profilePage"
+            className="min-h-screen py-[90px] bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-[#a1d06d] via-[#ffffff] to-[#ffffff] dark:from-[#a1d06d] dark:via-[#020617] dark:to-[#020617]"
+          >
+            <section className="p-4">
+              <figure className="flex items-center flex-col gap-4">
+                <div className="w-[150px] h-[150px] rounded-full overflow-hidden">
+                  <img
+                    alt=""
+                    src={
+                      user.profile_pic
+                        ? profilePicURL + `${user.profile_pic}`
+                        : "/Profile_Image_Placeholder-small.jpg"
+                    }
+                  />
+                </div>
 
-          <section className="p-4">
-            <h2 className="text-center font-bold text-2xl uppercase mb-2">
-              About
-            </h2>
+                <figcaption className="text-xl text-center">
+                  <p className="mb-3">
+                    <strong> {fullName} </strong>
+                  </p>
+                  <small>Udohs Platform member since {dateJoined}</small>
+                  {user.premium_member && (
+                    <strong className="text-[rgb(255,145,0)] dark:text-[#ffd700] block">
+                      <MdWorkspacePremium className="inline" />
+                      Premium member
+                      <MdWorkspacePremium className="inline" />
+                    </strong>
+                  )}
+                </figcaption>
+              </figure>
+            </section>
 
-            {user.bio ? (
-              <div className="flex justify-center">
-                <p className="text-justify max-w-[480px]">{user.bio}</p>
-              </div>
-            ) : (
-              <p className="text-center italic">
-                You have not added an <q>About Me</q> section yet.{" "}
-                <button
-                  onClick={() => {
-                    showForm("#editProfile");
+            <div className="text-center my-4">
+              <button
+                type="button"
+                className="px-4 font-bold rounded-br-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                onClick={() => {
+                  showForm("#editProfile");
+                }}
+              >
+                Edit profile
+              </button>
+
+              {/* NOTE: WHEN THE 'Edit profile' BUTTON IS CLICKED, THE <div> THAT WRAPS THE <form> THAT WILL POP UP, STARTS HERE */}
+              <div
+                id="editProfile"
+                className="flex justify-center fixed top-0 left-0 w-full h-full z-10 hidden scale-[0] rounded-full transition-all duration-500 ease-linear"
+              >
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+
+                    editProfile();
                   }}
-                  className="text-blue-500 underline"
+                  className="fixed overflow-auto w-full pb-16 pt-6 bg-slate-200 dark:bg-black h-full top-0 z-30 p-4 max-w-[700px]"
                 >
-                  Add now
-                </button>
-              </p>
-            )}
-          </section>
+                  <div className="flex justify-center">
+                    <div className="w-[150px] h-[150px] rounded-full overflow-hidden">
+                      <img alt="" src={showCroppedImage()} />
+                    </div>
+                  </div>
 
-          {userArticles.length ? (
-            <section className="my-20">
-              <h2 className="text-center font-bold text-xl uppercase mb-2">
-                Your Articles
+                  <div>
+                    <input
+                      type="file"
+                      id="changeProfilePicture"
+                      accept="image/*"
+                      className="max-w-full hidden"
+                      multiple={false}
+                      value={imageOnInput}
+                      onChange={(e) => {
+                        // Check if a file was provided, then check if the file is an image file
+                        if (
+                          e.target.files.length &&
+                          e.target.files[0].type.startsWith("image/")
+                        ) {
+                          setImageFormat(e.target.files[0].type);
+                          setImageToCrop(e.target.files[0]);
+                          setShowImageCropperInterface(true);
+                        } else {
+                          console.log("Invalid file provided");
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor="changeProfilePicture"
+                      className="block mt-3 underline text-blue-500 cursor-pointer"
+                    >
+                      Change picture
+                    </label>
+                  </div>
+
+                  {showImageCropperInterface && (
+                    <ImageCropper
+                      // Send the image that we want to crop
+                      imageToCrop={imageToCrop}
+                      // Hide this 'ImageCropper' interface
+                      setShowImageCropperInterface={() => {
+                        setShowImageCropperInterface(false);
+                      }}
+                      // Clear the <input type="file" /> field
+                      setImageOnInput={() => {
+                        setImageOnInput("");
+                      }}
+                      // Get the cropped image
+                      setCroppedImageOnParent={(image) => {
+                        setCroppedImage(image);
+                      }}
+                      // The image canvas that will be manipulated and then have the image sent to the server
+                      setUploadCanvas={(canvas) => {
+                        setUploadCanvas(canvas);
+                      }}
+                      // The format of the image (whether image/webp, image/jpeg etc)
+                      imageFormat={imageFormat}
+                    />
+                  )}
+
+                  <div className="flex flex-col-reverse mb-8 relative mt-16">
+                    <input
+                      type="text"
+                      placeholder=" "
+                      id="firstName"
+                      maxLength={20}
+                      required
+                      value={firstNameEdit}
+                      onChange={(e) => setFirstNameEdit(e.target.value)}
+                      className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
+                    />
+
+                    <label
+                      htmlFor="firstName"
+                      className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+                    >
+                      First Name
+                    </label>
+
+                    <small
+                      className={`self-start absolute top-10 left-2 ${
+                        firstNameEdit.length >= 15 && "text-red-500"
+                      }`}
+                    >
+                      {firstNameEdit.length}/20
+                    </small>
+                  </div>
+
+                  <div className="flex flex-col-reverse mb-8 relative mt-16">
+                    <input
+                      type="text"
+                      required
+                      placeholder=" "
+                      maxLength={20}
+                      id="lastName"
+                      value={lastNameEdit}
+                      onChange={(e) => setLastNameEdit(e.target.value)}
+                      className="h-10 rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
+                    />
+
+                    <label
+                      htmlFor="lastName"
+                      className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+                    >
+                      Last Name
+                    </label>
+
+                    <small
+                      className={`self-start absolute top-10 left-2 ${
+                        lastNameEdit.length >= 15 && "text-red-500"
+                      }`}
+                    >
+                      {lastNameEdit.length}/20
+                    </small>
+                  </div>
+
+                  <div className="flex flex-col-reverse mb-8 relative mt-16">
+                    <textarea
+                      placeholder=" "
+                      required
+                      id="about"
+                      maxLength={999}
+                      value={bioEdit}
+                      onChange={(e) => setBioEdit(e.target.value)}
+                      className="h-[250px] resize-none rounded-xl ring-2 ring-[#81ba40] dark:ring-[#70dbb8] p-1 peer"
+                    ></textarea>
+
+                    <label
+                      htmlFor="about"
+                      className="cursor-text text-gray-500 text-xl p-1 absolute peer-placeholder-shown:top-[10%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-15%] peer-focus:translate-y-[0] top-[-15%] transition-all duration-500 ease-linear"
+                    >
+                      About
+                    </label>
+
+                    <small
+                      className={`self-start absolute -bottom-5 left-2 ${
+                        bioEdit.length >= 950 && "text-red-500"
+                      }`}
+                    >
+                      {bioEdit.length}/999
+                    </small>
+                  </div>
+
+                  {editProfileError && (
+                    <p className="text-red-500 text-sm text-center mb-4">
+                      <AiFillWarning className="inline text-lg mr-1" />
+                      Something went wrong
+                    </p>
+                  )}
+
+                  <div className="flex justify-center">
+                    <button
+                      type="submit"
+                      disabled={editProfileLoading}
+                      className="px-4 flex justify-center items-center w-[200px] uppercase font-bold rounded-br-xl rounded-tl-xl py-2 ring-4 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                    >
+                      {editProfileLoading ? (
+                        <Loader />
+                      ) : (
+                        <span className="flex justify-center">
+                          Save <BiSave className="text-xl ml-2 inline" />
+                        </span>
+                      )}
+                    </button>
+                  </div>
+
+                  <button
+                    aria-label="close"
+                    type="button"
+                    className="text-4xl absolute right-3 top-3 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
+                    onClick={() => {
+                      hideForm("#editProfile");
+                    }}
+                  >
+                    <AiOutlineClose />
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <section className="p-4">
+              <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                About
               </h2>
 
-              {userArticles.map((eachArticle) => (
-                <div key={eachArticle.id} className="flex justify-center">
-                  <div className="flex-[0_1_750px]">
-                    <section className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-                      <Link
-                        to={`/read/${eachArticle.title}/${eachArticle.id}`}
-                        className="flex-[7_7_0%]"
-                      >
-                        <div className="hover:underline">
-                          <p id="one-line-ellipsis" className="mb-2">
-                            <strong>{eachArticle.title}</strong>
-                          </p>
+              {user.bio ? (
+                <div className="flex justify-center">
+                  <p className="text-justify max-w-[480px]">{user.bio}</p>
+                </div>
+              ) : (
+                <p className="text-center italic">
+                  You have not added an <q>About Me</q> section yet.{" "}
+                  <button
+                    onClick={() => {
+                      showForm("#editProfile");
+                    }}
+                    className="text-blue-500 underline"
+                  >
+                    Add now
+                  </button>
+                </p>
+              )}
+            </section>
 
-                          <p id="two-line-ellipsis">
-                            <span
-                              dangerouslySetInnerHTML={sanitizedData(
-                                getDescription(eachArticle),
-                                []
-                              )}
-                            />
-                          </p>
-                        </div>
-                        <small className="mt-4 block">
-                          {getDayMonthAndYearOfDate(eachArticle.datePosted)}
-                        </small>
-                      </Link>
+            {userArticles.length ? (
+              <section className="my-20">
+                <h2 className="text-center font-bold text-xl uppercase mb-2">
+                  Your Articles
+                </h2>
 
-                      <div>
-                        <button
-                          aria-label="Edit article"
-                          type="button"
-                          title="Edit article"
-                          className="text-3xl max-[730px]:ml-2 block mb-4"
-                          onClick={() => {
-                            showEditConfirmation(eachArticle.id);
-                          }}
+                {userArticles.map((eachArticle) => (
+                  <div key={eachArticle.id} className="flex justify-center">
+                    <div className="flex-[0_1_750px]">
+                      <section className="p-4 mt-8 items-center justify-between flex gap-8 max-[730px]:gap-2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+                        <Link
+                          to={`/read/${eachArticle.title}/${eachArticle.id}`}
+                          className="flex-[7_7_0%]"
                         >
-                          <LuFileEdit />
-                        </button>
-
-                        <div
-                          id={`edit${eachArticle.id}`}
-                          className="confirmDelete hidden top-0 left-0 fixed w-full h-full"
-                          onClick={() => {
-                            hideEditConfirmation(eachArticle.id);
-                          }}
-                        >
-                          <article
-                            className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <p className="mb-4 font-bold">
-                              Please confirm you want to edit this post
+                          <div className="hover:underline">
+                            <p id="one-line-ellipsis" className="mb-2">
+                              <strong>{eachArticle.title}</strong>
                             </p>
 
-                            <div className="flex justify-around">
-                              <button
-                                type="button"
-                                className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                                onClick={() => {
-                                  hideEditConfirmation(eachArticle.id);
-                                  onEditClick(eachArticle.id);
-                                }}
-                              >
-                                Yes, Edit
-                              </button>
+                            <p id="two-line-ellipsis">
+                              <span
+                                dangerouslySetInnerHTML={sanitizedData(
+                                  getDescription(eachArticle),
+                                  []
+                                )}
+                              />
+                            </p>
+                          </div>
+                          <small className="mt-4 block">
+                            {getDayMonthAndYearOfDate(eachArticle.datePosted)}
+                          </small>
+                        </Link>
 
-                              <button
-                                type="button"
-                                className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                                onClick={() => {
-                                  hideEditConfirmation(eachArticle.id);
-                                }}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                            <button
-                              aria-label="close"
-                              type="button"
-                              className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
-                              onClick={() => {
-                                hideEditConfirmation(eachArticle.id);
-                              }}
+                        <div>
+                          <button
+                            aria-label="Edit article"
+                            type="button"
+                            title="Edit article"
+                            className="text-3xl max-[730px]:ml-2 block mb-4"
+                            onClick={() => {
+                              showEditConfirmation(eachArticle.id);
+                            }}
+                          >
+                            <LuFileEdit />
+                          </button>
+
+                          <div
+                            id={`edit${eachArticle.id}`}
+                            className="confirmDelete hidden top-0 left-0 fixed w-full h-full"
+                            onClick={() => {
+                              hideEditConfirmation(eachArticle.id);
+                            }}
+                          >
+                            <article
+                              className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <AiOutlineClose />
-                            </button>
-                          </article>
-                        </div>
+                              <p className="mb-4 font-bold">
+                                Please confirm you want to edit this post
+                              </p>
 
-                        <button
-                          aria-label="delete article"
-                          type="button"
-                          title="Delete article"
-                          className="text-4xl text-red-500 max-[730px]:ml-2 block"
-                          onClick={() => {
-                            // So, incase there is a timeout, we clear it here
-                            clearTimeout(timeOutID);
+                              <div className="flex justify-around">
+                                <button
+                                  type="button"
+                                  className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                  onClick={() => {
+                                    hideEditConfirmation(eachArticle.id);
+                                    onEditClick(eachArticle.id);
+                                  }}
+                                >
+                                  Yes, Edit
+                                </button>
 
-                            // Then we also hide the pop up that says 'Undo delete'
-                            hideUndoPopup();
-
-                            setErrorDeleting(false);
-                            setErrorUndoDeleting(false);
-
-                            showDeleteConfirmation(eachArticle.id);
-                          }}
-                        >
-                          <MdOutlineDeleteForever />
-                        </button>
-
-                        <div
-                          id={`delete${eachArticle.id}`}
-                          className="confirmDelete hidden top-0 left-0 fixed w-full h-full"
-                          onClick={() => {
-                            if (!deleteLoading) {
-                              hideDeleteConfirmation(eachArticle.id);
-                            }
-                          }}
-                        >
-                          <article
-                            className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <p className="mb-4 font-bold">
-                              Are you sure you want to delete this article&#x3f;{" "}
-                            </p>
-
-                            <div className="flex justify-around">
+                                <button
+                                  type="button"
+                                  className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                  onClick={() => {
+                                    hideEditConfirmation(eachArticle.id);
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
                               <button
-                                disabled={deleteLoading}
+                                aria-label="close"
                                 type="button"
-                                className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-red-500 hover:bg-red-500 hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
                                 onClick={() => {
-                                  if (!deleteLoading) {
-                                    onDeleteArticle(eachArticle.id);
-                                  }
+                                  hideEditConfirmation(eachArticle.id);
                                 }}
                               >
-                                {deleteLoading ? <Loader /> : <span>Yes</span>}
+                                <AiOutlineClose />
                               </button>
+                            </article>
+                          </div>
+
+                          <button
+                            aria-label="delete article"
+                            type="button"
+                            title="Delete article"
+                            className="text-4xl text-red-500 max-[730px]:ml-2 block"
+                            onClick={() => {
+                              // So, incase there is a timeout, we clear it here
+                              clearTimeout(timeOutID);
+
+                              // Then we also hide the pop up that says 'Undo delete'
+                              hideUndoPopup();
+
+                              setErrorDeleting(false);
+                              setErrorUndoDeleting(false);
+
+                              showDeleteConfirmation(eachArticle.id);
+                            }}
+                          >
+                            <MdOutlineDeleteForever />
+                          </button>
+
+                          <div
+                            id={`delete${eachArticle.id}`}
+                            className="confirmDelete hidden top-0 left-0 fixed w-full h-full"
+                            onClick={() => {
+                              if (!deleteLoading) {
+                                hideDeleteConfirmation(eachArticle.id);
+                              }
+                            }}
+                          >
+                            <article
+                              className="fixed rounded-2xl p-8 text-center w-full max-w-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-200 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <p className="mb-4 font-bold">
+                                Are you sure you want to delete this
+                                article&#x3f;{" "}
+                              </p>
+
+                              <div className="flex justify-around">
+                                <button
+                                  disabled={deleteLoading}
+                                  type="button"
+                                  className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-red-500 hover:bg-red-500 hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                  onClick={() => {
+                                    if (!deleteLoading) {
+                                      onDeleteArticle(eachArticle.id);
+                                    }
+                                  }}
+                                >
+                                  {deleteLoading ? (
+                                    <Loader />
+                                  ) : (
+                                    <span>Yes</span>
+                                  )}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  disabled={deleteLoading}
+                                  className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                  onClick={() => {
+                                    if (!deleteLoading) {
+                                      hideDeleteConfirmation(eachArticle.id);
+                                    }
+                                  }}
+                                >
+                                  No
+                                </button>
+                              </div>
+
+                              {errorDeleting && (
+                                <p className="text-red-500 text-sm font-bold p-4 mt-2">
+                                  Error Deleting, Please try again
+                                </p>
+                              )}
 
                               <button
+                                aria-label="close"
                                 type="button"
-                                disabled={deleteLoading}
-                                className="px-4 font-bold rounded-xl rounded-tl-xl py-2 ring-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                                className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
                                 onClick={() => {
                                   if (!deleteLoading) {
                                     hideDeleteConfirmation(eachArticle.id);
                                   }
                                 }}
                               >
-                                No
+                                <AiOutlineClose />
                               </button>
-                            </div>
-
-                            {errorDeleting && (
-                              <p className="text-red-500 text-sm font-bold p-4 mt-2">
-                                Error Deleting, Please try again
-                              </p>
-                            )}
-
-                            <button
-                              aria-label="close"
-                              type="button"
-                              className="text-3xl absolute top-2 right-2 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
-                              onClick={() => {
-                                if (!deleteLoading) {
-                                  hideDeleteConfirmation(eachArticle.id);
-                                }
-                              }}
-                            >
-                              <AiOutlineClose />
-                            </button>
-                          </article>
+                            </article>
+                          </div>
                         </div>
-                      </div>
-                    </section>
+                      </section>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </section>
-          ) : (
-            <section className="my-20">
-              <h2 className="text-center font-bold text-2xl uppercase mb-2">
-                Your Articles
-              </h2>
-              <p className="text-center italic">
-                You have no articles yet.{" "}
-                <Link to="/write" className="text-blue-500 underline">
-                  Add one
-                </Link>
-              </p>
-            </section>
-          )}
-
-          <div
-            id="deletePopUp"
-            className="-bottom-36 hidden fixed font-bold z-50 max-w-[400px] left-1/2 w-full p-4 bg-gray-200 -translate-x-1/2 -translate-y-1/2 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] transition-all duration-500 ease-linear"
-          >
-            {articleDeleteUndone ? (
-              <p className="text-center">Delete undone</p>
+                ))}
+              </section>
             ) : (
-              <p className="flex justify-around">
-                Article deleted
-                <button
-                  type="button"
-                  disabled={deleteUndoLoading}
-                  className="underline text-blue-400 disabled:cursor-not-allowed"
-                  onClick={() => {
-                    if (!deleteUndoLoading) {
-                      onUndoDelete();
-                    }
-                  }}
-                >
-                  {deleteUndoLoading ? <Loader /> : <span>Undo</span>}
-                </button>
-              </p>
+              <section className="my-20">
+                <h2 className="text-center font-bold text-2xl uppercase mb-2">
+                  Your Articles
+                </h2>
+                <p className="text-center italic">
+                  You have no articles yet.{" "}
+                  <Link to="/write" className="text-blue-500 underline">
+                    Add one
+                  </Link>
+                </p>
+              </section>
             )}
 
-            {errorUndoDeleting && (
-              <p className="text-red-500 text-sm font-bold p-4 mt-2">
-                Error undoing that delete, Please try again
-              </p>
-            )}
-
-            <button
-              aria-label="close"
-              type="button"
-              className="text-2xl absolute top-1 right-1 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
-              onClick={() => {
-                if (!deleteUndoLoading) {
-                  hideUndoPopup();
-                  clearTimeout(timeOutID);
-                }
-              }}
+            <div
+              id="deletePopUp"
+              className="-bottom-36 hidden fixed font-bold z-50 max-w-[400px] left-1/2 w-full p-4 bg-gray-200 -translate-x-1/2 -translate-y-1/2 dark:bg-black shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px] transition-all duration-500 ease-linear"
             >
-              <AiOutlineClose />
-            </button>
-          </div>
+              {articleDeleteUndone ? (
+                <p className="text-center">Delete undone</p>
+              ) : (
+                <p className="flex justify-around">
+                  Article deleted
+                  <button
+                    type="button"
+                    disabled={deleteUndoLoading}
+                    className="underline text-blue-400 disabled:cursor-not-allowed"
+                    onClick={() => {
+                      if (!deleteUndoLoading) {
+                        onUndoDelete();
+                      }
+                    }}
+                  >
+                    {deleteUndoLoading ? <Loader /> : <span>Undo</span>}
+                  </button>
+                </p>
+              )}
 
-          {showEditArticle}
-        </main>
-      )}
+              {errorUndoDeleting && (
+                <p className="text-red-500 text-sm font-bold p-4 mt-2">
+                  Error undoing that delete, Please try again
+                </p>
+              )}
+
+              <button
+                aria-label="close"
+                type="button"
+                className="text-2xl absolute top-1 right-1 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
+                onClick={() => {
+                  if (!deleteUndoLoading) {
+                    hideUndoPopup();
+                    clearTimeout(timeOutID);
+                  }
+                }}
+              >
+                <AiOutlineClose />
+              </button>
+            </div>
+
+            {showEditArticle}
+          </main>
+        )}
+      </>
     </>
   );
 };

@@ -426,420 +426,424 @@ const MyEditor = () => {
 
   return (
     <>
-      {!articleLink ? (
-        <main className="min-h-screen pt-20">
-          {editorLoading && (
-            <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[rgba(255,255,255,0.5)] dark:bg-[rgba(0,0,0,0.5)] w-full h-full">
-              <div className="fixed top-1/2 left-1/2 z-10">
-                <Loader />
+      <title>Write - udohsplatform</title>
+
+      <>
+        {!articleLink ? (
+          <main className="min-h-screen pt-20">
+            {editorLoading && (
+              <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[rgba(255,255,255,0.5)] dark:bg-[rgba(0,0,0,0.5)] w-full h-full">
+                <div className="fixed top-1/2 left-1/2 z-10">
+                  <Loader />
+                </div>
               </div>
-            </div>
-          )}
-
-          <div
-            id="WritePreview"
-            className="flex justify-center pt-10 fixed w-full top-16 bg-white dark:bg-[#020617] z-[5] transition-all duration-300 ease-linear"
-          >
-            <section className="min-[400px]:text-xl min-[500px]:text-2xl flex justify-between mb-4 p-4 flex-[0_1_670px]">
-              <button
-                className={`px-4 rounded-br-xl rounded-tl-xl py-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]'
-            ${viewMode == "write" ? "ring-4 font-bold" : "ring-1"}
-            `}
-                type="button"
-                onClick={() => {
-                  setViewMode("write");
-                }}
-              >
-                <span>
-                  Write <BsPencilSquare className="inline" />
-                </span>
-              </button>
-
-              <button
-                className={`px-4 rounded-br-xl rounded-tl-xl py-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]'
-            ${viewMode == "preview" ? "ring-4 font-bold" : "ring-1"}
-            `}
-                type="button"
-                onClick={() => {
-                  setViewMode("preview");
-                }}
-              >
-                <span>
-                  Preview <VscPreview className="inline" />
-                </span>
-              </button>
-            </section>
-          </div>
-
-          <section
-            className={`${viewMode === "write" ? "block" : "hidden"} pt-28`}
-          >
-            <form className="bg-white text-black px-4 pt-6 min-[645px]:px-14 flex justify-center">
-              <div className="flex-[0_1_650px] flex flex-col-reverse relative mt-8">
-                <input
-                  type="text"
-                  required
-                  placeholder=" "
-                  id="title"
-                  value={title}
-                  onChange={(e) => {
-                    if (titleAlreadyExist) {
-                      setTitleAlreadyExist(false); // Added incase the titleAlreadyExist error message had shown
-                    }
-                    setTitle(e.target.value);
-                  }}
-                  className="h-10 rounded-xl bg-white ring-2 ring-[#81ba40] p-1 peer"
-                />
-
-                <label
-                  htmlFor="title"
-                  className="text-gray-500 cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
-                >
-                  Title&nbsp;<span className="text-red-500">&#42;</span>
-                </label>
-              </div>
-            </form>
+            )}
 
             <div
-              id="editorJS"
-              className="bg-white text-black p-4 min-[645px]:px-14"
-            ></div>
-
-            {showAddHero && (
-              <>
-                <div className="flex justify-center">
-                  <div className="flex-[0_1_650px] p-4">
-                    <hr className="mb-8 dark:h-0 bg-[#020617] h-[3px] max-w-[650px] mx-auto" />
-                    <h2 className="text-center font-bold text-xl mb-6">
-                      Hero Image
-                    </h2>
-                    {croppedImage ? (
-                      <div className="flex justify-center">
-                        <div className="w-[200px] h-[200px] overflow-hidden">
-                          <img alt="" src={showCroppedImage()} />
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <h3 className="font-bold italic">
-                          Lastly, please add a hero image
-                        </h3>
-                        <p className="text-justify">
-                          This will not appear on your story. It will only
-                          appear on our &#8220;All Articles&#8221; page, to make
-                          your story more inviting to readers.
-                        </p>
-                      </>
-                    )}
-
-                    <div>
-                      <input
-                        type="file"
-                        id="heroImage"
-                        accept="image/*"
-                        className="max-w-full hidden"
-                        multiple={false}
-                        value={imageOnInput}
-                        onChange={(e) => {
-                          // Check if a file was provided, then check if the file is an image file
-                          if (
-                            e.target.files.length &&
-                            e.target.files[0].type.startsWith("image/")
-                          ) {
-                            setImageFormat(e.target.files[0].type);
-                            setImageToCrop(e.target.files[0]);
-                            setShowImageCropperInterface(true);
-                          } else {
-                            console.log("Invalid file provided");
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor="heroImage"
-                        className="flex justify-center items-center gap-2 mt-3 text-center cursor-pointer w-full p-4 bg-white-200 dark:bg-[#020617] shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
-                      >
-                        <FiImage className="inline text-xl" />{" "}
-                        <span>
-                          {croppedImage
-                            ? "Change hero image"
-                            : "Add a hero image"}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {showImageCropperInterface && (
-                    <ImageCropper_WritePage
-                      // Send the image that we want to crop
-                      imageToCrop={imageToCrop}
-                      // Hide this 'ImageCropper' interface
-                      setShowImageCropperInterface={() => {
-                        setShowImageCropperInterface(false);
-                      }}
-                      // Clear the <input type="file" /> field (fix for profile image page)
-                      setImageOnInput={() => {
-                        setImageOnInput("");
-                      }}
-                      // Get the cropped image
-                      setCroppedImageOnParent={(image) => {
-                        setCroppedImage(image);
-                      }}
-                      // The image canvas that will be manipulated and then have the image sent to the server
-                      setUploadCanvas={(canvas) => {
-                        setUploadCanvas(canvas);
-                      }}
-                      // The format of the image (whether image/webp, image/jpeg etc)
-                      imageFormat={imageFormat}
-                    />
-                  )}
-                </div>
-              </>
-            )}
-
-            {maxPostsExceeded && (
-              <p className="text-sm max-[370px]:text-xs text-red-500 mb-8 text-center mt-2">
-                <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
-                Maximum number of posts exceeded. Please visit the&nbsp;
-                <Link
-                  className="uppercase underline font-bold"
-                  to="/membership"
+              id="WritePreview"
+              className="flex justify-center pt-10 fixed w-full top-16 bg-white dark:bg-[#020617] z-[5] transition-all duration-300 ease-linear"
+            >
+              <section className="min-[400px]:text-xl min-[500px]:text-2xl flex justify-between mb-4 p-4 flex-[0_1_670px]">
+                <button
+                  className={`px-4 rounded-br-xl rounded-tl-xl py-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]'
+            ${viewMode == "write" ? "ring-4 font-bold" : "ring-1"}
+            `}
+                  type="button"
+                  onClick={() => {
+                    setViewMode("write");
+                  }}
                 >
-                  Membership
-                </Link>{" "}
-                page to unlock unlimited access.
-              </p>
-            )}
+                  <span>
+                    Write <BsPencilSquare className="inline" />
+                  </span>
+                </button>
 
-            {postButtonIsClick &&
-              (!user || !user.bio || !user.last_name || !user.first_name) && (
-                <div className="p-4 -mb-16">
-                  {!user && (
-                    <p className="text-center text-sm max-[370px]:text-xs text-red-500 mb-8">
-                      <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
-                      You need to&nbsp;
-                      <Link
-                        className="uppercase underline font-bold"
-                        onClick={() => {
-                          showForm("#sign_in");
+                <button
+                  className={`px-4 rounded-br-xl rounded-tl-xl py-2 ring-[#81ba40] dark:ring-[#70dbb8] hover:bg-[#81ba40] dark:hover:bg-[#70dbb8] hover:text-white dark:hover:text-black transition-all duration-300 ease-linear shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]'
+            ${viewMode == "preview" ? "ring-4 font-bold" : "ring-1"}
+            `}
+                  type="button"
+                  onClick={() => {
+                    setViewMode("preview");
+                  }}
+                >
+                  <span>
+                    Preview <VscPreview className="inline" />
+                  </span>
+                </button>
+              </section>
+            </div>
+
+            <section
+              className={`${viewMode === "write" ? "block" : "hidden"} pt-28`}
+            >
+              <form className="bg-white text-black px-4 pt-6 min-[645px]:px-14 flex justify-center">
+                <div className="flex-[0_1_650px] flex flex-col-reverse relative mt-8">
+                  <input
+                    type="text"
+                    required
+                    placeholder=" "
+                    id="title"
+                    value={title}
+                    onChange={(e) => {
+                      if (titleAlreadyExist) {
+                        setTitleAlreadyExist(false); // Added incase the titleAlreadyExist error message had shown
+                      }
+                      setTitle(e.target.value);
+                    }}
+                    className="h-10 rounded-xl bg-white ring-2 ring-[#81ba40] p-1 peer"
+                  />
+
+                  <label
+                    htmlFor="title"
+                    className="text-gray-500 cursor-text text-xl p-1 absolute peer-placeholder-shown:top-[50%] peer-placeholder-shown:translate-y-[-50%] peer-focus:top-[-90%] peer-focus:translate-y-[0] top-[-90%] transition-all duration-500 ease-linear"
+                  >
+                    Title&nbsp;<span className="text-red-500">&#42;</span>
+                  </label>
+                </div>
+              </form>
+
+              <div
+                id="editorJS"
+                className="bg-white text-black p-4 min-[645px]:px-14"
+              ></div>
+
+              {showAddHero && (
+                <>
+                  <div className="flex justify-center">
+                    <div className="flex-[0_1_650px] p-4">
+                      <hr className="mb-8 dark:h-0 bg-[#020617] h-[3px] max-w-[650px] mx-auto" />
+                      <h2 className="text-center font-bold text-xl mb-6">
+                        Hero Image
+                      </h2>
+                      {croppedImage ? (
+                        <div className="flex justify-center">
+                          <div className="w-[200px] h-[200px] overflow-hidden">
+                            <img alt="" src={showCroppedImage()} />
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <h3 className="font-bold italic">
+                            Lastly, please add a hero image
+                          </h3>
+                          <p className="text-justify">
+                            This will not appear on your story. It will only
+                            appear on our &#8220;All Articles&#8221; page, to
+                            make your story more inviting to readers.
+                          </p>
+                        </>
+                      )}
+
+                      <div>
+                        <input
+                          type="file"
+                          id="heroImage"
+                          accept="image/*"
+                          className="max-w-full hidden"
+                          multiple={false}
+                          value={imageOnInput}
+                          onChange={(e) => {
+                            // Check if a file was provided, then check if the file is an image file
+                            if (
+                              e.target.files.length &&
+                              e.target.files[0].type.startsWith("image/")
+                            ) {
+                              setImageFormat(e.target.files[0].type);
+                              setImageToCrop(e.target.files[0]);
+                              setShowImageCropperInterface(true);
+                            } else {
+                              console.log("Invalid file provided");
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor="heroImage"
+                          className="flex justify-center items-center gap-2 mt-3 text-center cursor-pointer w-full p-4 bg-white-200 dark:bg-[#020617] shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]"
+                        >
+                          <FiImage className="inline text-xl" />{" "}
+                          <span>
+                            {croppedImage
+                              ? "Change hero image"
+                              : "Add a hero image"}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {showImageCropperInterface && (
+                      <ImageCropper_WritePage
+                        // Send the image that we want to crop
+                        imageToCrop={imageToCrop}
+                        // Hide this 'ImageCropper' interface
+                        setShowImageCropperInterface={() => {
+                          setShowImageCropperInterface(false);
                         }}
-                      >
-                        Sign in{" "}
-                      </Link>
-                      &nbsp;or&nbsp;
-                      <Link
-                        className="uppercase underline font-bold"
-                        onClick={() => {
-                          showForm("#register_user");
+                        // Clear the <input type="file" /> field (fix for profile image page)
+                        setImageOnInput={() => {
+                          setImageOnInput("");
                         }}
-                      >
-                        Register
-                      </Link>
-                      &nbsp;to continue.
-                    </p>
-                  )}
-
-                  {user &&
-                    (!user.bio || !user.last_name || !user.first_name) && (
-                      <>
-                        <p className="text-center">
-                          Your story is ready to go live, however, the world
-                          needs to know the writer of this brilliant story:
-                        </p>
-
-                        <p className="text-sm max-[370px]:text-xs text-red-500 mb-8 text-center mt-2">
-                          <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
-                          Please visit the&nbsp;
-                          <Link
-                            className="uppercase underline font-bold"
-                            to="/userProfile"
-                          >
-                            Profile
-                          </Link>{" "}
-                          page and click on &quot;Edit Profile&quot; to update
-                          your information.&nbsp;
-                        </p>
-                      </>
+                        // Get the cropped image
+                        setCroppedImageOnParent={(image) => {
+                          setCroppedImage(image);
+                        }}
+                        // The image canvas that will be manipulated and then have the image sent to the server
+                        setUploadCanvas={(canvas) => {
+                          setUploadCanvas(canvas);
+                        }}
+                        // The format of the image (whether image/webp, image/jpeg etc)
+                        imageFormat={imageFormat}
+                      />
                     )}
+                  </div>
+                </>
+              )}
+
+              {maxPostsExceeded && (
+                <p className="text-sm max-[370px]:text-xs text-red-500 mb-8 text-center mt-2">
+                  <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
+                  Maximum number of posts exceeded. Please visit the&nbsp;
+                  <Link
+                    className="uppercase underline font-bold"
+                    to="/membership"
+                  >
+                    Membership
+                  </Link>{" "}
+                  page to unlock unlimited access.
+                </p>
+              )}
+
+              {postButtonIsClick &&
+                (!user || !user.bio || !user.last_name || !user.first_name) && (
+                  <div className="p-4 -mb-16">
+                    {!user && (
+                      <p className="text-center text-sm max-[370px]:text-xs text-red-500 mb-8">
+                        <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
+                        You need to&nbsp;
+                        <Link
+                          className="uppercase underline font-bold"
+                          onClick={() => {
+                            showForm("#sign_in");
+                          }}
+                        >
+                          Sign in{" "}
+                        </Link>
+                        &nbsp;or&nbsp;
+                        <Link
+                          className="uppercase underline font-bold"
+                          onClick={() => {
+                            showForm("#register_user");
+                          }}
+                        >
+                          Register
+                        </Link>
+                        &nbsp;to continue.
+                      </p>
+                    )}
+
+                    {user &&
+                      (!user.bio || !user.last_name || !user.first_name) && (
+                        <>
+                          <p className="text-center">
+                            Your story is ready to go live, however, the world
+                            needs to know the writer of this brilliant story:
+                          </p>
+
+                          <p className="text-sm max-[370px]:text-xs text-red-500 mb-8 text-center mt-2">
+                            <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
+                            Please visit the&nbsp;
+                            <Link
+                              className="uppercase underline font-bold"
+                              to="/userProfile"
+                            >
+                              Profile
+                            </Link>{" "}
+                            page and click on &quot;Edit Profile&quot; to update
+                            your information.&nbsp;
+                          </p>
+                        </>
+                      )}
+                  </div>
+                )}
+
+              {!showAddHero && (
+                <div className="flex justify-center mb-16 mt-6 p-4">
+                  <button
+                    type="submit"
+                    disabled={postDisable}
+                    onClick={() => {
+                      if (!postDisable) {
+                        if (!postButtonIsClick) {
+                          setPostButtonIsClick(true);
+                        }
+
+                        if (
+                          user &&
+                          user.bio &&
+                          user.first_name &&
+                          user.last_name
+                        ) {
+                          setShowAddHero(true);
+                        }
+                      }
+                    }}
+                    className="w-full max-w-[400px] font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
+                  >
+                    <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
+                    <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md group-disabled:bg-gray-500"></span>
+                    <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 group-disabled:bg-gray-500"></span>
+                    <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center group-disabled:text-gray-700 dark:group-disabled:text-gray-700">
+                      <>Post</>
+                    </span>
+                  </button>
                 </div>
               )}
 
-            {!showAddHero && (
-              <div className="flex justify-center mb-16 mt-6 p-4">
-                <button
-                  type="submit"
-                  disabled={postDisable}
-                  onClick={() => {
-                    if (!postDisable) {
-                      if (!postButtonIsClick) {
-                        setPostButtonIsClick(true);
+              {showAddHero && (
+                <div className="flex justify-center mb-16 mt-6 p-4">
+                  <button
+                    type="submit"
+                    disabled={postNowDisable}
+                    onClick={() => {
+                      if (!postNowDisable) {
+                        saveEditor();
                       }
+                    }}
+                    className="w-full max-w-[400px] font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
+                  >
+                    <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
+                    <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md group-disabled:bg-gray-500"></span>
+                    <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 group-disabled:bg-gray-500"></span>
+                    <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center group-disabled:text-gray-700 dark:group-disabled:text-gray-700">
+                      {postNowLoading ? <Loader /> : <>Post now</>}
+                    </span>
+                  </button>
+                </div>
+              )}
 
-                      if (
-                        user &&
-                        user.bio &&
-                        user.first_name &&
-                        user.last_name
-                      ) {
-                        setShowAddHero(true);
-                      }
-                    }
-                  }}
-                  className="w-full max-w-[400px] font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
-                >
-                  <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
-                  <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md group-disabled:bg-gray-500"></span>
-                  <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 group-disabled:bg-gray-500"></span>
-                  <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center group-disabled:text-gray-700 dark:group-disabled:text-gray-700">
-                    <>Post</>
-                  </span>
-                </button>
-              </div>
-            )}
+              {errorPosting && (
+                <p className="p-4 text-red-500 text-center font-bold -mt-16 text-sm">
+                  <BiSolidErrorAlt className="inline text-2xl" /> Something went
+                  wrong and we could not post your story. Please try again later
+                </p>
+              )}
 
-            {showAddHero && (
-              <div className="flex justify-center mb-16 mt-6 p-4">
-                <button
-                  type="submit"
-                  disabled={postNowDisable}
-                  onClick={() => {
-                    if (!postNowDisable) {
-                      saveEditor();
-                    }
-                  }}
-                  className="w-full max-w-[400px] font-bold uppercase relative flex items-center justify-center px-6 py-3 text-lg tracking-tighter text-white bg-gray-800 rounded-md group disabled:cursor-not-allowed"
-                >
-                  <span className="absolute inset-0 w-full h-full mt-1 ml-1 transition-all duration-300 ease-in-out bg-black dark:bg-white rounded-md group-hover:mt-0 group-hover:ml-0"></span>
-                  <span className="absolute inset-0 w-full h-full bg-[#81ba40] dark:bg-[#70dbb8] rounded-md group-disabled:bg-gray-500"></span>
-                  <span className="absolute inset-0 w-full h-full transition-all duration-200 ease-in-out delay-100 bg-black dark:bg-white rounded-md opacity-0 group-hover:opacity-100 group-disabled:bg-gray-500"></span>
-                  <span className="relative text-black transition-colors duration-200 ease-in-out delay-100 group-hover:text-white dark:group-hover:text-black flex items-center group-disabled:text-gray-700 dark:group-disabled:text-gray-700">
-                    {postNowLoading ? <Loader /> : <>Post now</>}
-                  </span>
-                </button>
-              </div>
-            )}
+              {titleAlreadyExist && (
+                <p className="text-sm max-[370px]:text-xs text-red-500 mb-8 text-center -mt-16 p-3">
+                  <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
+                  You already have an article with this title. Change the title
+                  or go to&nbsp;
+                  <Link
+                    className="uppercase underline font-bold"
+                    to="/userProfile"
+                  >
+                    Profile
+                  </Link>{" "}
+                  page and delete or edit the already existing article with this
+                  title.
+                </p>
+              )}
 
-            {errorPosting && (
-              <p className="p-4 text-red-500 text-center font-bold -mt-16 text-sm">
-                <BiSolidErrorAlt className="inline text-2xl" /> Something went
-                wrong and we could not post your story. Please try again later
-              </p>
-            )}
-
-            {titleAlreadyExist && (
-              <p className="text-sm max-[370px]:text-xs text-red-500 mb-8 text-center -mt-16 p-3">
-                <AiFillWarning className="text-2xl max-[370px]:text-lg inline" />
-                You already have an article with this title. Change the title or
-                go to&nbsp;
-                <Link
-                  className="uppercase underline font-bold"
-                  to="/userProfile"
-                >
-                  Profile
-                </Link>{" "}
-                page and delete or edit the already existing article with this
-                title.
-              </p>
-            )}
-
-            <div
-              id="messagePopUp"
-              className="-bottom-36 hidden rounded-2xl fixed font-bold z-50 max-w-[400px] right-0 w-full p-4 bg-[#020617] -translate-y-1/2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] transition-all duration-500 ease-linear"
-            >
-              <p className="text-center text-green-400 flex flex-col text-sm">
-                <span className="text-base">
-                  {" "}
-                  <AiOutlineFileDone className="inline text-3xl" /> Saved to
-                  draft!
-                </span>{" "}
-                <span className="text-white">
-                  {" "}
-                  You can exit this page, come back later and you will pick up
-                  from where you left off
-                </span>
-              </p>
-
-              <button
-                aria-label="close"
-                type="button"
-                className="text-2xl absolute top-1 right-1 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
-                onClick={() => {
-                  hideSavedToDraftMessage();
-                }}
+              <div
+                id="messagePopUp"
+                className="-bottom-36 hidden rounded-2xl fixed font-bold z-50 max-w-[400px] right-0 w-full p-4 bg-[#020617] -translate-y-1/2 shadow-[0px_5px_15px_rgba(0,0,0,0.35)] transition-all duration-500 ease-linear"
               >
-                <AiOutlineClose />
-              </button>
-            </div>
-          </section>
+                <p className="text-center text-green-400 flex flex-col text-sm">
+                  <span className="text-base">
+                    {" "}
+                    <AiOutlineFileDone className="inline text-3xl" /> Saved to
+                    draft!
+                  </span>{" "}
+                  <span className="text-white">
+                    {" "}
+                    You can exit this page, come back later and you will pick up
+                    from where you left off
+                  </span>
+                </p>
 
-          <section
-            className={`${viewMode === "preview" ? "block" : "hidden"} pt-36`}
-          >
-            <Preview theData={draftData} title={title} />
-          </section>
-        </main>
-      ) : (
-        <>
-          <div className="z-50 fixed top-0 left-0">
-            <Confetti
-              numberOfPieces={200}
-              width={windowDimensions.width}
-              height={windowDimensions.height}
-              gravity={0.05} // Controls how fast the confetti should fall
-              recycle={showConfetti} // Controls if the confetti will keep showing or not
-            />
-          </div>
-
-          <main className="min-h-screen mb-10 justify-center flex text-center bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-[#a1d06d] via-[#ffffff] to-[#ffffff] dark:from-[#a1d06d] dark:via-[#020617] dark:to-[#020617]">
-            <div className="flex flex-col min-h-screen gap-8 p-4 max-w-[650px]">
-              <h1 className="pt-[90px] text-[9vw] font-bold text-center text-[#81ba40] dark:text-[#70dbb8] min-[870px]:text-[75px]">
-                Congratulations!
-              </h1>
-
-              <h2 className="font-bold uppercase text-2xl text-center">
-                <strong className="text-[rgb(255,145,0)] dark:text-[#ffd700] block my-8 max-[450px]:text-xl">
-                  <MdCelebration className="inline" />
-                  Your story is live!
-                  <MdCelebration className="inline" />
-                </strong>
-              </h2>
-              <p className="text-center text-lg">
-                Below is a link to your story. You can share with your friends
-                to read, like and comment.
-              </p>
-
-              <div className="p-4 py-10 relative shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
-                <Link
-                  className="underline text-center text-lg break-all"
-                  to={`${articleLink}`}
+                <button
+                  aria-label="close"
+                  type="button"
+                  className="text-2xl absolute top-1 right-1 text-[#81ba40] dark:text-[#a1d06d] cursor-pointer"
+                  onClick={() => {
+                    hideSavedToDraftMessage();
+                  }}
                 >
-                  {articleLink}
-                </Link>
+                  <AiOutlineClose />
+                </button>
+              </div>
+            </section>
 
-                <div className="bg-gray-700 p-1 rounded-xl absolute top-1 right-1 text-[#70dbb8] font-bold">
-                  {!copied ? (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        // When the button is clicked, copy the text to the clipboard
-                        await navigator.clipboard.writeText(articleLink);
-                        setCopied(true);
-                      }}
-                    >
-                      Copy
-                      <BiCopy className="inline text-lg ml-1" />
-                    </button>
-                  ) : (
-                    <p>
-                      Copied
-                      <BiCheck className="inline text-green-400 text-2xl" />
-                    </p>
-                  )}
+            <section
+              className={`${viewMode === "preview" ? "block" : "hidden"} pt-36`}
+            >
+              <Preview theData={draftData} title={title} />
+            </section>
+          </main>
+        ) : (
+          <>
+            <div className="z-50 fixed top-0 left-0">
+              <Confetti
+                numberOfPieces={200}
+                width={windowDimensions.width}
+                height={windowDimensions.height}
+                gravity={0.05} // Controls how fast the confetti should fall
+                recycle={showConfetti} // Controls if the confetti will keep showing or not
+              />
+            </div>
+
+            <main className="min-h-screen mb-10 justify-center flex text-center bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))] from-[#a1d06d] via-[#ffffff] to-[#ffffff] dark:from-[#a1d06d] dark:via-[#020617] dark:to-[#020617]">
+              <div className="flex flex-col min-h-screen gap-8 p-4 max-w-[650px]">
+                <h1 className="pt-[90px] text-[9vw] font-bold text-center text-[#81ba40] dark:text-[#70dbb8] min-[870px]:text-[75px]">
+                  Congratulations!
+                </h1>
+
+                <h2 className="font-bold uppercase text-2xl text-center">
+                  <strong className="text-[rgb(255,145,0)] dark:text-[#ffd700] block my-8 max-[450px]:text-xl">
+                    <MdCelebration className="inline" />
+                    Your story is live!
+                    <MdCelebration className="inline" />
+                  </strong>
+                </h2>
+                <p className="text-center text-lg">
+                  Below is a link to your story. You can share with your friends
+                  to read, like and comment.
+                </p>
+
+                <div className="p-4 py-10 relative shadow-[0px_5px_15px_rgba(0,0,0,0.35)] dark:shadow-[rgba(255,255,255,0.089)_0px_0px_7px_5px]">
+                  <Link
+                    className="underline text-center text-lg break-all"
+                    to={`${articleLink}`}
+                  >
+                    {articleLink}
+                  </Link>
+
+                  <div className="bg-gray-700 p-1 rounded-xl absolute top-1 right-1 text-[#70dbb8] font-bold">
+                    {!copied ? (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          // When the button is clicked, copy the text to the clipboard
+                          await navigator.clipboard.writeText(articleLink);
+                          setCopied(true);
+                        }}
+                      >
+                        Copy
+                        <BiCopy className="inline text-lg ml-1" />
+                      </button>
+                    ) : (
+                      <p>
+                        Copied
+                        <BiCheck className="inline text-green-400 text-2xl" />
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </main>
-        </>
-      )}
+            </main>
+          </>
+        )}
+      </>
     </>
   );
 };

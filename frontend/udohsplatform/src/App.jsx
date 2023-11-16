@@ -14,6 +14,7 @@ import { userSelector } from "./reduxFiles/selectors";
 import Write from "./Page_Components/Write";
 import Search from "./Page_Components/Search";
 import OurStory from "./Page_Components/OurStory";
+import PageNotFound from "./Page_Components/PageNotFound";
 
 // const UnusedPrivateRoute = ({ children, user }) => {
 //   if (user) {
@@ -57,6 +58,8 @@ function App() {
         <Route path="/write" element={<Write />} />
 
         <Route path="/search" element={<Search />} />
+
+        <Route path="*" element={<PageNotFound />} />
 
         {/* <Route
           path="/userProfile"
