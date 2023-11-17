@@ -535,9 +535,6 @@ class VerifyPaymentWithPaystack(APIView):
 
 
 # This view takes the image sent by EditorJS (from the write page), and saves it to our backend, then return the URL of the saved image to the frontend, in the format requested by EditorJS
-
-
-# @method_decorator(csrf_protect, name="dispatch")
 class UploadImageFromEditorJSWritePage(APIView):
     permission_classes = (permissions.AllowAny,)
 

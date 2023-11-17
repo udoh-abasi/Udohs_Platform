@@ -427,6 +427,10 @@ const MyEditor = () => {
   return (
     <>
       <title>Write - udohsplatform</title>
+      <meta
+        name="description"
+        content="Write your own article post on udohsplatform"
+      />
 
       <>
         {!articleLink ? (

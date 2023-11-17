@@ -2,6 +2,7 @@ const OurStory = () => {
   return (
     <>
       <title>Our Story - udohsplatform</title>
+      <meta name="description" content="udohsplatform story and About us" />
 
       <main className="min-h-screen pt-[5rem] mx-auto">
         <h1 id="AboutHeader" className="h-[50vh] grid place-items-center">

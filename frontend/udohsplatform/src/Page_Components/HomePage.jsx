@@ -34,6 +34,7 @@ const HomePage = () => {
   return (
     <>
       <title>Home - udohsplatform</title>
+      <meta name="description" content="udohsplatform home page" />
 
       <main>
         <div className="bg-[#a9bdbf] grid grid-cols-1 grid-rows-1 max-h-[660px] overflow-hidden">

@@ -139,6 +139,7 @@ const AllArticles = () => {
   return (
     <>
       <title>All Articles - udohsplatform</title>
+      <meta name="description" content="All the articles on udohsplatform" />
 
       <main className="min-h-screen pt-[90px] flex justify-center">
         <div className="flex-[0_1_750px]">

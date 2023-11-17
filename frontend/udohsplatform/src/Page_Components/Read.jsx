@@ -363,6 +363,10 @@ const Read = () => {
   return (
     <>
       <title>{article.title} - udohsplatform</title>
+      <meta
+        name="description"
+        content="Read an article, see the likes and comment, and add likes and comments"
+      />
 
       <main className="min-h-screen pt-[5rem] p-4 max-w-[700px] mx-auto">
         {pageLoading ? (

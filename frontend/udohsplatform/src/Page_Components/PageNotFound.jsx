@@ -4,6 +4,7 @@ const PageNotFound = () => {
   return (
     <>
       <title>Page not found - udohsplatform</title>
+      <meta name="description" content="The requested Page is not found" />
 
       <main className="min-h-screen pt-[90px] flex justify-center">
         <section className="p-4 max-w-[700px]">

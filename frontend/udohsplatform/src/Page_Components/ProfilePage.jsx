@@ -362,6 +362,8 @@ const ProfilePage = () => {
   return (
     <>
       <title>{fullName} - udohsplatform</title>
+      <meta name="description" content="Profile page of a user on udohsplatform" />
+
 
       <>
         {userIsLoading || userArticleLoading ? (

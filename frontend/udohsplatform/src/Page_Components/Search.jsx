@@ -151,6 +151,7 @@ const Search = () => {
   return (
     <>
       <title>Search - udohsplatform</title>
+      <meta name="description" content="Search for articles on udohsplatform" />
 
       <>
         <main className="min-h-screen pt-[90px] flex justify-center">

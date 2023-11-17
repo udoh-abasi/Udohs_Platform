@@ -88,6 +88,7 @@ const AccountPage = () => {
   return (
     <>
       <title>{name} - udohsplatform</title>
+      <meta name="description" content="Account page" />
 
       <>
         {userIsLoading ? (

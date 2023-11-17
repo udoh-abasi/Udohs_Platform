@@ -192,6 +192,10 @@ const Membership = () => {
   return (
     <>
       <title>Membership - udohsplatform</title>
+      <meta
+        name="description"
+        content="Become a member of udohsplatform to enjoy all premium benefits"
+      />
 
       <>
         <main className="min-h-screen p-4 mb-4">
