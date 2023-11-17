@@ -1,13 +1,16 @@
 {
   "folders": [
-	{
-		"name": "udohsplatform",
-		"path": "."
-	},
-	{
-		"path": "../new"
-	}
-],
+    {
+      "name": "udohsplatform",
+      "path": "."
+    },
+    {
+      "path": "../new"
+    },
+    {
+      "path": "../Python Projects"
+    }
+  ],
   "settings": {
     "liveServer.settings.port": 5501,
     "liveServer.settings.multiRootWorkspaceName": "new"

@@ -32,9 +32,12 @@ from rest_framework.filters import SearchFilter
 from django.http import Http404
 from reactions.models import Reactions
 from django.core.exceptions import ObjectDoesNotExist
+from .tasks import send_mail_func
 
 
 User = get_user_model()
+
+frontendLink = ""
 
 
 # This view creates a new article and returns the link for that article
@@ -107,6 +110,9 @@ class UserArticleView(APIView):
                 # Increase the user's number of post
                 user.no_of_post += 1
                 user.save()
+
+                # NOTE: This sends an email to us. We used celery so this won't delay the client. The 'send_mail_func' expect a 'link', so we sent it in the 'delay' method
+                send_mail_func.delay(f"{frontendLink}/read/{obj.title}/{obj.id}")
 
                 return Response(
                     f"/read/{obj.title}/{obj.id}", status=status.HTTP_201_CREATED
